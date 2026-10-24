@@ -18,7 +18,7 @@
 <style>
 :root{--ground:#070B14;--surface:#0B1220;--raised:#0E1A30;--wfill:rgba(10,20,38,.96);--veil:rgba(3,6,12,.8);--line:#1E2A42;--line2:#2C3D5E;--ink:#EAF3FF;--mut:#8FA3C2;--soft:#C6D6EA;--sys:#3BA7FF;--sysl:#7CC4FF;--glow:#BDEBFF;--onsys:#06101F;--rew:#FFC94D;--fd:"Exo 2","Segoe UI",system-ui,sans-serif;--fb:Manrope,"Segoe UI",system-ui,sans-serif;color-scheme:dark}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:var(--ground);color:var(--ink);font:500 15px/22px var(--fb);overscroll-behavior:none}
+html,body{margin:0;height:100%;overflow:hidden;position:fixed;width:100%;background:var(--ground);color:var(--ink);font:500 15px/22px var(--fb);overscroll-behavior:none}
 button,input,textarea{font:inherit;color:inherit}
 button{-webkit-user-select:none;user-select:none}
 #app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden}
@@ -195,7 +195,6 @@ var TITLES = { gym: 'Il Fabbro', bld: 'Il Ragno', bch: 'Il Muro', swm: 'Lo Squal
 var MONTHS = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
 var MSHORT = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
 var DAYS_SHORT = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
-var XP_LEVEL = 500;
 var RANKS = [['S', 75], ['A', 62], ['B', 50], ['C', 32], ['D', 20], ['E', 0]];
 var SPORT_RANKS = [['S', 26], ['A', 20], ['B', 14], ['C', 8], ['D', 3], ['E', 0]];
 var KEY = 'sistema.v1';
@@ -245,13 +244,16 @@ var ui = { screen: 'home', ov: null, vm: { y: now.getFullYear(), m: now.getMonth
 var toastMsg = null, toastTimer = null, lastAnim = {};
 
 /* ---------- calcoli ---------- */
+function editWindow() { var c = S && S.profile.created ? diffDays(todayKey(), S.profile.created) : 99; return c <= 14 ? 31 : 7; }
+function canEdit(k) { var age = diffDays(todayKey(), k); return age >= 0 && age <= editWindow(); }
 function sessions(k) { return (S.days[k] || []); }
 function allKeysSorted() { return Object.keys(S.days).filter(function (k) { return S.days[k].length; }).sort(); }
 function sessXp(s) { return 10 + (s.quest && s.quest.done === true ? DIFF[s.quest.diff].bonus : 0) + (s.star ? 5 : 0); }
 function sessPts(s) { return s.quest && s.quest.done === true ? DIFF[s.quest.diff].pts : 1; }
 function dayPts(k) { var m = 0; sessions(k).forEach(function (s) { m = Math.max(m, sessPts(s)); }); return m; }
 function totalXp() { var x = 0; Object.keys(S.days).forEach(function (k) { S.days[k].forEach(function (s) { x += sessXp(s); }); }); return x; }
-function levelOf(xp) { return 1 + Math.floor(xp / XP_LEVEL); }
+function levelInfo(xp) { var lv = 1, need = 100; while (xp >= need) { xp -= need; lv++; need = 100 + 50 * (lv - 1); } return { lv: lv, inLv: xp, need: need }; }
+function levelOf(xp) { return levelInfo(xp).lv; }
 function rankOf(p, table) { table = table || RANKS; for (var i = 0; i < table.length; i++) if (p >= table[i][1]) return table[i][0]; return 'E'; }
 function nextRank(p, table) { table = table || RANKS; var nx = null, prev = 0; for (var i = table.length - 1; i >= 0; i--) { if (p < table[i][1]) { nx = table[i]; break; } prev = table[i][1]; } return { next: nx, prev: prev }; }
 function monthKeys(y, m) { var pre = y + '-' + pad(m + 1); return Object.keys(S.days).filter(function (k) { return k.indexOf(pre) === 0 && S.days[k].length; }); }
@@ -277,10 +279,21 @@ function monthStats(y, m) {
   return { keys: keys, days: keys.length, pts: pts, rank: rankOf(pts), counts: counts, sportPts: sportPts, sessions: n, top: top, title: title, qd: qd, qt: qt, weeksOk: weeksOk, weeksTot: Object.keys(wTot).length };
 }
 function weekCount(k, exclId) { var mon = mondayOf(k), n = 0; for (var i = 0; i < 7; i++) { var l = sessions(addDays(mon, i)).filter(function (s) { return s.id !== exclId; }); if (l.length) n++; } return n; }
-function activeToday() {
-  var list = sessions(todayKey());
-  for (var i = list.length - 1; i >= 0; i--) { var s = list[i]; if ((s.quest && s.quest.done === null) || (s.assess && !s.d)) return s; }
+function isOpen(s) { return (s.quest && s.quest.done === null) || (s.assess && !s.d); }
+function activeOpen() {
+  var t = todayKey(), keys = [t, addDays(t, -1)];
+  for (var j = 0; j < keys.length; j++) { var list = sessions(keys[j]); for (var i = list.length - 1; i >= 0; i--) if (isOpen(list[i])) return { k: keys[j], s: list[i] }; }
   return null;
+}
+function activeToday() { var a = activeOpen(); return a && a.k === todayKey() ? a.s : null; }
+function autoClose() {
+  if (!S) return;
+  var lim = addDays(todayKey(), -2), changed = false;
+  Object.keys(S.days).forEach(function (k) { if (k > lim) return; S.days[k].forEach(function (s) {
+    if (s.quest && s.quest.done === null) { s.quest.done = false; s.quest.auto = true; changed = true; }
+    if (s.assess && !s.d) { s.assess = false; changed = true; }
+  }); });
+  if (changed) save();
 }
 
 /* ---------- punto di partenza per le quest ---------- */
@@ -443,12 +456,12 @@ var A = {
   close: function () { close(); },
   /* giorni */
   day: function (k) {
-    var t = todayKey(), age = diffDays(t, k);
-    if (age < 0 || age > 7) return;
+    var t = todayKey();
+    if (!canEdit(k)) return;
     ding('open');
     if (k === t) {
-      var act = activeToday();
-      if (act) { if (act.assess) openDetails(k, act.id, true); else open({ t: 'verify', k: k, id: act.id }); return; }
+      var ao = activeOpen();
+      if (ao) { if (ao.s.assess) openDetails(ao.k, ao.s.id, true); else open({ t: 'verify', k: ao.k, id: ao.s.id }); return; }
       if (sessions(k).length) { open({ t: 'day', k: k }); return; }
       open({ t: 'pick', k: k }); return;
     }
@@ -482,7 +495,7 @@ var A = {
     addSession(o.k, { sport: o.sport, group: o.group || null, assess: true, d: null, star: false });
     ding('open'); ui.ov = null; toast('Allenati. A fine sessione segna i dati: saranno il tuo punto di partenza.');
   },
-  finish: function () { var a = activeToday(); if (!a) return; ding('open'); if (a.assess) openDetails(todayKey(), a.id, true); else open({ t: 'verify', k: todayKey(), id: a.id }); },
+  finish: function () { var ao = activeOpen(); if (!ao) return; ding('open'); if (ao.s.assess) openDetails(ao.k, ao.s.id, true); else open({ t: 'verify', k: ao.k, id: ao.s.id }); },
   verify: function (ok) {
     var o = ui.ov, s = findSession(o.k, o.id); if (!s) return close();
     var beforeLv = levelOf(totalXp() - sessXp(s)), beforeWeek = weekCount(o.k, s.id);
@@ -591,10 +604,10 @@ function importBackup(file) {
 
 /* ---------- viste ---------- */
 function header(title, extra) {
-  var xp = totalXp(), lv = levelOf(xp), inLv = xp % XP_LEVEL;
+  var li = levelInfo(totalXp()), lv = li.lv, inLv = li.inLv;
   return '<div class="top"><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="lbl kick">[ Sistema ]</span><h1>' + title + '</h1></div>' +
     '<div style="display:flex;align-items:flex-end;gap:10px">' +
-    '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><span class="lv">LV ' + lv + '</span><div class="track" style="width:104px"><div class="fill" style="width:' + Math.round(inLv / XP_LEVEL * 100) + '%"></div></div><span style="font:600 11px/14px var(--fd);color:var(--mut)">' + inLv + '/' + XP_LEVEL + '</span></div>' +
+    '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><span class="lv">LV ' + lv + '</span><div class="track" style="width:104px"><div class="fill" style="width:' + Math.round(inLv / li.need * 100) + '%"></div></div><span style="font:600 11px/14px var(--fd);color:var(--mut)">' + inLv + '/' + li.need + '</span></div>' +
     (extra || '') + '</div></div>';
 }
 function soundBtn() { return '<button class="icon-btn" data-a="sound" aria-label="' + (S.settings.sound ? 'Disattiva suoni' : 'Attiva suoni') + '">' + svg(S.settings.sound ? IC.snd : IC.mute) + '</button>'; }
@@ -602,12 +615,12 @@ function soundBtn() { return '<button class="icon-btn" data-a="sound" aria-label
 function viewHome() {
   var t = todayKey(), y = ui.vm.y, m = ui.vm.m, h = '';
   h += header(MONTHS[m] + ' ' + y, soundBtn());
-  var act = activeToday(), todayS = sessions(t);
+  var ao = activeOpen(), act = ao ? ao.s : null, todayS = sessions(t), yest = ao && ao.k !== t;
   if (act && act.assess) {
-    h += '<div class="win' + animCls('card-assess-' + act.id, 'card') + '" style="gap:12px;padding:14px 16px 16px"><div class="whead"><span class="mark">!</span><span class="wlabel">Prima sessione</span><span class="rule"></span></div><p style="margin:0;font:600 16px/23px var(--fb)">' + SPORTS[act.sport].name + ': a fine allenamento segna i dati, saranno il tuo punto di partenza.</p><button class="btn main" data-a="finish">Sessione finita</button></div>';
+    h += '<div class="win' + animCls('card-assess-' + act.id, 'card') + '" style="gap:12px;padding:14px 16px 16px"><div class="whead"><span class="mark">!</span><span class="wlabel">' + (yest ? 'Da ieri · prima sessione' : 'Prima sessione') + '</span><span class="rule"></span></div><p style="margin:0;font:600 16px/23px var(--fb)">' + SPORTS[act.sport].name + ': a fine allenamento segna i dati, saranno il tuo punto di partenza.</p><button class="btn main" data-a="finish">Sessione finita</button></div>';
   } else if (act) {
     var dd = DIFF[act.quest.diff];
-    h += '<div class="win' + animCls('card-' + act.id, 'card') + '" style="gap:12px;padding:14px 16px 16px"><div class="whead"><span class="mark">!</span><span class="wlabel">Quest in corso</span><span class="rule"></span><span style="font:600 11px/14px var(--fd);letter-spacing:2px;text-transform:uppercase;color:' + dd.c + '">' + dd.label + '</span></div><p style="margin:0;font:600 17px/24px var(--fb)">' + esc(goalText(act)) + '</p><button class="btn main" data-a="finish">Sessione finita</button></div>';
+    h += '<div class="win' + animCls('card-' + act.id, 'card') + '" style="gap:12px;padding:14px 16px 16px"><div class="whead"><span class="mark">!</span><span class="wlabel">' + (yest ? 'Quest di ieri' : 'Quest in corso') + '</span><span class="rule"></span><span style="font:600 11px/14px var(--fd);letter-spacing:2px;text-transform:uppercase;color:' + dd.c + '">' + dd.label + '</span></div><p style="margin:0;font:600 17px/24px var(--fb)">' + esc(goalText(act)) + '</p><button class="btn main" data-a="finish">' + (yest ? 'Com’è andata?' : 'Sessione finita') + '</button></div>';
   } else if (todayS.length) {
     var ls = todayS[todayS.length - 1];
     var kick = ls.quest ? (ls.quest.done ? 'Quest completata' : 'Sessione registrata') : 'Giorno segnato';
@@ -623,7 +636,7 @@ function viewHome() {
   h += '<div class="grid7">' + ['L', 'M', 'M', 'G', 'V', 'S', 'D'].map(function (x) { return '<span class="dow">' + x + '</span>'; }).join('') + '</div><div class="grid7">';
   for (var i = 0; i < lead; i++) h += '<span class="cell empty"></span>';
   for (var d = 1; d <= nd; d++) {
-    var k = y + '-' + pad(m + 1) + '-' + pad(d), ss = sessions(k), age = diffDays(t, k), tap = age >= 0 && age <= 7, st = '', cls = 'cell';
+    var k = y + '-' + pad(m + 1) + '-' + pad(d), ss = sessions(k), age = diffDays(t, k), tap = canEdit(k), st = '', cls = 'cell';
     if (ss.length) {
       var sp = []; ss.forEach(function (s) { if (sp.indexOf(s.sport) < 0) sp.push(s.sport); });
       cls += ' sport';
@@ -634,7 +647,9 @@ function viewHome() {
     var star = ss.some(function (s) { return s.star; });
     h += '<button class="' + cls + '" style="' + st + '"' + (tap ? ' data-a="day" data-v="' + k + '"' : ' disabled') + ' aria-label="' + d + ' ' + MONTHS[m] + '">' + d + (star ? STAR_MINI : '') + '</button>';
   }
-  h += '</div><div class="legend">' + S.profile.sports.map(function (s) { return '<span><i style="background:' + SPORTS[s].c + '"></i>' + SPORTS[s].name + '</span>'; }).join('') + '</div></div>';
+  h += '</div>' + (editWindow() > 7 ? '<span class="hint" style="color:var(--sysl)">Primi 14 giorni: puoi segnare anche gli allenamenti dell’ultimo mese, così parti dal tuo rango vero.</span>' : '') + '<div class="legend">' + S.profile.sports.map(function (s) { return '<span><i style="background:' + SPORTS[s].c + '"></i>' + SPORTS[s].name + '</span>'; }).join('') + '</div></div>';
+  var nSess = allKeysSorted().length, lb = S.lastBackup, bAge = lb ? diffDays(t, lb) : null;
+  if ((lb === null && nSess >= 5) || (bAge !== null && bAge > 14)) h += '<div style="border:1px dashed #6B5A25;border-radius:14px;background:#14120A;padding:12px 16px;display:flex;align-items:center;gap:12px"><span style="flex:1 1 auto;font:500 13px/18px var(--fb);color:#E8D9A8">' + (lb ? 'Ultimo backup ' + bAge + ' giorni fa.' : 'Non hai ancora fatto un backup.') + ' I dati vivono solo su questo telefono.</span><button class="btn sm" style="border-color:#6B5A25;color:#FFE3A0" data-a="exportData">Backup</button></div>';
   // settimana
   var wc = weekCount(t), nb = BADGES[wc + 1];
   var next = wc >= 7 ? 'Settimana piena. Davvero, riposati.' : wc < 2 ? 'Ancora ' + (2 - wc) + ' per: Keep in shape' : 'Ancora 1 giorno per: ' + nb;
@@ -645,11 +660,11 @@ function viewHome() {
 }
 
 function viewStato() {
-  var n = new Date(), ms = monthStats(n.getFullYear(), n.getMonth()), xp = totalXp(), lv = levelOf(xp), inLv = xp % XP_LEVEL, nr = nextRank(ms.pts);
+  var n = new Date(), ms = monthStats(n.getFullYear(), n.getMonth()), li = levelInfo(totalXp()), lv = li.lv, inLv = li.inLv, nr = nextRank(ms.pts);
   var h = header('Stato', '<button class="icon-btn" data-a="go" data-v="settings" aria-label="Impostazioni">' + svg(IC.gear) + '</button>');
   h += '<div style="border-radius:14px;border:1px solid rgba(59,167,255,.6);background:#0B1424;box-shadow:0 0 22px rgba(59,167,255,.22),inset 0 0 22px rgba(59,167,255,.08);padding:16px;display:flex;gap:16px;align-items:center">' +
     '<div style="width:76px;height:84px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;position:relative"><svg width="76" height="84" viewBox="0 0 76 84" aria-hidden="true" style="position:absolute;inset:0"><path d="M38 3l33 19v40L38 81 5 62V22z" fill="#0E1A30" stroke="#3BA7FF" stroke-width="2" stroke-linejoin="round"/></svg><span style="position:relative;font:700 44px/1 var(--fd);text-shadow:0 0 16px rgba(59,167,255,.9)">' + ms.rank + '</span></div>' +
-    '<div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:6px"><span style="font:700 24px/28px var(--fd);letter-spacing:2px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(S.profile.name) + '</span><span style="font:500 14px/18px var(--fb);color:var(--soft)">Rango ' + ms.rank + ' · Livello ' + lv + '</span><div class="track"><div class="fill" style="width:' + Math.round(inLv / XP_LEVEL * 100) + '%"></div></div><span class="hint">' + inLv + ' / ' + XP_LEVEL + ' XP al livello ' + (lv + 1) + '</span></div></div>';
+    '<div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:6px"><span style="font:700 24px/28px var(--fd);letter-spacing:2px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(S.profile.name) + '</span><span style="font:500 14px/18px var(--fb);color:var(--soft)">Rango ' + ms.rank + ' · Livello ' + lv + '</span><div class="track"><div class="fill" style="width:' + Math.round(inLv / li.need * 100) + '%"></div></div><span class="hint">' + inLv + ' / ' + li.need + ' XP al livello ' + (lv + 1) + '</span></div></div>';
   h += '<div style="border-radius:14px;border:1px solid rgba(255,201,77,.55);background:#14120A;box-shadow:0 0 18px rgba(255,201,77,.16);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px"><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="lbl" style="color:#D9B04A">Titolo di ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span style="font:700 28px/32px var(--fd);color:var(--rew);text-shadow:0 0 14px rgba(255,201,77,.45);letter-spacing:1px;text-transform:uppercase">' + ms.title + '</span><span style="font:500 13px/18px var(--fb);color:#C9BFA0">' + (ms.top ? ms.counts[ms.top] + ' sessioni di ' + SPORTS[ms.top].name.toLowerCase() + ' questo mese' : 'Si sblocca con il primo allenamento del mese') + '</span></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:0 0 auto"><span style="font:700 22px/26px var(--fd)">' + ms.weeksOk + '/' + ms.weeksTot + '</span><span style="font:500 11px/14px var(--fb);color:#C9BFA0;text-align:right">settimane<br>promosse</span></div></div>';
   h += '<div style="display:flex;flex-direction:column;gap:10px;padding-top:4px"><div class="row" style="padding:0 2px"><span class="lbl">Parametri · ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span class="hint">' + ms.pts + ' punti · ' + (nr.next ? (nr.next[1] - ms.pts) + ' al rango ' + nr.next[0] : 'rango massimo') + '</span></div><div class="g2" style="gap:10px">';
   S.profile.sports.forEach(function (s) {
@@ -680,7 +695,7 @@ function viewSettings() {
   var lb = S.lastBackup, age = lb ? diffDays(todayKey(), lb) : null;
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo in iCloud Drive: se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 1.0</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 1.1</span>';
   return h;
 }
 
@@ -847,9 +862,16 @@ root.addEventListener('input', function (e) {
   else if (f === 'bnote') ui.ov.form.note = e.target.value;
 });
 root.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.getAttribute('data-f') === 'obname') { e.preventDefault(); A.obNext(); } });
-document.addEventListener('visibilitychange', function () { if (!document.hidden) { var n = new Date(); if (ui.vm.y !== n.getFullYear() || ui.vm.m !== n.getMonth()) { /* resta sul mese guardato */ } render(); } });
+function resetViewport() { if (window.scrollY || window.scrollX || document.documentElement.scrollTop || document.body.scrollTop) { window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; } }
+root.addEventListener('focusout', function () { setTimeout(resetViewport, 60); setTimeout(resetViewport, 350); });
+window.addEventListener('scroll', resetViewport);
+if (window.visualViewport) { window.visualViewport.addEventListener('resize', function () { setTimeout(resetViewport, 60); }); }
+window.addEventListener('orientationchange', function () { setTimeout(resetViewport, 300); });
+document.addEventListener('visibilitychange', function () { if (!document.hidden) { autoClose(); var n = new Date(); if (ui.vm.y !== n.getFullYear() || ui.vm.m !== n.getMonth()) { /* resta sul mese guardato */ } render(); } });
 
+autoClose();
 render();
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
 if ('serviceWorker' in navigator && location.protocol !== 'file:') { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }
 window.__sistema = { get state() { return S; }, ui: ui, A: A };
 })();
