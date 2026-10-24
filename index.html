@@ -310,6 +310,12 @@ function load() {
 }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast('Non riesco a salvare: spazio pieno o salvataggio bloccato.'); } }
 function newState(name, sports) { return { v: 1, profile: { name: name, sports: sports, created: todayKey() }, settings: { sound: true }, days: {}, lastBackup: null }; }
+var ANDROID = /Android/i.test(navigator.userAgent || '');
+var CLOUD = ANDROID ? 'Google Drive' : 'iCloud Drive';
+var installEvt = null;
+window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); installEvt = e; if (!S) render(); });
+window.addEventListener('appinstalled', function () { installEvt = null; if (!S) render(); });
+function buzz(p) { try { if (S && S.settings.vib !== false && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 
 /* ---------- interfaccia (non salvata) ---------- */
@@ -567,7 +573,7 @@ function rewardAfter(k, before, title, gain, body) {
   var afterWeek = weekCount(k), lv = levelOf(totalXp());
   var badge = (k >= mondayOf(todayKey()) && afterWeek > before.beforeWeek && afterWeek >= 2) ? BADGES[afterWeek] : '';
   ui.ov = { t: 'reward', title: title, xp: '+' + gain + ' XP', body: body, levelUp: lv > before.beforeLv ? lv : 0, badge: badge, k: k };
-  ding('reward'); render();
+  ding('reward'); buzz([30, 60, 30, 60, 90]); render();
 }
 function findSession(k, id) { var l = sessions(k); for (var i = 0; i < l.length; i++) if (l[i].id === id) return l[i]; return null; }
 
@@ -579,6 +585,8 @@ var A = {
     S = newState(ui.ob.name.trim().slice(0, 24), ORDER.filter(function (s) { return ui.ob.sports.indexOf(s) >= 0; })); S.profile.g = ui.ob.g || 'm'; S.seen = { recap: ymKey(new Date().getFullYear(), new Date().getMonth()) };
     save(); ding('reward'); ui.screen = 'home'; startupNotice(); render(); toast(gw('Benvenuto', 'Benvenuta') + ' nel sistema, ' + S.profile.name + '.');
   },
+  install: function () { if (!installEvt) return; var e = installEvt; installEvt = null; try { e.prompt(); } catch (x) {} render(); },
+  vib: function () { S.settings.vib = S.settings.vib === false; save(); render(); if (S.settings.vib) buzz(40); },
   obBack: function () { ui.ob.step = 0; render(); },
   obG: function (g) { ui.ob.g = g; ding('tap'); render(); },
   obSport: function (s) { var i = ui.ob.sports.indexOf(s); if (i >= 0) ui.ob.sports.splice(i, 1); else { if (ui.ob.sports.length >= MAX_SPORTS) return toast('Massimo 6 sport: togline uno prima.'); ui.ob.sports.push(s); } ding('tap'); render(); },
@@ -752,7 +760,7 @@ function exportBackup() {
     var data = JSON.stringify(S, null, 1), name = 'sistema-backup-' + todayKey() + '.json';
     var blob = new Blob([data], { type: 'application/json' });
     var file = null; try { file = new File([blob], name, { type: 'application/json' }); } catch (e) {}
-    var done = function () { S.lastBackup = todayKey(); save(); render(); toast('Backup pronto. Salvalo in iCloud Drive o in File.'); };
+    var done = function () { S.lastBackup = todayKey(); save(); render(); toast(ANDROID ? 'Backup pronto. Salvalo su Google Drive o nei file del telefono.' : 'Backup pronto. Salvalo in iCloud Drive o in File.'); };
     if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
       navigator.share({ files: [file], title: name }).then(done).catch(function () {});
       return;
@@ -862,11 +870,11 @@ function viewSettings() {
   var h = header('Profilo', '<button class="icon-btn" data-a="go" data-v="stato" aria-label="Torna a Stato">' + svg(IC.close) + '</button>');
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><label class="lbl" for="pname">Nome</label><input id="pname" class="inp" maxlength="24" value="' + esc(S.profile.name) + '" data-f="pname" autocomplete="off"><span class="hint">Titoli del mese</span><div class="chips"><button class="chip' + (!fem() ? ' on' : '') + '" data-a="gender" data-v="m">Al maschile · Il Ragno</button><button class="chip' + (fem() ? ' on' : '') + '" data-a="gender" data-v="f">Al femminile · La Ragna</button></div></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:8px"><div class="row"><span class="lbl">I tuoi sport</span>' + sportCount(S.profile.sports) + '</div><span class="hint">' + PICK_HINT + '</span>' + sportPicker(S.profile.sports, 'setSport') + '<span class="hint">Quelli spenti non compaiono nella scelta del giorno né in Stato. I dati già segnati restano.</span></div>';
-  h += '<div class="card" style="padding:6px 12px"><button class="toggle" data-a="sound"><span style="font:600 15px/20px var(--fd)">Suoni</span><span class="sw' + (S.settings.sound ? ' on' : '') + '"></span></button></div>';
+  h += '<div class="card" style="padding:6px 12px"><button class="toggle" data-a="sound"><span style="font:600 15px/20px var(--fd)">Suoni</span><span class="sw' + (S.settings.sound ? ' on' : '') + '"></span></button>' + (ANDROID && navigator.vibrate ? '<button class="toggle" data-a="vib" style="border-top:1px solid var(--line)"><span style="font:600 15px/20px var(--fd)">Vibrazione</span><span class="sw' + (S.settings.vib !== false ? ' on' : '') + '"></span></button>' : '') + '</div>';
   var lb = S.lastBackup, age = lb ? diffDays(todayKey(), lb) : null;
-  h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo in iCloud Drive: se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
+  h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + CLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 1.4</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 1.4.1</span>';
   return h;
 }
 
@@ -923,7 +931,7 @@ function viewOverlay() {
   } else if (o.t === 'notice') {
     if (o.kind === 'gender') h = '<div class="' + cls + '">' + whead('Notifica', false) + '<p class="wtitle">Nuovi titoli del mese</p><p class="wtext">I titoli ora si declinano. Come ti chiama il sistema?</p><div class="g2"><button class="opt pick" style="justify-content:center" data-a="gender" data-v="m">Il Ragno</button><button class="opt pick" style="justify-content:center" data-a="gender" data-v="f">La Ragna</button></div><p class="wtext" style="font-size:12px">Puoi cambiarlo quando vuoi dal profilo.</p></div>';
     else if (o.kind === 'edit') h = '<div class="' + cls + '">' + whead('Notifica', false) + '<p class="wtitle">Recupera il mese</p><p class="wtext">Per i primi 14 giorni puoi segnare anche gli allenamenti dell’ultimo mese: tocca i giorni passati sul calendario. Così parti dal tuo rango vero.</p><div class="acts one"><button class="btn main" data-a="noticeOk">Ricevuto</button></div></div>';
-    else h = '<div class="' + cls + '">' + whead('Notifica', false) + '<p class="wtitle">È ora di un backup</p><p class="wtext">I tuoi dati vivono solo su questo telefono. Tocca Backup e scegli “Salva in File” → iCloud Drive: bastano due tocchi.</p><div class="acts"><button class="btn" data-a="noticeLater">Più tardi</button><button class="btn main" data-a="noticeBackup">Backup</button></div></div>';
+    else h = '<div class="' + cls + '">' + whead('Notifica', false) + '<p class="wtitle">È ora di un backup</p><p class="wtext">I tuoi dati vivono solo su questo telefono. ' + (ANDROID ? 'Tocca Backup e scegli Drive, oppure salvalo nei file del telefono: bastano due tocchi.' : 'Tocca Backup e scegli “Salva in File” → iCloud Drive: bastano due tocchi.') + '</p><div class="acts"><button class="btn" data-a="noticeLater">Più tardi</button><button class="btn main" data-a="noticeBackup">Backup</button></div></div>';
   } else if (o.t === 'recap') {
     h = viewRecap(o, cls);
   } else if (o.t === 'details') {
@@ -1043,7 +1051,7 @@ function viewOnboarding() {
   var standalone = window.navigator.standalone || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
   if (o.step === 0) {
     h += '<div class="win anim" style="gap:16px">' + whead('Notifica', false) + '<p class="wtitle">Nuovo giocatore rilevato</p><p class="wtext">Il sistema premia la costanza: segni gli sport che fai, ricevi quest, sali di livello. Come ti chiami?</p><input id="obname" class="inp" maxlength="24" placeholder="Il tuo nome" value="' + esc(o.name) + '" data-f="obname" autocomplete="given-name" enterkeyhint="next"><div class="g2"><button class="chip' + (o.g !== 'f' ? ' on' : '') + '" data-a="obG" data-v="m">Il Ragno</button><button class="chip' + (o.g === 'f' ? ' on' : '') + '" data-a="obG" data-v="f">La Ragna</button></div><span class="hint" style="text-align:center;margin-top:-8px">Così il sistema declina i tuoi titoli del mese.</span><button class="btn main" data-a="obNext">Avanti</button></div>';
-    if (!standalone) h += '<p class="hint" style="text-align:center">Per averla come app: in Safari tocca Condividi, poi “Aggiungi alla schermata Home”. Fallo prima di iniziare, così i dati restano nell’app.</p>';
+    if (!standalone) h += installEvt ? '<button class="btn" data-a="install">Installa l’app sul telefono</button>' : '<p class="hint" style="text-align:center">' + (ANDROID ? 'Per averla come app: in Chrome tocca il menu ⋮, poi “Installa app”.' : 'Per averla come app: in Safari tocca Condividi, poi “Aggiungi alla schermata Home”. Fallo prima di iniziare, così i dati restano nell’app.') + '</p>';
   } else {
     h += '<div class="win anim obwin" style="gap:12px">' + whead('Notifica', false) + '<div style="display:flex;flex-direction:column;gap:4px"><p class="wtitle">Che sport fai, ' + esc(o.name) + '?</p><p class="wtext" style="font-size:13px">' + PICK_HINT + '</p></div><div class="wbody" data-keep style="gap:8px">' + sportPicker(o.sports, 'obSport') + '</div>' +
       '<div class="row">' + sportCount(o.sports) + '<span class="hint">Puoi cambiarli dal profilo</span></div><div class="acts"><button class="btn" data-a="obBack">Indietro</button><button class="btn main" data-a="obNext">Inizia</button></div></div>';
@@ -1068,6 +1076,30 @@ function fitCalendar() {
   g.style.setProperty('--ch', Math.max(28, 40 - Math.ceil(over / rows)) + 'px');
 }
 window.addEventListener('resize', function () { fitCalendar(); fitTitles(); });
+var navPushed = false, navIgnore = 0;
+function syncNav() {
+  if (!S) return;
+  var deep = !!ui.ov || ui.screen !== 'home';
+  try {
+    if (deep && !navPushed) { window.history.pushState({ sistema: 1 }, ''); navPushed = true; }
+    else if (!deep && navPushed) { navPushed = false; navIgnore++; window.history.back(); }
+  } catch (e) {}
+}
+window.addEventListener('popstate', function () {
+  if (navIgnore) { navIgnore--; return; }
+  navPushed = false;
+  if (!S) return;
+  var o = ui.ov;
+  if (o) {
+    if (o.t === 'notice' && o.kind === 'gender') { render(); return; }
+    if (o.t === 'recap') { A.recapOk(); return; }
+    if (o.t === 'notice') { if (o.kind === 'backup') A.noticeLater(); else A.noticeOk(); return; }
+    if (o.t === 'details' && o.form && o.form.adding) { o.form.adding = null; render(); return; }
+    ui.ov = null;
+  } else if (ui.screen === 'settings') ui.screen = 'stato';
+  else if (ui.screen !== 'home') ui.screen = 'home';
+  render();
+});
 function render() {
   var keep = root.querySelector('[data-keep]'), keepTop = keep ? keep.scrollTop : 0;
   var main = root.querySelector('.scroller'), mainTop = main ? main.scrollTop : 0;
@@ -1083,7 +1115,7 @@ function render() {
   if (toastMsg) h += '<div class="toast' + (S && ui.ov ? ' low' : '') + '"' + (toastShown === toastMsg ? ' style="animation-delay:-' + Math.min(2.5, (Date.now() - toastAt) / 1000) + 's"' : '') + ' role="status"><span class="mark">!</span><span>' + esc(toastMsg) + '</span></div>';
   root.innerHTML = h;
   if (toastMsg && toastShown !== toastMsg) { toastShown = toastMsg; toastAt = Date.now(); }
-  fitCalendar(); fitTitles();
+  fitCalendar(); fitTitles(); syncNav();
   var k2 = root.querySelector('[data-keep]'); if (k2 && keep) k2.scrollTop = keepTop;
   var m2 = root.querySelector('.scroller'); if (m2 && main) m2.scrollTop = mainTop;
   if (ui.focusNext) { focus = ui.focusNext; ui.focusNext = null; }
