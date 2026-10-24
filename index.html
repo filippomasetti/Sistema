@@ -51,6 +51,17 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .cell.today{outline:2px solid var(--ink);outline-offset:2px}
 .cell.wait{border-color:var(--sysl);color:var(--ink);animation:wait 2s ease-in-out infinite}
 .cell .st{position:absolute;top:2px;right:2px;width:9px;height:9px}
+.cell.hw{background:#1A2336;border-color:#3A4866;color:var(--soft)}
+.cell .hwi{position:absolute;bottom:1px;right:2px;width:10px;height:10px;stroke:#AEBBD3;stroke-width:2.2}
+.cell.sport .hwi{stroke:#0A0F1A}
+.hwbtn{width:100%;min-height:48px;border-radius:10px;border:1px dashed var(--line2);background:transparent;color:var(--soft);display:flex;align-items:center;justify-content:center;gap:10px;font:600 14px/18px var(--fd);letter-spacing:1px;cursor:pointer}
+.hwbtn.on{border-style:solid;border-color:#7E8DAA;background:#1A2336;color:var(--ink)}
+.notebtn{border:none;background:none;color:var(--sysl);font:600 12px/16px var(--fb);padding:0;cursor:pointer;text-align:left;min-height:28px}
+.fnote{height:40px;font-size:14px}
+.recap-big{font:700 64px/1 var(--fd);text-shadow:0 0 22px rgba(59,167,255,.9)}
+.recap-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.recap-grid .fld{align-items:center;gap:2px;padding:10px 6px}
+.recap-grid b{font:700 22px/26px var(--fd)}
 .legend{display:flex;flex-wrap:wrap;gap:6px 12px}
 .legend span{display:inline-flex;align-items:center;gap:5px;font:600 11px/14px var(--fb);color:var(--soft)}
 .legend i{width:8px;height:8px;border-radius:2px;display:block}
@@ -138,8 +149,8 @@ textarea.inp{height:80px;padding:10px 14px;font-size:15px;resize:none}
 .logrow .t{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .logrow .x2{font:600 12px/16px var(--fd);color:var(--glow)}
 .dot{width:7px;height:7px;border-radius:2px;flex:0 0 auto}
-.month{border-radius:10px;border:1px solid var(--line);background:var(--surface);padding:10px 12px;display:flex;flex-direction:column;gap:8px}
-.split{display:flex;height:6px;gap:2px}.split i{display:block;border-radius:2px}
+.month{width:100%;border-radius:10px;border:1px solid var(--line);background:var(--surface);padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.split{display:flex;height:6px;gap:2px;width:100%}.split i{display:block;border-radius:2px}
 .hint{font:500 12px/17px var(--fb);color:var(--mut)}
 .sess{display:flex;align-items:center;gap:12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);padding:10px 12px}
 .sess .meta{flex:1 1 auto;min-width:0;display:flex;flex-direction:column}
@@ -184,15 +195,36 @@ var COLORS = [
   { k: 'bianco', name: 'Bianco', c: '#F2F5FA' }, { k: 'blu', name: 'Blu', c: '#4F8CFF' }, { k: 'verde', name: 'Verde', c: '#3FBF6F' },
   { k: 'giallo', name: 'Giallo', c: '#F4D35E' }, { k: 'rosso', name: 'Rosso', c: '#FF5A5A' }, { k: 'nero', name: 'Nero', c: '#3A3F4A' }
 ];
-var FUND = [['battuta', 'Battuta'], ['ricezione', 'Ricezione'], ['difesa', 'Difesa'], ['alzata', 'Alzata'], ['attacco', 'Attacco']];
+var FUND = [['battuta', 'Battuta'], ['ricezione', 'Ricezione'], ['difesa', 'Difesa'], ['alzata', 'Alzata'], ['attacco', 'Attacco', 'm']];
 var FACES = [['g', '#5EE08F'], ['y', '#F4D35E'], ['r', '#FF7A59']];
+var FACE_NAME = { g: ['verde', 'verde'], y: ['giallo', 'gialla'], r: ['rosso', 'rossa'] };
 var DIFF = {
   easy: { label: 'Facile', hint: 'Giornata storta? Va bene così', bonus: 5, pts: 2, n: 1, c: '#7DDBA3' },
   med: { label: 'Medio', hint: 'Come l’ultima volta', bonus: 10, pts: 3, n: 2, c: '#7CC4FF' },
   hard: { label: 'Difficile', hint: 'Un passo avanti', bonus: 20, pts: 4, n: 3, c: '#FF9A7D' }
 };
 var BADGES = ['', '', 'Keep in shape', 'Don’t give up', 'Great Week', 'God, you are a beast', 'Strong, but go to the cinema', 'You are not a professional, slow down'];
-var TITLES = { gym: 'Il Fabbro', bld: 'Il Ragno', bch: 'Il Muro', swm: 'Lo Squalo', run: 'Il Viandante', bon: 'L’Esploratore', mix: 'L’Eclettico' };
+// Titoli del mese: [nome m, nome f, aggettivo m, aggettivo f]. Anche gli sport in arrivo nella 1.4.
+var TITLES = {
+  gym: ['Il Fabbro', 'La Fabbra', 'Forzuto', 'Forzuta'],
+  cal: ['L’Acrobata', 'L’Acrobata', 'Acrobatico', 'Acrobatica'],
+  cfx: ['Il Gladiatore', 'La Gladiatrice', 'Indistruttibile', 'Indistruttibile'],
+  bld: ['Il Ragno', 'La Ragna', 'Ghisato', 'Ghisata'],
+  swm: ['Lo Squalo', 'La Squala', 'Anfibio', 'Anfibia'],
+  run: ['Il Viandante', 'La Viandante', 'Fulmineo', 'Fulminea'],
+  row: ['Il Galeotto', 'La Galeotta', 'Navigato', 'Navigata'],
+  bik: ['Il Gregario', 'La Gregaria', 'Pedalante', 'Pedalante'],
+  bch: ['Il Muro', 'La Muraglia', 'Volante', 'Volante'],
+  soc: ['Il Bomber', 'La Bomber', 'Dribblante', 'Dribblante'],
+  pad: ['Il Vetraio', 'La Vetraia', 'Rimbalzante', 'Rimbalzante'],
+  ten: ['Il Pallettaro', 'La Pallettara', 'Di Rovescio', 'Di Rovescio'],
+  yog: ['Il Monaco', 'La Monaca', 'Zen', 'Zen'],
+  pil: ['L’Equilibrista', 'L’Equilibrista', 'Allineato', 'Allineata'],
+  wsf: ['Wind-Man', 'Wind-Woman', 'Eolico', 'Eolica'],
+  ski: ['Lo Yeti', 'La Yeti', 'Alpino', 'Alpina'],
+  bon: ['L’Eclettico', 'L’Eclettica', 'Imprevedibile', 'Imprevedibile']
+};
+var HW = { name: 'Hard Study/Work', ic: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15.5H5.5A1.5 1.5 0 0 1 4 18zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v15.5h5.5a1.5 1.5 0 0 0 1.5-1.5z"/>' };
 var MONTHS = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
 var MSHORT = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
 var DAYS_SHORT = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
@@ -248,9 +280,22 @@ var toastMsg = null, toastTimer = null, lastAnim = {};
 function editWindow() { var c = S && S.profile.created ? diffDays(todayKey(), S.profile.created) : 99; return c <= 14 ? 31 : 7; }
 function canEdit(k) { var age = diffDays(todayKey(), k); return age >= 0 && age <= editWindow(); }
 function backupDue() { if (!S) return false; var lb = S.lastBackup, n = allKeysSorted().length; return (lb === null && n >= 5) || (lb !== null && diffDays(todayKey(), lb) > 14); }
+function fem() { return !!(S && S.profile.g === 'f'); }
+function gw(m, f) { return fem() ? f : m; }
+function prevMonth(y, m) { return m === 0 ? { y: y - 1, m: 11 } : { y: y, m: m - 1 }; }
+function ymKey(y, m) { return y + '-' + pad(m + 1); }
+function recapDue() {
+  var n = new Date(), p = prevMonth(n.getFullYear(), n.getMonth()), pk = ymKey(p.y, p.m);
+  S.seen = S.seen || {};
+  if (S.seen.recap && S.seen.recap >= pk) return null;
+  if (!monthKeys(p.y, p.m).length) { S.seen.recap = pk; save(); return null; }
+  return p;
+}
 function startupNotice() {
   if (!S || ui.ov) return;
   S.seen = S.seen || {};
+  var rp = recapDue(); if (rp) { ui.ov = { t: 'recap', y: rp.y, m: rp.m, first: true }; return; }
+  if (!S.profile.g) { ui.ov = { t: 'notice', kind: 'gender' }; return; }
   if (!S.seen.edit && editWindow() > 7) { ui.ov = { t: 'notice', kind: 'edit' }; return; }
   if (backupDue() && (!S.backupSnooze || todayKey() >= S.backupSnooze)) ui.ov = { t: 'notice', kind: 'backup' };
 }
@@ -275,17 +320,28 @@ function monthStats(y, m) {
       if (s.quest && s.quest.done !== null && s.quest.done !== undefined) { qt++; if (s.quest.done) qd++; }
     });
   });
-  var top = null;
-  ORDER.forEach(function (s) { if (counts[s] && (!top || counts[s] > counts[top])) top = s; });
-  var distinct = ORDER.filter(function (s) { return counts[s]; }).length;
-  var title = !top ? '—' : (distinct >= 4 && counts[top] / n < 0.4 ? TITLES.mix : TITLES[top]);
+  var rk = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a] || ORDER.indexOf(a) - ORDER.indexOf(b); });
+  var top = rk[0] || null, second = rk[1] && counts[rk[1]] >= 0.7 * counts[top] ? rk[1] : null;
+  var title = titleOf(top, second);
+  var hw = Object.keys(S.marks || {}).filter(function (k) { return k.indexOf(ymKey(y, m)) === 0; }).length;
   var weeksOk = 0, seen = {};
   keys.forEach(function (k) { var w = mondayOf(k); seen[w] = (seen[w] || 0) + 1; });
   Object.keys(seen).forEach(function (w) { if (seen[w] >= 2) weeksOk++; });
   var first = new Date(y, m, 1), last = new Date(y, m + 1, 0), wTot = {};
   for (var d = new Date(first); d <= last; d.setDate(d.getDate() + 1)) wTot[mondayOf(keyOf(d))] = 1;
-  return { keys: keys, days: keys.length, pts: pts, rank: rankOf(pts), counts: counts, sportPts: sportPts, sessions: n, top: top, title: title, qd: qd, qt: qt, weeksOk: weeksOk, weeksTot: Object.keys(wTot).length };
+  return { keys: keys, days: keys.length, pts: pts, rank: rankOf(pts), counts: counts, sportPts: sportPts, sessions: n, top: top, second: second, title: title, qd: qd, qt: qt, weeksOk: weeksOk, weeksTot: Object.keys(wTot).length, hw: hw };
 }
+function titleOf(top, second) {
+  if (!top) return '—';
+  var f = fem() ? 1 : 0, a = TITLES[top] || TITLES.bon, b = second ? (TITLES[second] || TITLES.bon) : null;
+  return a[f] + (b ? ' ' + b[2 + f] : '');
+}
+function titleWhy(ms) {
+  if (!ms.top) return 'Si sblocca con il primo allenamento del mese';
+  var c = ms.counts[ms.top], t = c + (c === 1 ? ' sessione' : ' sessioni') + ' di ' + SPORTS[ms.top].name.toLowerCase();
+  return t + (ms.second ? ' e ' + ms.counts[ms.second] + ' di ' + SPORTS[ms.second].name.toLowerCase() : '');
+}
+function hasMark(k) { return !!(S.marks && S.marks[k]); }
 function weekCount(k, exclId) { var mon = mondayOf(k), n = 0; for (var i = 0; i < 7; i++) { var l = sessions(addDays(mon, i)).filter(function (s) { return s.id !== exclId; }); if (l.length) n++; } return n; }
 function isOpen(s) { return (s.quest && s.quest.done === null) || (s.assess && !s.d); }
 function activeOpen() {
@@ -321,9 +377,6 @@ function baseline(sport, group) {
     } else if (sport === 'bld') {
       if (d && d.colors) { for (var c = COLORS.length - 1; c >= 0; c--) { var v = d.colors[COLORS[c].k]; if (v && (v.c + v.f) > 0) return { ci: c, n: v.c + v.f }; } }
       if (q && q.done === true && q.t) return { ci: q.t.ci, n: q.t.n };
-    } else if (sport === 'bch') {
-      if (d && d.f) { var g = 0; FUND.forEach(function (f) { if (d.f[f[0]] === 'g') g++; }); if (Object.keys(d.f).length) return { g: g }; }
-      if (q && q.done === true && q.t) return { g: q.t.g };
     } else if (sport === 'swm') {
       if (d && d.m) return { m: d.m };
       if (q && q.done === true && q.t) return { m: q.t.m };
@@ -334,9 +387,15 @@ function baseline(sport, group) {
   }
   return null;
 }
+function fundOf(k) { for (var i = 0; i < FUND.length; i++) if (FUND[i][0] === k) return FUND[i]; return FUND[0]; }
+function lastFund(k) {
+  var h = history('bch'), out = { face: null, note: '' };
+  for (var i = 0; i < h.length; i++) { var d = h[i].s.d; if (!d) continue; if (!out.face && d.f && d.f[k]) out.face = d.f[k]; if (!out.note && d.n && d.n[k]) out.note = d.n[k]; if (out.face && out.note) break; }
+  return out;
+}
 function questsFor(sport, group) {
   var b = baseline(sport, group);
-  if (!b) return null;
+  if (!b && sport !== 'bch') return null;
   var out = {};
   if (sport === 'gym') {
     var ex = GROUPS[group].key, meta = EX[ex];
@@ -354,11 +413,13 @@ function questsFor(sport, group) {
     out.hard = { t: { ci: b.ci, n: b.n + 1 }, label: 'Chiudi ' + (b.n + 1) + ' ' + col.name.toLowerCase() + (nxt ? ' o un ' + nxt.name.toLowerCase() + ' in WIP' : '') };
     out.title = 'Boulder'; out.last = 'Ultima volta: ' + b.n + ' ' + col.name.toLowerCase() + ' chiusi';
   } else if (sport === 'bch') {
-    var e = Math.max(1, b.g - 1), m = Math.max(1, b.g), h = Math.min(5, Math.max(1, b.g) + 1);
-    out.easy = { t: { g: e }, label: e + ' fondamental' + (e === 1 ? 'e' : 'i') + ' verd' + (e === 1 ? 'e' : 'i') };
-    out.med = { t: { g: m }, label: m + ' fondamental' + (m === 1 ? 'e' : 'i') + ' verd' + (m === 1 ? 'e' : 'i') };
-    out.hard = { t: { g: h }, label: h + ' fondamentali verdi' };
-    out.title = 'Beach volley'; out.last = 'Ultima volta: ' + b.g + ' verd' + (b.g === 1 ? 'e' : 'i');
+    var fd = fundOf(group), lf = lastFund(group), m = fd[2] === 'm';
+    out.easy = { t: { fund: group, lvl: 'y' }, label: fd[1] + ' almeno ' + (m ? 'giallo' : 'gialla') };
+    out.med = { t: { fund: group, lvl: 'g' }, label: fd[1] + ' verde' };
+    out.hard = { t: { fund: group, lvl: 'g+' }, label: fd[1] + ' verde e nessun rosso' };
+    out.title = 'Beach · Focus ' + fd[1].toLowerCase();
+    out.last = lf.face ? 'Ultima volta: ' + FACE_NAME[lf.face][m ? 0 : 1] : 'Prima volta in focus: punta in alto.';
+    out.note = lf.note || '';
   } else if (sport === 'swm') {
     var em = Math.max(50, Math.floor(b.m * 0.9 / 50) * 50), hm = Math.max(b.m + 50, Math.ceil(b.m * 1.1 / 50) * 50);
     out.easy = { t: { m: em }, label: meters(em) }; out.med = { t: { m: b.m }, label: meters(b.m) }; out.hard = { t: { m: hm }, label: meters(hm) };
@@ -378,6 +439,7 @@ function sessSummary(s) {
     if (s.sport === 'gym' && d.ex) { var ks = Object.keys(d.ex); if (ks.length) parts.push(ks[0] + ' ' + (d.ex[ks[0]].w ? kg(d.ex[ks[0]].w) : '3×' + d.ex[ks[0]].reps) + (ks.length > 1 ? ' + altri ' + (ks.length - 1) : '')); }
     if (s.sport === 'bld' && d.colors) { var tops = []; COLORS.forEach(function (c) { var v = d.colors[c.k]; if (v && v.c + v.f) tops.push((v.c + v.f) + ' ' + c.name.toLowerCase()); }); if (tops.length) parts.push(tops.slice(-2).join(', ')); }
     if (s.sport === 'bch' && d.type) parts.push(d.type);
+    if (s.sport === 'bch' && d.n && Object.keys(d.n).length) parts.push(Object.keys(d.n).length + (Object.keys(d.n).length === 1 ? ' nota' : ' note'));
     if (s.sport === 'swm' && d.m) parts.push(meters(d.m));
     if (s.sport === 'run' && d.km) parts.push(num(d.km) + ' km');
     if (s.sport === 'bon' && d.name) parts.push(d.name);
@@ -459,17 +521,18 @@ var A = {
   obNext: function () {
     if (ui.ob.step === 0) { if (!ui.ob.name.trim()) { toast('Scrivi il tuo nome per iniziare.'); return; } ui.ob.step = 1; ding('open'); render(); return; }
     if (!ui.ob.sports.length) { toast('Scegli almeno uno sport.'); return; }
-    S = newState(ui.ob.name.trim().slice(0, 24), ORDER.filter(function (s) { return ui.ob.sports.indexOf(s) >= 0; }));
-    save(); ding('reward'); ui.screen = 'home'; startupNotice(); render(); toast('Benvenuto nel sistema, ' + S.profile.name + '.');
+    S = newState(ui.ob.name.trim().slice(0, 24), ORDER.filter(function (s) { return ui.ob.sports.indexOf(s) >= 0; })); S.profile.g = ui.ob.g || 'm'; S.seen = { recap: ymKey(new Date().getFullYear(), new Date().getMonth()) };
+    save(); ding('reward'); ui.screen = 'home'; startupNotice(); render(); toast(gw('Benvenuto', 'Benvenuta') + ' nel sistema, ' + S.profile.name + '.');
   },
   obBack: function () { ui.ob.step = 0; render(); },
+  obG: function (g) { ui.ob.g = g; ding('tap'); render(); },
   obSport: function (s) { var i = ui.ob.sports.indexOf(s); if (i >= 0) ui.ob.sports.splice(i, 1); else ui.ob.sports.push(s); ding('tap'); render(); },
   /* navigazione */
   go: function (scr) { ui.screen = scr; ui.ov = null; ding('tap'); render(); },
   month: function (dir) { var m = ui.vm.m + +dir, y = ui.vm.y; if (m < 0) { m = 11; y--; } if (m > 11) { m = 0; y++; } var n = new Date(); if (y > n.getFullYear() || (y === n.getFullYear() && m > n.getMonth())) return; ui.vm = { y: y, m: m }; ding('tap'); render(); },
   sound: function () { S.settings.sound = !S.settings.sound; save(); render(); if (S.settings.sound) ding('tap'); },
   close: function () { close(); },
-  noticeOk: function () { var o = ui.ov; if (o && o.kind === 'edit') { S.seen = S.seen || {}; S.seen.edit = true; save(); } close(); },
+  noticeOk: function () { var o = ui.ov; if (o && o.kind === 'edit') { S.seen = S.seen || {}; S.seen.edit = true; save(); } ui.ov = null; startupNotice(); render(); },
   noticeLater: function () { S.backupSnooze = addDays(todayKey(), 3); save(); close(); },
   noticeBackup: function () { ui.ov = null; render(); exportBackup(); },
   /* giorni */
@@ -480,10 +543,10 @@ var A = {
     if (k === t) {
       var ao = activeOpen();
       if (ao) { if (ao.s.assess) openDetails(ao.k, ao.s.id, true); else open({ t: 'verify', k: ao.k, id: ao.s.id }); return; }
-      if (sessions(k).length) { open({ t: 'day', k: k }); return; }
+      if (sessions(k).length || hasMark(k)) { open({ t: 'day', k: k }); return; }
       open({ t: 'pick', k: k }); return;
     }
-    if (sessions(k).length) open({ t: 'day', k: k }); else open({ t: 'past', k: k });
+    if (sessions(k).length || hasMark(k)) open({ t: 'day', k: k }); else open({ t: 'past', k: k });
   },
   pick: function (s) {
     var k = ui.ov.k, t = todayKey();
@@ -494,10 +557,21 @@ var A = {
       toast(SPORTS[s].name + ' segnato il ' + niceDate(k) + '. +10 XP' + badge); return;
     }
     if (s === 'gym') { ding('open'); open({ t: 'group', k: k }); return; }
-    if (s === 'bon') { var bb = addSession(k, { sport: 'bon', d: null, star: false }); rewardAfter(k, bb, 'Giorno segnato', 10, 'Le attività bonus non hanno quest: conta il fatto di esserti mosso.'); return; }
+    if (s === 'bch') { ding('open'); open({ t: 'focus', k: k }); return; }
+    if (s === 'bon') { var bb = addSession(k, { sport: 'bon', d: null, star: false }); rewardAfter(k, bb, 'Giorno segnato', 10, 'Le attività bonus non hanno quest: conta il fatto di ' + gw('esserti mosso.', 'esserti mossa.')); return; }
     ding('open'); open({ t: 'quest', k: k, sport: s, diff: null });
   },
   group: function (g) { ding('open'); open({ t: 'quest', k: ui.ov.k, sport: 'gym', group: g, diff: null }); },
+  focus: function (f) { ding('open'); open({ t: 'quest', k: ui.ov.k, sport: 'bch', group: f, diff: null }); },
+  hw: function () {
+    var k = ui.ov.k; S.marks = S.marks || {};
+    if (S.marks[k]) { delete S.marks[k]; save(); ding('tap'); ui.ov = null; toast('Segno di Hard Study/Work tolto.'); return; }
+    S.marks[k] = 1; save(); ding('tap'); ui.ov = null; toast(k === todayKey() ? 'Hard Study/Work segnato. Testa sui libri: anche questa è costanza.' : 'Hard Study/Work segnato il ' + niceDate(k) + '.');
+  },
+  gender: function (g) { S.profile.g = g === 'f' ? 'f' : 'm'; save(); ding('tap'); if (ui.ov && ui.ov.t === 'notice') { ui.ov = null; startupNotice(); } render(); },
+  recap: function (ym) { var y = +ym.slice(0, 4), m = +ym.slice(5) - 1; ding('open'); open({ t: 'recap', y: y, m: m, back: 'archive' }); },
+  recapOk: function () { var o = ui.ov; if (o.first) { S.seen.recap = ymKey(o.y, o.m); save(); ui.ov = null; startupNotice(); render(); return; } if (o.back) { ui.ov = { t: o.back }; render(); return; } close(); },
+  fnote: function (f) { var fm = ui.ov.form; fm.nopen[f] = true; ui.focusNext = 'fn:' + f; ding('tap'); render(); },
   diff: function (d) { ui.ov.diff = d; ding('tap'); render(); },
   accept: function () {
     var o = ui.ov, q = questsFor(o.sport, o.group), pick = q[o.diff];
@@ -520,7 +594,7 @@ var A = {
     s.quest.done = ok === '1'; save();
     var gain = sessXp(s);
     if (s.quest.done) rewardAfter(o.k, { beforeLv: beforeLv, beforeWeek: beforeWeek }, 'Quest completata', gain, '10 XP per l’allenamento + ' + DIFF[s.quest.diff].bonus + ' di bonus ' + DIFF[s.quest.diff].label.toLowerCase() + '.');
-    else rewardAfter(o.k, { beforeLv: beforeLv, beforeWeek: beforeWeek }, 'Sessione registrata', gain, 'Ti sei allenato, e questo conta. La quest ti aspetta alla prossima sessione.');
+    else rewardAfter(o.k, { beforeLv: beforeLv, beforeWeek: beforeWeek }, 'Sessione registrata', gain, gw('Ti sei allenato', 'Ti sei allenata') + ', e questo conta. La quest ti aspetta alla prossima sessione.');
     ui.ov.sid = s.id;
   },
   rewardDetails: function () { var o = ui.ov; var k = o.k, s = o.sid ? findSession(k, o.sid) : sessions(k)[sessions(k).length - 1]; if (s) openDetails(k, s.id, false); else close(); },
@@ -540,7 +614,7 @@ var A = {
     var f = o.form, d = null;
     if (s.sport === 'gym') { d = { group: f.group, ex: {} }; Object.keys(f.ex).forEach(function (ex) { var e = f.ex[ex]; if (e.on) d.ex[ex] = { w: e.w, reps: e.reps, sets: e.sets }; }); s.group = f.group; }
     else if (s.sport === 'bld') { d = { colors: {} }; COLORS.forEach(function (c) { var v = f.colors[c.k]; if (v.c || v.f || v.w) d.colors[c.k] = { c: v.c, f: v.f, w: v.w }; }); }
-    else if (s.sport === 'bch') { d = { type: f.type, f: {} }; FUND.forEach(function (x) { if (f.f[x[0]]) d.f[x[0]] = f.f[x[0]]; }); }
+    else if (s.sport === 'bch') { d = { type: f.type, f: {}, n: {} }; FUND.forEach(function (x) { if (f.f[x[0]]) d.f[x[0]] = f.f[x[0]]; var nt = (f.n[x[0]] || '').trim().slice(0, 140); if (nt) d.n[x[0]] = nt; }); }
     else if (s.sport === 'swm') d = { m: f.m, min: f.min || null };
     else if (s.sport === 'run') d = { km: f.km, min: f.min || null };
     else if (s.sport === 'bon') d = { name: (f.name || '').trim().slice(0, 40), note: (f.note || '').trim().slice(0, 280) };
@@ -581,7 +655,9 @@ function openDetails(k, id, assess) {
     f.colors = {}; COLORS.forEach(function (c) { var v = d && d.colors && d.colors[c.k]; f.colors[c.k] = { c: v ? v.c : 0, f: v ? v.f : 0, w: v ? v.w : 0 }; });
     if (!d && s.quest && s.quest.done === true) f.colors[COLORS[s.quest.t.ci].k].c = s.quest.t.n;
   } else if (s.sport === 'bch') {
-    f.type = d ? d.type : 'allenamento'; f.f = {}; FUND.forEach(function (x) { f.f[x[0]] = d && d.f ? d.f[x[0]] || null : null; });
+    f.type = d ? d.type : 'allenamento'; f.f = {}; f.n = {}; f.nopen = {}; FUND.forEach(function (x) { f.f[x[0]] = d && d.f ? d.f[x[0]] || null : null; f.n[x[0]] = d && d.n ? d.n[x[0]] || '' : ''; if (f.n[x[0]]) f.nopen[x[0]] = true; });
+    if (!d && s.quest && s.quest.t && s.quest.t.fund && s.quest.done === true) f.f[s.quest.t.fund] = s.quest.t.lvl === 'y' ? 'y' : 'g';
+    f.focus = s.quest && s.quest.t ? s.quest.t.fund || null : null;
   } else if (s.sport === 'swm') {
     var bm = baseline('swm'); f.m = d ? d.m : (s.quest && s.quest.done === true ? s.quest.t.m : (bm ? bm.m : 1000)); f.min = d && d.min ? d.min : 0;
   } else if (s.sport === 'run') {
@@ -659,13 +735,15 @@ function viewHome() {
       var sp = []; ss.forEach(function (s) { if (sp.indexOf(s.sport) < 0) sp.push(s.sport); });
       cls += ' sport';
       st = sp.length > 1 ? 'background:linear-gradient(135deg,' + SPORTS[sp[0]].c + ' 0 50%,' + SPORTS[sp[1]].c + ' 50% 100%)' : 'background:' + SPORTS[sp[0]].c + ';box-shadow:0 0 10px ' + SPORTS[sp[0]].c + '66';
-    } else if (age < 0) cls += ' fut';
-    if (k === t) { cls += ' today'; if (!ss.length) cls += ' wait'; }
+    } else if (hasMark(k)) cls += ' hw';
+    else if (age < 0) cls += ' fut';
+    if (k === t) { cls += ' today'; if (!ss.length && !hasMark(k)) cls += ' wait'; }
     if (tap) cls += ' tap';
     var star = ss.some(function (s) { return s.star; });
-    h += '<button class="' + cls + '" style="' + st + '"' + (tap ? ' data-a="day" data-v="' + k + '"' : ' disabled') + ' aria-label="' + d + ' ' + MONTHS[m] + '">' + d + (star ? STAR_MINI : '') + '</button>';
+    h += '<button class="' + cls + '" style="' + st + '"' + (tap ? ' data-a="day" data-v="' + k + '"' : ' disabled') + ' aria-label="' + d + ' ' + MONTHS[m] + '">' + d + (star ? STAR_MINI : '') + (hasMark(k) ? '<svg class="i hwi" viewBox="0 0 24 24" aria-hidden="true">' + HW.ic + '</svg>' : '') + '</button>';
   }
-  h += '</div>' + '<div class="legend">' + S.profile.sports.map(function (s) { return '<span><i style="background:' + SPORTS[s].c + '"></i>' + SPORTS[s].name + '</span>'; }).join('') + '</div></div>';
+  var hwm = Object.keys(S.marks || {}).some(function (x) { return x.indexOf(ymKey(y, m)) === 0; });
+  h += '</div>' + '<div class="legend">' + S.profile.sports.map(function (s) { return '<span><i style="background:' + SPORTS[s].c + '"></i>' + SPORTS[s].name + '</span>'; }).join('') + (hwm ? '<span><i style="background:#1A2336;border:1px solid #7E8DAA"></i>Hard Study/Work</span>' : '') + '</div></div>';
   // settimana
   var wc = weekCount(t), nb = BADGES[wc + 1];
   var next = wc >= 7 ? 'Settimana piena. Davvero, riposati.' : wc < 2 ? 'Ancora ' + (2 - wc) + ' per: Keep in shape' : 'Ancora 1 giorno per: ' + nb;
@@ -681,7 +759,7 @@ function viewStato() {
   h += '<div style="border-radius:14px;border:1px solid rgba(59,167,255,.6);background:#0B1424;box-shadow:0 0 22px rgba(59,167,255,.22),inset 0 0 22px rgba(59,167,255,.08);padding:16px;display:flex;gap:16px;align-items:center">' +
     '<div style="width:76px;height:84px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;position:relative"><svg width="76" height="84" viewBox="0 0 76 84" aria-hidden="true" style="position:absolute;inset:0"><path d="M38 3l33 19v40L38 81 5 62V22z" fill="#0E1A30" stroke="#3BA7FF" stroke-width="2" stroke-linejoin="round"/></svg><span style="position:relative;font:700 44px/1 var(--fd);text-shadow:0 0 16px rgba(59,167,255,.9)">' + ms.rank + '</span></div>' +
     '<div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:6px"><span style="font:700 24px/28px var(--fd);letter-spacing:2px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(S.profile.name) + '</span><span style="font:500 14px/18px var(--fb);color:var(--soft)">Rango ' + ms.rank + ' · Livello ' + lv + '</span><div class="track"><div class="fill" style="width:' + Math.round(inLv / li.need * 100) + '%"></div></div><span class="hint">' + inLv + ' / ' + li.need + ' XP al livello ' + (lv + 1) + '</span></div></div>';
-  h += '<div style="border-radius:14px;border:1px solid rgba(255,201,77,.55);background:#14120A;box-shadow:0 0 18px rgba(255,201,77,.16);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px"><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="lbl" style="color:#D9B04A">Titolo di ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span style="font:700 28px/32px var(--fd);color:var(--rew);text-shadow:0 0 14px rgba(255,201,77,.45);letter-spacing:1px;text-transform:uppercase">' + ms.title + '</span><span style="font:500 13px/18px var(--fb);color:#C9BFA0">' + (ms.top ? ms.counts[ms.top] + ' sessioni di ' + SPORTS[ms.top].name.toLowerCase() + ' questo mese' : 'Si sblocca con il primo allenamento del mese') + '</span></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:0 0 auto"><span style="font:700 22px/26px var(--fd)">' + ms.weeksOk + '/' + ms.weeksTot + '</span><span style="font:500 11px/14px var(--fb);color:#C9BFA0;text-align:right">settimane<br>promosse</span></div></div>';
+  h += '<div style="border-radius:14px;border:1px solid rgba(255,201,77,.55);background:#14120A;box-shadow:0 0 18px rgba(255,201,77,.16);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px"><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="lbl" style="color:#D9B04A">Titolo di ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span style="font:700 28px/32px var(--fd);color:var(--rew);text-shadow:0 0 14px rgba(255,201,77,.45);letter-spacing:1px;text-transform:uppercase;text-wrap:balance' + (ms.title.length > 16 ? ';font-size:22px;line-height:26px' : '') + '">' + esc(ms.title) + '</span><span style="font:500 13px/18px var(--fb);color:#C9BFA0">' + titleWhy(ms) + (ms.top ? ' questo mese' : '') + '</span></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:0 0 auto"><span style="font:700 22px/26px var(--fd)">' + ms.weeksOk + '/' + ms.weeksTot + '</span><span style="font:500 11px/14px var(--fb);color:#C9BFA0;text-align:right">settimane<br>promosse</span></div></div>';
   h += '<div style="display:flex;flex-direction:column;gap:10px;padding-top:4px"><div class="row" style="padding:0 2px"><span class="lbl">Parametri · ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span class="hint">' + ms.pts + ' punti · ' + (nr.next ? (nr.next[1] - ms.pts) + ' al rango ' + nr.next[0] : 'rango massimo') + '</span></div><div class="g2" style="gap:10px">';
   S.profile.sports.forEach(function (s) {
     var sp = SPORTS[s], p = ms.sportPts[s] || 0, val, pct;
@@ -703,7 +781,7 @@ function viewStato() {
 
 function viewSettings() {
   var h = header('Profilo', '<button class="icon-btn" data-a="go" data-v="stato" aria-label="Torna a Stato">' + svg(IC.close) + '</button>');
-  h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><label class="lbl" for="pname">Nome</label><input id="pname" class="inp" maxlength="24" value="' + esc(S.profile.name) + '" data-f="pname" autocomplete="off"></div>';
+  h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><label class="lbl" for="pname">Nome</label><input id="pname" class="inp" maxlength="24" value="' + esc(S.profile.name) + '" data-f="pname" autocomplete="off"><span class="hint">Titoli del mese</span><div class="chips"><button class="chip' + (!fem() ? ' on' : '') + '" data-a="gender" data-v="m">Al maschile · Il Ragno</button><button class="chip' + (fem() ? ' on' : '') + '" data-a="gender" data-v="f">Al femminile · La Ragna</button></div></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">I tuoi sport</span><div class="g2">';
   ORDER.forEach(function (s) { var on = S.profile.sports.indexOf(s) >= 0; h += '<button class="opt pick' + (on ? ' on' : '') + '" style="--diff:' + SPORTS[s].c + '" data-a="setSport" data-v="' + s + '">' + sportIc(s) + SPORTS[s].name + '</button>'; });
   h += '</div><span class="hint">Quelli spenti non compaiono nella scelta del giorno né in Stato. I dati già segnati restano.</span></div>';
@@ -711,7 +789,7 @@ function viewSettings() {
   var lb = S.lastBackup, age = lb ? diffDays(todayKey(), lb) : null;
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo in iCloud Drive: se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 1.2</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 1.3</span>';
   return h;
 }
 
@@ -728,16 +806,20 @@ function viewOverlay() {
     var past = o.t === 'past' || o.k !== todayKey();
     h = '<div class="' + cls + '">' + whead(past ? niceDate(o.k) : 'Notifica · ' + DAYS_SHORT[parseKey(o.k).getDay()] + ' ' + niceDate(o.k), true) +
       '<div style="display:flex;flex-direction:column;gap:4px"><p class="wtitle">' + (past ? 'Cosa hai fatto?' : 'Cosa fai oggi?') + '</p>' + (past ? '<p class="wtext" style="font-size:12px">Solo il segno sul calendario, niente quest.</p>' : '') + '</div>' +
-      '<div class="g2">' + S.profile.sports.map(function (s) { return '<button class="opt pick" data-a="pick" data-v="' + s + '">' + sportIc(s) + SPORTS[s].name + '</button>'; }).join('') + '</div></div>';
+      '<div class="g2">' + S.profile.sports.map(function (s) { return '<button class="opt pick" data-a="pick" data-v="' + s + '">' + sportIc(s) + SPORTS[s].name + '</button>'; }).join('') + '</div>' +
+      (hasMark(o.k) ? '' : '<button class="hwbtn" data-a="hw">' + svg(HW.ic, '#AEBBD3', 20) + (past ? 'Giornata di Hard Study/Work' : 'Oggi Hard Study/Work') + '</button>') + '</div>';
   } else if (o.t === 'group') {
     h = '<div class="' + cls + '">' + whead('Palestra', true) + '<p class="wtitle">Cosa alleni?</p><div style="display:flex;flex-direction:column;gap:8px">' +
       GROUP_ORDER.map(function (g) { return '<button class="opt" data-a="group" data-v="' + g + '"><span style="font:600 16px/22px var(--fd);letter-spacing:1px">' + GROUPS[g].name + '</span><span class="hint">quest: ' + GROUPS[g].key + '</span></button>'; }).join('') + '</div></div>';
+  } else if (o.t === 'focus') {
+    h = '<div class="' + cls + '">' + whead('Beach', true) + '<div style="display:flex;flex-direction:column;gap:4px"><p class="wtitle">Su cosa lavori oggi?</p><p class="wtext" style="font-size:13px">Scegli il fondamentale: la quest è portarlo a verde.</p></div><div style="display:flex;flex-direction:column;gap:8px">' +
+      FUND.map(function (x) { var lf = lastFund(x[0]), fc = lf.face ? FACES.filter(function (q) { return q[0] === lf.face; })[0][1] : null; return '<button class="opt" data-a="focus" data-v="' + x[0] + '"><span style="font:600 16px/22px var(--fd);letter-spacing:1px">' + x[1] + '</span><span class="hint" style="display:flex;align-items:center;gap:6px">' + (fc ? 'ultima volta <i style="display:block;width:10px;height:10px;border-radius:5px;background:' + fc + '"></i>' : 'ancora nessun voto') + '</span></button>'; }).join('') + '</div></div>';
   } else if (o.t === 'quest') {
     var q = questsFor(o.sport, o.group);
     if (!q) {
       h = '<div class="' + cls + '">' + whead('Quest', true) + '<p class="wtitle">Prima volta: ' + (o.sport === 'gym' ? GROUPS[o.group].key : SPORTS[o.sport].name) + '</p><p class="wtext">Nessuna quest oggi. Allenati come sempre e a fine sessione segna i dati: diventano il tuo punto di partenza, e dalla prossima volta arrivano le quest.</p><div class="acts"><button class="btn" data-a="close">Annulla</button><button class="btn main" data-a="assess">Inizia</button></div></div>';
     } else {
-      h = '<div class="' + cls + '" style="gap:14px">' + whead('Quest', true) + '<div style="display:flex;flex-direction:column;gap:4px"><p class="wtitle">' + q.title + '</p><p class="wtext" style="font-size:13px">' + q.last + '</p></div><div style="display:flex;flex-direction:column;gap:8px">';
+      h = '<div class="' + cls + '" style="gap:14px">' + whead('Quest', true) + '<div style="display:flex;flex-direction:column;gap:4px"><p class="wtitle">' + q.title + '</p><p class="wtext" style="font-size:13px">' + q.last + '</p>' + (q.note ? '<p class="wtext" style="font-size:13px;color:var(--soft)">Nota: “' + esc(q.note) + '”</p>' : '') + '</div><div style="display:flex;flex-direction:column;gap:8px">';
       ['easy', 'med', 'hard'].forEach(function (d) {
         var m = DIFF[d];
         h += '<button class="opt' + (o.diff === d ? ' on' : '') + '" style="--diff:' + m.c + '" data-a="diff" data-v="' + d + '"><span style="display:flex;flex-direction:column;gap:2px"><span class="optl">' + m.label + '</span><span class="optg">' + q[d].label + '</span></span><span class="opts"><span class="marks">' + [1, 2, 3].map(function (i) { return '<i class="' + (i <= m.n ? 'on' : '') + '"></i>'; }).join('') + '</span>+' + (10 + m.bonus) + ' XP</span></button>';
@@ -759,10 +841,14 @@ function viewOverlay() {
       h += '<div class="sess">' + sportIc(s.sport, 26, true) + '<div class="meta"><b>' + SPORTS[s.sport].name + (s.star ? ' ★' : '') + '</b><span>' + esc(sessSummary(s)) + '</span></div>' +
         (o.confirm === s.id ? '<button class="btn sm danger" data-a="remove" data-v="' + s.id + '">Rimuovi</button>' : '<button class="btn sm" data-a="edit" data-v="' + s.id + '">Dettagli</button><button class="x" style="margin:0 -6px 0 0" data-a="askRemove" data-v="' + s.id + '" aria-label="Rimuovi sessione">' + svg(IC.close, '#8FA3C2', 18) + '</button>') + '</div>';
     });
-    h += '</div><button class="btn" data-a="addOther">Aggiungi uno sport</button></div>';
+    if (hasMark(o.k)) h += '<div class="sess" style="border-style:dashed">' + svg(HW.ic, '#AEBBD3', 26) + '<div class="meta"><b>Hard Study/Work</b><span>Giornata di testa, conta anche questa</span></div><button class="x" style="margin:0 -6px 0 0" data-a="hw" aria-label="Togli Hard Study/Work">' + svg(IC.close, '#8FA3C2', 18) + '</button></div>';
+    h += '</div><button class="btn" data-a="addOther">Aggiungi uno sport</button>' + '</div>';
   } else if (o.t === 'notice') {
-    if (o.kind === 'edit') h = '<div class="' + cls + '">' + whead('Notifica', false) + '<p class="wtitle">Recupera il mese</p><p class="wtext">Per i primi 14 giorni puoi segnare anche gli allenamenti dell’ultimo mese: tocca i giorni passati sul calendario. Così parti dal tuo rango vero.</p><div class="acts one"><button class="btn main" data-a="noticeOk">Ricevuto</button></div></div>';
+    if (o.kind === 'gender') h = '<div class="' + cls + '">' + whead('Notifica', false) + '<p class="wtitle">Nuovi titoli del mese</p><p class="wtext">I titoli ora si declinano. Come ti chiama il sistema?</p><div class="g2"><button class="opt pick" style="justify-content:center" data-a="gender" data-v="m">Il Ragno</button><button class="opt pick" style="justify-content:center" data-a="gender" data-v="f">La Ragna</button></div><p class="wtext" style="font-size:12px">Puoi cambiarlo quando vuoi dal profilo.</p></div>';
+    else if (o.kind === 'edit') h = '<div class="' + cls + '">' + whead('Notifica', false) + '<p class="wtitle">Recupera il mese</p><p class="wtext">Per i primi 14 giorni puoi segnare anche gli allenamenti dell’ultimo mese: tocca i giorni passati sul calendario. Così parti dal tuo rango vero.</p><div class="acts one"><button class="btn main" data-a="noticeOk">Ricevuto</button></div></div>';
     else h = '<div class="' + cls + '">' + whead('Notifica', false) + '<p class="wtitle">È ora di un backup</p><p class="wtext">I tuoi dati vivono solo su questo telefono. Tocca Backup e scegli “Salva in File” → iCloud Drive: bastano due tocchi.</p><div class="acts"><button class="btn" data-a="noticeLater">Più tardi</button><button class="btn main" data-a="noticeBackup">Backup</button></div></div>';
+  } else if (o.t === 'recap') {
+    h = viewRecap(o, cls);
   } else if (o.t === 'details') {
     h = viewDetails(o, cls);
   } else if (o.t === 'archive') {
@@ -773,9 +859,9 @@ function viewOverlay() {
     ml.forEach(function (mk) {
       var y = +mk.slice(0, 4), m = +mk.slice(5) - 1, st = monthStats(y, m), tot = st.sessions || 1;
       var split = ORDER.filter(function (s) { return st.counts[s]; }).map(function (s) { return [s, Math.round(st.counts[s] / tot * 100)]; }).sort(function (a, b) { return b[1] - a[1]; });
-      h += '<div class="month"><div class="row" style="align-items:baseline"><span style="font:600 14px/18px var(--fd);letter-spacing:2px;text-transform:uppercase">' + MONTHS[m] + ' ' + y + '</span><span style="flex:1 1 auto;text-align:right;font:600 13px/18px var(--fd);color:var(--rew);text-transform:uppercase">' + st.title + '</span><span style="font:700 22px/24px var(--fd);text-shadow:0 0 10px rgba(59,167,255,.8);min-width:18px;text-align:right">' + st.rank + '</span></div>' +
+      h += '<button class="month" data-a="recap" data-v="' + mk + '" style="color:var(--ink);text-align:left;cursor:pointer"><div class="row" style="align-items:baseline;width:100%"><span style="font:600 14px/18px var(--fd);letter-spacing:2px;text-transform:uppercase">' + MONTHS[m] + ' ' + y + '</span><span style="flex:1 1 auto;text-align:right;font:600 13px/18px var(--fd);color:var(--rew);text-transform:uppercase">' + esc(st.title) + '</span><span style="font:700 22px/24px var(--fd);text-shadow:0 0 10px rgba(59,167,255,.8);min-width:18px;text-align:right">' + st.rank + '</span></div>' +
         '<div class="split">' + split.map(function (p) { return '<i style="flex:' + p[1] + ' 1 0;background:' + SPORTS[p[0]].c + '"></i>'; }).join('') + '</div>' +
-        '<div class="row" style="font:500 12px/16px var(--fb);color:var(--soft)"><span>' + st.days + ' giorni</span><span>' + st.qd + '/' + st.qt + ' quest</span><span>' + split.slice(0, 2).map(function (p) { return SPORTS[p[0]].name + ' ' + p[1] + '%'; }).join(' · ') + '</span></div></div>';
+        '<div class="row" style="font:500 12px/16px var(--fb);color:var(--soft)"><span>' + st.days + ' giorni</span><span>' + st.qd + '/' + st.qt + ' quest</span><span>' + split.slice(0, 2).map(function (p) { return SPORTS[p[0]].name + ' ' + p[1] + '%'; }).join(' · ') + '</span></div></button>';
     });
     h += '</div></div>';
   } else if (o.t === 'sport') {
@@ -796,6 +882,17 @@ function viewOverlay() {
   return '<div class="veil' + (cls.indexOf('anim') >= 0 ? ' fade' : '') + '">' + h + '</div>';
 }
 
+function viewRecap(o, cls) {
+  var ms = monthStats(o.y, o.m), p = prevMonth(o.y, o.m), pv = monthStats(p.y, p.m), dd = ms.days - pv.days;
+  var cmp = !pv.days ? 'Il tuo primo mese nel sistema.' : dd > 0 ? '+' + dd + (dd === 1 ? ' giorno' : ' giorni') + ' rispetto a ' + MONTHS[p.m].toLowerCase() + '.' : dd === 0 ? 'Stessi giorni di ' + MONTHS[p.m].toLowerCase() + ': costanza pura.' : 'Ogni mese conta: questo è nel libro.';
+  var h = '<div class="' + cls + ' gold" style="text-align:center;gap:14px">' + whead('Recap · ' + MONTHS[o.m] + ' ' + o.y, !o.first);
+  h += '<div style="display:flex;flex-direction:column;align-items:center;gap:6px"><span class="lbl" style="color:#D9B04A">Rango del mese</span><span class="recap-big pop">' + ms.rank + '</span></div>';
+  h += '<div class="pop" style="display:flex;flex-direction:column;gap:2px"><span class="lbl" style="color:#D9B04A;font-size:11px">Titolo</span><span style="font:700 24px/28px var(--fd);color:var(--rew);text-shadow:0 0 14px rgba(255,201,77,.45);letter-spacing:1px;text-transform:uppercase;text-wrap:balance">' + esc(ms.title) + '</span><span class="hint">' + titleWhy(ms) + '</span></div>';
+  h += '<div class="recap-grid"><div class="fld"><b>' + ms.days + '</b><span class="hint">giorni</span></div><div class="fld"><b>' + ms.qd + '</b><span class="hint">quest riuscite</span></div><div class="fld"><b>' + ms.weeksOk + '/' + ms.weeksTot + '</b><span class="hint">settimane</span></div></div>';
+  h += '<p class="wtext">' + cmp + (ms.hw ? ' E ' + ms.hw + (ms.hw === 1 ? ' giornata' : ' giornate') + ' di Hard Study/Work.' : '') + '</p>';
+  h += '<div class="acts one"><button class="btn main" data-a="recapOk">' + (o.first ? 'Inizia ' + MONTHS[new Date().getMonth()].toLowerCase() : 'Chiudi') + '</button></div></div>';
+  return h;
+}
 function viewDetails(o, cls) {
   var f = o.form, s = o.sport, h = '<div class="' + cls + ' tall" style="gap:12px">' + whead(o.assess ? 'Punto di partenza' : 'Dettagli · ' + SPORTS[s].name, true);
   h += '<div class="wbody" data-keep>';
@@ -816,9 +913,10 @@ function viewDetails(o, cls) {
     });
   } else if (s === 'bch') {
     h += '<div class="chips">' + ['allenamento', 'partitella', 'torneo'].map(function (t) { return '<button class="chip' + (f.type === t ? ' on' : '') + '" data-a="btype" data-v="' + t + '">' + t.charAt(0).toUpperCase() + t.slice(1) + '</button>'; }).join('') + '</div>';
-    h += '<p class="hint" style="margin:0">Com’è andata ogni fondamentale, rispetto al tuo livello di oggi.</p>';
+    h += '<p class="hint" style="margin:0">Com’è andato ogni fondamentale, rispetto al tuo livello di oggi. Pallini e note sono facoltativi.</p>';
     FUND.forEach(function (x) {
-      h += '<div class="fld"><div class="row"><span style="font:600 15px/20px var(--fd)">' + x[1] + '</span><div style="display:flex;gap:8px">' + FACES.map(function (fc) { return '<button class="face' + (f.f[x[0]] === fc[0] ? ' on' : '') + '" style="color:' + fc[1] + '" data-a="face" data-v="' + x[0] + '|' + fc[0] + '" aria-label="' + x[1] + ' ' + ({ g: 'verde', y: 'gialla', r: 'rossa' })[fc[0]] + '"><i style="background:' + fc[1] + '"></i></button>'; }).join('') + '</div></div></div>';
+      h += '<div class="fld"' + (f.focus === x[0] ? ' style="border-color:var(--sysl)"' : '') + '><div class="row"><span style="display:flex;flex-direction:column;font:600 15px/20px var(--fd)">' + x[1] + (f.focus === x[0] ? '<span class="hint" style="color:var(--sysl)">focus di oggi</span>' : '') + '</span><div style="display:flex;gap:8px">' + FACES.map(function (fc) { return '<button class="face' + (f.f[x[0]] === fc[0] ? ' on' : '') + '" style="color:' + fc[1] + '" data-a="face" data-v="' + x[0] + '|' + fc[0] + '" aria-label="' + x[1] + ' ' + ({ g: 'verde', y: 'gialla', r: 'rossa' })[fc[0]] + '"><i style="background:' + fc[1] + '"></i></button>'; }).join('') + '</div></div>' +
+        (f.nopen[x[0]] ? '<input class="inp fnote" maxlength="140" placeholder="Cosa ricordarti la prossima volta" value="' + esc(f.n[x[0]]) + '" data-f="fn:' + x[0] + '" autocomplete="off">' : '<button class="notebtn" data-a="fnote" data-v="' + x[0] + '">+ nota</button>') + '</div>';
     });
   } else if (s === 'swm') {
     h += '<div class="fld"><div class="row"><span class="hint">Distanza</span>' + stepper('m', f.m, 50, 50, meters) + '</div><div class="row"><span class="hint">Tempo (facoltativo)</span>' + stepper('min', f.min, 1, 0, function (v) { return v ? v + ' min' : '—'; }) + '</div></div>';
@@ -837,7 +935,7 @@ function viewOnboarding() {
   var o = ui.ob, h = '<div class="ob">';
   var standalone = window.navigator.standalone || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
   if (o.step === 0) {
-    h += '<div class="win anim" style="gap:16px">' + whead('Notifica', false) + '<p class="wtitle">Nuovo giocatore rilevato</p><p class="wtext">Il sistema premia la costanza: segni gli sport che fai, ricevi quest, sali di livello. Come ti chiami?</p><input id="obname" class="inp" maxlength="24" placeholder="Il tuo nome" value="' + esc(o.name) + '" data-f="obname" autocomplete="given-name" enterkeyhint="next"><button class="btn main" data-a="obNext">Avanti</button></div>';
+    h += '<div class="win anim" style="gap:16px">' + whead('Notifica', false) + '<p class="wtitle">Nuovo giocatore rilevato</p><p class="wtext">Il sistema premia la costanza: segni gli sport che fai, ricevi quest, sali di livello. Come ti chiami?</p><input id="obname" class="inp" maxlength="24" placeholder="Il tuo nome" value="' + esc(o.name) + '" data-f="obname" autocomplete="given-name" enterkeyhint="next"><div class="g2"><button class="chip' + (o.g !== 'f' ? ' on' : '') + '" data-a="obG" data-v="m">Il Ragno</button><button class="chip' + (o.g === 'f' ? ' on' : '') + '" data-a="obG" data-v="f">La Ragna</button></div><span class="hint" style="text-align:center;margin-top:-8px">Così il sistema declina i tuoi titoli del mese.</span><button class="btn main" data-a="obNext">Avanti</button></div>';
     if (!standalone) h += '<p class="hint" style="text-align:center">Per averla come app: in Safari tocca Condividi, poi “Aggiungi alla schermata Home”. Fallo prima di iniziare, così i dati restano nell’app.</p>';
   } else {
     h += '<div class="win anim" style="gap:16px">' + whead('Notifica', false) + '<p class="wtitle">Che sport fai, ' + esc(o.name) + '?</p><p class="wtext">Puoi cambiarli quando vuoi dal profilo.</p><div class="g2">' +
@@ -876,6 +974,7 @@ function render() {
   fitCalendar();
   var k2 = root.querySelector('[data-keep]'); if (k2 && keep) k2.scrollTop = keepTop;
   var m2 = root.querySelector('.scroller'); if (m2 && main) m2.scrollTop = mainTop;
+  if (ui.focusNext) { focus = ui.focusNext; ui.focusNext = null; }
   if (focus) { var el = root.querySelector('[data-f="' + focus + '"]'); if (el) { el.focus(); try { var l = el.value.length; el.setSelectionRange(l, l); } catch (e) {} } }
   var imp = document.getElementById('imp'); if (imp) imp.onchange = function () { if (imp.files && imp.files[0]) importBackup(imp.files[0]); };
 }
@@ -889,6 +988,7 @@ root.addEventListener('input', function (e) {
   else if (f === 'pname') { var v = e.target.value.trim(); if (v) { S.profile.name = v.slice(0, 24); save(); } }
   else if (f === 'bname') ui.ov.form.name = e.target.value;
   else if (f === 'bnote') ui.ov.form.note = e.target.value;
+  else if (f.indexOf('fn:') === 0) ui.ov.form.n[f.slice(3)] = e.target.value;
 });
 root.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.getAttribute('data-f') === 'obname') { e.preventDefault(); A.obNext(); } });
 function resetViewport() { if (window.scrollY || window.scrollX || document.documentElement.scrollTop || document.body.scrollTop) { window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; } }
