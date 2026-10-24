@@ -22,15 +22,16 @@ html,body{margin:0;height:100%;overflow:hidden;position:fixed;width:100%;backgro
 button,input,textarea{font:inherit;color:inherit}
 button{-webkit-user-select:none;user-select:none}
 #app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden}
-.scroller{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(env(safe-area-inset-top,0px) + 18px) max(18px,env(safe-area-inset-right,0px)) 16px max(18px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
-.nav{flex:0 0 auto;border-top:1px solid var(--line);background:#090F1B;display:flex;align-items:center;justify-content:space-around;padding:6px 40px calc(env(safe-area-inset-bottom,0px) + 6px)}
-.nav button{display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:none;font:600 11px/14px var(--fb);min-width:76px;min-height:50px;justify-content:center;color:var(--mut);cursor:pointer}
+.scroller{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(env(safe-area-inset-top,0px) + 10px) max(18px,env(safe-area-inset-right,0px)) 12px max(18px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:12px}
+.nav{flex:0 0 auto;border-top:1px solid var(--line);background:#090F1B;display:flex;align-items:center;justify-content:space-around;padding:2px 40px max(4px,calc(env(safe-area-inset-bottom,0px) - 10px))}
+.nav button{display:flex;flex-direction:column;align-items:center;gap:1px;border:none;background:none;font:600 10px/13px var(--fb);min-width:76px;min-height:44px;justify-content:center;color:var(--mut);cursor:pointer}
 .nav button.on{color:var(--sysl)}
 .lbl{font:600 12px/16px var(--fd);letter-spacing:3px;text-transform:uppercase;color:var(--mut)}
 .kick{color:var(--sysl)}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:14px}
 .top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
-h1{margin:0;font:700 28px/32px var(--fd)}
+h1{margin:0;font:700 clamp(22px,7vw,28px)/1.15 var(--fd);white-space:nowrap}
+.scroller>*{flex-shrink:0}
 .lv{font:700 14px/18px var(--fd);letter-spacing:1px;border:1px solid var(--sys);border-radius:6px;padding:2px 10px;box-shadow:0 0 14px rgba(59,167,255,.35)}
 .track{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
 .fill{height:6px;border-radius:3px;background:var(--sys);box-shadow:0 0 8px var(--sys);transition:width .8s cubic-bezier(.2,.8,.2,1)}
@@ -38,11 +39,11 @@ h1{margin:0;font:700 28px/32px var(--fd)}
 svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
 /* calendario */
 .cal-head{display:flex;align-items:center;justify-content:space-between}
-.cal-head button{width:44px;height:36px;border:none;background:none;color:var(--mut);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.cal-head button{width:44px;height:32px;border:none;background:none;color:var(--mut);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .cal-head button:disabled{opacity:.25}
-.grid7{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.grid7{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
 .dow{text-align:center;font:600 12px/16px var(--fd);letter-spacing:1px;color:var(--mut)}
-.cell{position:relative;height:40px;border-radius:6px;border:1px solid var(--line);background:var(--raised);color:var(--mut);display:flex;align-items:center;justify-content:center;font:600 15px/1 var(--fd);padding:0;cursor:default}
+.cell{position:relative;height:var(--ch,40px);border-radius:6px;border:1px solid var(--line);background:var(--raised);color:var(--mut);display:flex;align-items:center;justify-content:center;font:600 15px/1 var(--fd);padding:0;cursor:default}
 .cell.empty{background:transparent;border:none}
 .cell.fut{background:transparent;border-style:dashed;color:#6F82A3}
 .cell.tap{cursor:pointer}
@@ -53,7 +54,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .legend{display:flex;flex-wrap:wrap;gap:6px 12px}
 .legend span{display:inline-flex;align-items:center;gap:5px;font:600 11px/14px var(--fb);color:var(--soft)}
 .legend i{width:8px;height:8px;border-radius:2px;display:block}
-.badge{font:700 23px/28px var(--fd);color:var(--rew);text-shadow:0 0 14px rgba(255,201,77,.45);letter-spacing:1px;text-transform:uppercase}
+.badge{font:700 20px/24px var(--fd);color:var(--rew);text-shadow:0 0 14px rgba(255,201,77,.45);letter-spacing:1px;text-transform:uppercase}
 .weekbar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
 .weekbar i{display:block;height:6px;border-radius:3px;background:var(--line);transition:background .4s}
 .weekbar i.on{background:var(--rew);box-shadow:0 0 8px rgba(255,201,77,.6)}
@@ -246,6 +247,13 @@ var toastMsg = null, toastTimer = null, lastAnim = {};
 /* ---------- calcoli ---------- */
 function editWindow() { var c = S && S.profile.created ? diffDays(todayKey(), S.profile.created) : 99; return c <= 14 ? 31 : 7; }
 function canEdit(k) { var age = diffDays(todayKey(), k); return age >= 0 && age <= editWindow(); }
+function backupDue() { if (!S) return false; var lb = S.lastBackup, n = allKeysSorted().length; return (lb === null && n >= 5) || (lb !== null && diffDays(todayKey(), lb) > 14); }
+function startupNotice() {
+  if (!S || ui.ov) return;
+  S.seen = S.seen || {};
+  if (!S.seen.edit && editWindow() > 7) { ui.ov = { t: 'notice', kind: 'edit' }; return; }
+  if (backupDue() && (!S.backupSnooze || todayKey() >= S.backupSnooze)) ui.ov = { t: 'notice', kind: 'backup' };
+}
 function sessions(k) { return (S.days[k] || []); }
 function allKeysSorted() { return Object.keys(S.days).filter(function (k) { return S.days[k].length; }).sort(); }
 function sessXp(s) { return 10 + (s.quest && s.quest.done === true ? DIFF[s.quest.diff].bonus : 0) + (s.star ? 5 : 0); }
@@ -379,14 +387,20 @@ function sessSummary(s) {
 
 /* ---------- suoni (famiglia Kart) ---------- */
 var AC = null;
+try { if (navigator.audioSession) navigator.audioSession.type = 'transient'; } catch (e) {}
 function audio() {
   try {
     var C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
     if (!AC) AC = new C();
-    if (AC.state === 'suspended') AC.resume();
     return AC;
   } catch (e) { return null; }
 }
+function unlockAudio() {
+  var a = audio(); if (!a) return;
+  if (a.state !== 'running') { try { a.resume(); } catch (e) {} }
+  try { var b = a.createBuffer(1, 1, 22050), src = a.createBufferSource(); src.buffer = b; src.connect(a.destination); src.start(0); } catch (e) {}
+}
+['touchstart', 'touchend', 'pointerdown', 'click'].forEach(function (ev) { document.addEventListener(ev, function () { if (!AC || AC.state !== 'running') unlockAudio(); }, { capture: true, passive: true }); });
 function sq(a, st, fr, dur, gn) {
   var o = a.createOscillator(), g = a.createGain();
   o.type = 'square'; o.frequency.value = fr;
@@ -397,7 +411,8 @@ function ding(kind) {
   if (!S || !S.settings.sound) return;
   try {
     var a = audio(); if (!a) return;
-    var t = a.currentTime + 0.01;
+    if (a.state !== 'running') { a.resume().then(function () { if (a.state === 'running') ding(kind); }).catch(function () {}); return; }
+    var t = a.currentTime + 0.02;
     if (kind === 'tap') sq(a, t, 2350, 0.018, 0.05);
     else if (kind === 'open') [0, 0.025, 0.052, 0.082, 0.118].forEach(function (d, i) { sq(a, t + d, 2000 + i * 120, 0.016, 0.05); });
     else {
@@ -445,7 +460,7 @@ var A = {
     if (ui.ob.step === 0) { if (!ui.ob.name.trim()) { toast('Scrivi il tuo nome per iniziare.'); return; } ui.ob.step = 1; ding('open'); render(); return; }
     if (!ui.ob.sports.length) { toast('Scegli almeno uno sport.'); return; }
     S = newState(ui.ob.name.trim().slice(0, 24), ORDER.filter(function (s) { return ui.ob.sports.indexOf(s) >= 0; }));
-    save(); ding('reward'); ui.screen = 'home'; render(); toast('Benvenuto nel sistema, ' + S.profile.name + '.');
+    save(); ding('reward'); ui.screen = 'home'; startupNotice(); render(); toast('Benvenuto nel sistema, ' + S.profile.name + '.');
   },
   obBack: function () { ui.ob.step = 0; render(); },
   obSport: function (s) { var i = ui.ob.sports.indexOf(s); if (i >= 0) ui.ob.sports.splice(i, 1); else ui.ob.sports.push(s); ding('tap'); render(); },
@@ -454,6 +469,9 @@ var A = {
   month: function (dir) { var m = ui.vm.m + +dir, y = ui.vm.y; if (m < 0) { m = 11; y--; } if (m > 11) { m = 0; y++; } var n = new Date(); if (y > n.getFullYear() || (y === n.getFullYear() && m > n.getMonth())) return; ui.vm = { y: y, m: m }; ding('tap'); render(); },
   sound: function () { S.settings.sound = !S.settings.sound; save(); render(); if (S.settings.sound) ding('tap'); },
   close: function () { close(); },
+  noticeOk: function () { var o = ui.ov; if (o && o.kind === 'edit') { S.seen = S.seen || {}; S.seen.edit = true; save(); } close(); },
+  noticeLater: function () { S.backupSnooze = addDays(todayKey(), 3); save(); close(); },
+  noticeBackup: function () { ui.ov = null; render(); exportBackup(); },
   /* giorni */
   day: function (k) {
     var t = todayKey();
@@ -631,7 +649,7 @@ function viewHome() {
   // calendario
   var first = new Date(y, m, 1), lead = (first.getDay() + 6) % 7, nd = new Date(y, m + 1, 0).getDate(), n = new Date();
   var isCur = y === n.getFullYear() && m === n.getMonth();
-  h += '<div class="card" style="padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px">';
+  h += '<div class="card" style="padding:6px 12px 10px;display:flex;flex-direction:column;gap:6px">';
   h += '<div class="cal-head"><button data-a="month" data-v="-1" aria-label="Mese precedente">' + svg(IC.left) + '</button><span class="lbl">' + MONTHS[m] + '</span><button data-a="month" data-v="1" aria-label="Mese successivo"' + (isCur ? ' disabled' : '') + '>' + svg(IC.right) + '</button></div>';
   h += '<div class="grid7">' + ['L', 'M', 'M', 'G', 'V', 'S', 'D'].map(function (x) { return '<span class="dow">' + x + '</span>'; }).join('') + '</div><div class="grid7">';
   for (var i = 0; i < lead; i++) h += '<span class="cell empty"></span>';
@@ -647,13 +665,11 @@ function viewHome() {
     var star = ss.some(function (s) { return s.star; });
     h += '<button class="' + cls + '" style="' + st + '"' + (tap ? ' data-a="day" data-v="' + k + '"' : ' disabled') + ' aria-label="' + d + ' ' + MONTHS[m] + '">' + d + (star ? STAR_MINI : '') + '</button>';
   }
-  h += '</div>' + (editWindow() > 7 ? '<span class="hint" style="color:var(--sysl)">Primi 14 giorni: puoi segnare anche gli allenamenti dell’ultimo mese, così parti dal tuo rango vero.</span>' : '') + '<div class="legend">' + S.profile.sports.map(function (s) { return '<span><i style="background:' + SPORTS[s].c + '"></i>' + SPORTS[s].name + '</span>'; }).join('') + '</div></div>';
-  var nSess = allKeysSorted().length, lb = S.lastBackup, bAge = lb ? diffDays(t, lb) : null;
-  if ((lb === null && nSess >= 5) || (bAge !== null && bAge > 14)) h += '<div style="border:1px dashed #6B5A25;border-radius:14px;background:#14120A;padding:12px 16px;display:flex;align-items:center;gap:12px"><span style="flex:1 1 auto;font:500 13px/18px var(--fb);color:#E8D9A8">' + (lb ? 'Ultimo backup ' + bAge + ' giorni fa.' : 'Non hai ancora fatto un backup.') + ' I dati vivono solo su questo telefono.</span><button class="btn sm" style="border-color:#6B5A25;color:#FFE3A0" data-a="exportData">Backup</button></div>';
+  h += '</div>' + '<div class="legend">' + S.profile.sports.map(function (s) { return '<span><i style="background:' + SPORTS[s].c + '"></i>' + SPORTS[s].name + '</span>'; }).join('') + '</div></div>';
   // settimana
   var wc = weekCount(t), nb = BADGES[wc + 1];
   var next = wc >= 7 ? 'Settimana piena. Davvero, riposati.' : wc < 2 ? 'Ancora ' + (2 - wc) + ' per: Keep in shape' : 'Ancora 1 giorno per: ' + nb;
-  h += '<div class="card" style="padding:12px 16px;display:flex;flex-direction:column;gap:8px"><div class="row"><span class="lbl">Questa settimana</span><span class="hint">' + wc + ' giorni su 7</span></div><span class="badge">' + (BADGES[wc] || 'Settimana in corso') + '</span><div class="weekbar">';
+  h += '<div class="card" style="padding:10px 16px;display:flex;flex-direction:column;gap:6px"><div class="row"><span class="lbl">Questa settimana</span><span class="hint">' + wc + ' giorni su 7</span></div><span class="badge">' + (BADGES[wc] || 'Settimana in corso') + '</span><div class="weekbar">';
   for (var w = 0; w < 7; w++) h += '<i class="' + (w < wc ? 'on' : '') + '"></i>';
   h += '</div><span class="hint">' + next + '</span></div>';
   return h;
@@ -661,7 +677,7 @@ function viewHome() {
 
 function viewStato() {
   var n = new Date(), ms = monthStats(n.getFullYear(), n.getMonth()), li = levelInfo(totalXp()), lv = li.lv, inLv = li.inLv, nr = nextRank(ms.pts);
-  var h = header('Stato', '<button class="icon-btn" data-a="go" data-v="settings" aria-label="Impostazioni">' + svg(IC.gear) + '</button>');
+  var h = header('Stato', '<button class="icon-btn" data-a="go" data-v="settings" aria-label="Impostazioni" style="position:relative">' + svg(IC.gear) + (backupDue() ? '<i style="position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:4px;background:#FFC94D;box-shadow:0 0 6px #FFC94D"></i>' : '') + '</button>');
   h += '<div style="border-radius:14px;border:1px solid rgba(59,167,255,.6);background:#0B1424;box-shadow:0 0 22px rgba(59,167,255,.22),inset 0 0 22px rgba(59,167,255,.08);padding:16px;display:flex;gap:16px;align-items:center">' +
     '<div style="width:76px;height:84px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;position:relative"><svg width="76" height="84" viewBox="0 0 76 84" aria-hidden="true" style="position:absolute;inset:0"><path d="M38 3l33 19v40L38 81 5 62V22z" fill="#0E1A30" stroke="#3BA7FF" stroke-width="2" stroke-linejoin="round"/></svg><span style="position:relative;font:700 44px/1 var(--fd);text-shadow:0 0 16px rgba(59,167,255,.9)">' + ms.rank + '</span></div>' +
     '<div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:6px"><span style="font:700 24px/28px var(--fd);letter-spacing:2px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(S.profile.name) + '</span><span style="font:500 14px/18px var(--fb);color:var(--soft)">Rango ' + ms.rank + ' · Livello ' + lv + '</span><div class="track"><div class="fill" style="width:' + Math.round(inLv / li.need * 100) + '%"></div></div><span class="hint">' + inLv + ' / ' + li.need + ' XP al livello ' + (lv + 1) + '</span></div></div>';
@@ -695,7 +711,7 @@ function viewSettings() {
   var lb = S.lastBackup, age = lb ? diffDays(todayKey(), lb) : null;
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo in iCloud Drive: se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 1.1</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 1.2</span>';
   return h;
 }
 
@@ -744,6 +760,9 @@ function viewOverlay() {
         (o.confirm === s.id ? '<button class="btn sm danger" data-a="remove" data-v="' + s.id + '">Rimuovi</button>' : '<button class="btn sm" data-a="edit" data-v="' + s.id + '">Dettagli</button><button class="x" style="margin:0 -6px 0 0" data-a="askRemove" data-v="' + s.id + '" aria-label="Rimuovi sessione">' + svg(IC.close, '#8FA3C2', 18) + '</button>') + '</div>';
     });
     h += '</div><button class="btn" data-a="addOther">Aggiungi uno sport</button></div>';
+  } else if (o.t === 'notice') {
+    if (o.kind === 'edit') h = '<div class="' + cls + '">' + whead('Notifica', false) + '<p class="wtitle">Recupera il mese</p><p class="wtext">Per i primi 14 giorni puoi segnare anche gli allenamenti dell’ultimo mese: tocca i giorni passati sul calendario. Così parti dal tuo rango vero.</p><div class="acts one"><button class="btn main" data-a="noticeOk">Ricevuto</button></div></div>';
+    else h = '<div class="' + cls + '">' + whead('Notifica', false) + '<p class="wtitle">È ora di un backup</p><p class="wtext">I tuoi dati vivono solo su questo telefono. Tocca Backup e scegli “Salva in File” → iCloud Drive: bastano due tocchi.</p><div class="acts"><button class="btn" data-a="noticeLater">Più tardi</button><button class="btn main" data-a="noticeBackup">Backup</button></div></div>';
   } else if (o.t === 'details') {
     h = viewDetails(o, cls);
   } else if (o.t === 'archive') {
@@ -830,6 +849,15 @@ function viewOnboarding() {
 
 /* ---------- render ---------- */
 var root = document.getElementById('app');
+function fitCalendar() {
+  if (!S || ui.screen !== 'home') return;
+  var sc = root.querySelector('.scroller'), grids = root.querySelectorAll('.scroller .grid7'); if (!sc || grids.length < 2) return;
+  var g = grids[1]; g.style.setProperty('--ch', '40px');
+  var over = sc.scrollHeight - sc.clientHeight; if (over <= 0) return;
+  var rows = Math.ceil(g.children.length / 7);
+  g.style.setProperty('--ch', Math.max(28, 40 - Math.ceil(over / rows)) + 'px');
+}
+window.addEventListener('resize', function () { fitCalendar(); });
 function render() {
   var keep = root.querySelector('[data-keep]'), keepTop = keep ? keep.scrollTop : 0;
   var main = root.querySelector('.scroller'), mainTop = main ? main.scrollTop : 0;
@@ -845,6 +873,7 @@ function render() {
   if (toastMsg) h += '<div class="toast' + (S && ui.ov ? ' low' : '') + '"' + (toastShown === toastMsg ? ' style="animation-delay:-' + Math.min(2.5, (Date.now() - toastAt) / 1000) + 's"' : '') + ' role="status"><span class="mark">!</span><span>' + esc(toastMsg) + '</span></div>';
   root.innerHTML = h;
   if (toastMsg && toastShown !== toastMsg) { toastShown = toastMsg; toastAt = Date.now(); }
+  fitCalendar();
   var k2 = root.querySelector('[data-keep]'); if (k2 && keep) k2.scrollTop = keepTop;
   var m2 = root.querySelector('.scroller'); if (m2 && main) m2.scrollTop = mainTop;
   if (focus) { var el = root.querySelector('[data-f="' + focus + '"]'); if (el) { el.focus(); try { var l = el.value.length; el.setSelectionRange(l, l); } catch (e) {} } }
@@ -870,6 +899,7 @@ window.addEventListener('orientationchange', function () { setTimeout(resetViewp
 document.addEventListener('visibilitychange', function () { if (!document.hidden) { autoClose(); var n = new Date(); if (ui.vm.y !== n.getFullYear() || ui.vm.m !== n.getMonth()) { /* resta sul mese guardato */ } render(); } });
 
 autoClose();
+startupNotice();
 render();
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
 if ('serviceWorker' in navigator && location.protocol !== 'file:') { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }
