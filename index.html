@@ -56,6 +56,9 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .cell.sport .hwi{stroke:#0A0F1A}
 .hwbtn{width:100%;min-height:48px;border-radius:10px;border:1px dashed var(--line2);background:transparent;color:var(--soft);display:flex;align-items:center;justify-content:center;gap:10px;font:600 14px/18px var(--fd);letter-spacing:1px;cursor:pointer}
 .hwbtn.on{border-style:solid;border-color:#7E8DAA;background:#1A2336;color:var(--ink)}
+.keyst{width:36px;height:36px;flex:0 0 auto;border-radius:10px;border:1px solid var(--line2);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer}.keyst.on{border-color:#7A6430;background:rgba(255,201,77,.08)}
+.opt.pick.sm{min-height:46px;padding:8px 10px;gap:10px;font-size:15px}.opt.dim{opacity:.45}
+.obwin{max-height:100%;min-height:0;flex:0 1 auto}.obwin .wbody{flex:1 1 auto;min-height:0}.ob{min-height:0}
 .notebtn{border:none;background:none;color:var(--sysl);font:600 12px/16px var(--fb);padding:0;cursor:pointer;text-align:left;min-height:28px}
 .fnote{height:40px;font-size:14px}
 .fit1{display:block;white-space:nowrap;overflow:hidden}.t28{font:700 28px/34px var(--fd)}.t24{font:700 24px/30px var(--fd)}
@@ -139,16 +142,16 @@ textarea.inp{height:80px;padding:10px 14px;font-size:15px;resize:none}
 .sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:11px;background:var(--ink);transition:transform .2s}
 .sw.on{background:var(--sys)}.sw.on::after{transform:translateX(18px)}
 /* stato */
-.tile{border-radius:10px;border:1px solid var(--line);background:var(--surface);padding:12px;display:grid;grid-template-columns:28px 1fr auto;row-gap:8px;column-gap:10px;align-items:center;text-align:left;color:var(--ink);cursor:pointer}
+.tile{border-radius:10px;border:1px solid var(--line);background:var(--surface);padding:12px 10px 12px 12px;display:grid;grid-template-columns:28px minmax(0,1fr) auto;row-gap:8px;column-gap:10px;align-items:center;text-align:left;color:var(--ink);cursor:pointer}
 .tile svg{width:28px;height:28px}
-.tname{font:600 14px/18px var(--fd);letter-spacing:.5px;min-width:0}
+.tname{font:600 14px/18px var(--fd);letter-spacing:.3px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .trank{font:700 26px/28px var(--fd)}
 .tbar{grid-column:1/-1;height:4px;border-radius:3px;background:var(--line);overflow:hidden}
 .tbar i{display:block;height:4px;border-radius:3px}
 .logrow{display:flex;align-items:center;gap:10px;min-height:26px;font:500 12px/16px var(--fb)}
 .logrow .d{color:var(--mut);width:42px;flex:0 0 auto}
 .logrow .t{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.logrow .x2{font:600 12px/16px var(--fd);color:var(--glow)}
+.logrow .x2{font:600 12px/16px var(--fd);color:var(--glow);white-space:nowrap;flex:0 0 auto}
 .dot{width:7px;height:7px;border-radius:2px;flex:0 0 auto}
 .month{width:100%;border-radius:10px;border:1px solid var(--line);background:var(--surface);padding:10px 12px;display:flex;flex-direction:column;gap:8px}
 .split{display:flex;height:6px;gap:2px;width:100%}.split i{display:block;border-radius:2px}
@@ -169,34 +172,71 @@ textarea.inp{height:80px;padding:10px 14px;font-size:15px;resize:none}
 
 /* ---------- costanti ---------- */
 var SPORTS = {
-  gym: { name: 'Palestra', c: '#FF7A59', ic: '<path d="M6.5 6.5v11M17.5 6.5v11M3.5 9.5v5M20.5 9.5v5M6.5 12h11"/>' },
-  bld: { name: 'Boulder', c: '#B98CFF', ic: '<path d="M5.2 15.6C3.6 12.5 5 8 9 6.4c3.6-1.4 7.6-.6 9.6 2.4 1.8 2.8.8 6.6-2 8.6-3.1 2.2-9.4 1.7-11.4-1.8z"/><circle cx="12" cy="11.6" r="1.7"/>' },
-  bch: { name: 'Beach', c: '#F4D35E', ic: '<circle cx="13.5" cy="12" r="7.5"/><path d="M13.5 12c-1.8-1.64-2.46-3.94-2.13-6.89"/><path d="M13.5 12c-1.8-1.64-2.46-3.94-2.13-6.89" transform="rotate(120 13.5 12)"/><path d="M13.5 12c-1.8-1.64-2.46-3.94-2.13-6.89" transform="rotate(240 13.5 12)"/><path d="M1.5 10h2.5M1.5 14h2.5"/>' },
-  swm: { name: 'Nuoto', c: '#2DD4BF', ic: '<path d="M3 7c1.5 1.2 3 1.2 4.5 0s3-1.2 4.5 0 3 1.2 4.5 0 3-1.2 4.5 0M3 12c1.5 1.2 3 1.2 4.5 0s3-1.2 4.5 0 3 1.2 4.5 0 3-1.2 4.5 0M3 17c1.5 1.2 3 1.2 4.5 0s3-1.2 4.5 0 3 1.2 4.5 0 3-1.2 4.5 0"/>' },
-  run: { name: 'Corsa', c: '#9BE15D', ic: '<g transform="rotate(8 13 13)"><path d="M5 16h13.5c1.4 0 2.5-.8 2.5-1.9 0-.9-.7-1.6-1.7-1.9L14.5 11l-2.3-2.5-2.3 1.2-1.6-1.3L5 10.5z"/><path d="M5 18.5h16"/></g><path d="M1.5 10.5h2M1.5 14h2"/>' },
-  bon: { name: 'Bonus', c: '#DCE6F5', ic: '<circle cx="12" cy="12" r="8.5"/><path d="M14.8 9.2l-1.6 4-4 1.6 1.6-4z"/>' }
+  gym: { name: 'Palestra', c: '#FF7A59', q: 'ex', ic: '<path d="M6.5 6.5v11M17.5 6.5v11M3.5 9.5v5M20.5 9.5v5M6.5 12h11"/>' },
+  cal: { name: 'Calisthenics', c: '#FFA24C', q: 'ex', ic: '<path d="M3.5 4h17M8 4v6.5M16 4v6.5"/><circle cx="8" cy="14.5" r="3.5"/><circle cx="16" cy="14.5" r="3.5"/>' },
+  cfx: { name: 'Crossfit', c: '#FF4F7B', q: 'none', ic: '<circle cx="12" cy="15" r="5.5"/><path d="M8.8 10.5 8.3 7.2C8.3 5 9.8 3.8 12 3.8s3.7 1.2 3.7 3.4l-.5 3.3"/>' },
+  run: { name: 'Corsa', c: '#9BE15D', q: 'dist', ic: '<g transform="rotate(8 13 13)"><path d="M5 16h13.5c1.4 0 2.5-.8 2.5-1.9 0-.9-.7-1.6-1.7-1.9L14.5 11l-2.3-2.5-2.3 1.2-1.6-1.3L5 10.5z"/><path d="M5 18.5h16"/></g><path d="M1.5 10.5h2M1.5 14h2"/>' },
+  swm: { name: 'Nuoto', c: '#2DD4BF', q: 'dist', ic: '<path d="M3 7c1.5 1.2 3 1.2 4.5 0s3-1.2 4.5 0 3 1.2 4.5 0 3-1.2 4.5 0M3 12c1.5 1.2 3 1.2 4.5 0s3-1.2 4.5 0 3 1.2 4.5 0 3-1.2 4.5 0M3 17c1.5 1.2 3 1.2 4.5 0s3-1.2 4.5 0 3 1.2 4.5 0 3-1.2 4.5 0"/>' },
+  bik: { name: 'Bici', c: '#7EE3F7', q: 'dist', ic: '<circle cx="5.8" cy="15.5" r="3.8"/><circle cx="18.2" cy="15.5" r="3.8"/><path d="M5.8 15.5 9.6 8.5h6.2l2.4 7M9.6 8.5l3 7h-6.8M12.6 15.5l3.2-7M8.2 6h3M14.6 5.5h2.4"/>' },
+  row: { name: 'Canottaggio', c: '#8A8DFF', q: 'dist', ic: '<path d="M3 13.5h18c-.9 2.9-3.2 4.5-5.8 4.5H8.8C6.2 18 3.9 16.4 3 13.5z"/><path d="M5.5 4.5 15 14"/><path d="M15 14l3.6 3.6"/><path d="M4 6l3-3"/>' },
+  bch: { name: 'Beach', c: '#F4D35E', q: 'focus', ic: '<circle cx="13.5" cy="12" r="7.5"/><path d="M13.5 12c-1.8-1.64-2.46-3.94-2.13-6.89"/><path d="M13.5 12c-1.8-1.64-2.46-3.94-2.13-6.89" transform="rotate(120 13.5 12)"/><path d="M13.5 12c-1.8-1.64-2.46-3.94-2.13-6.89" transform="rotate(240 13.5 12)"/><path d="M1.5 10h2.5M1.5 14h2.5"/>' },
+  soc: { name: 'Calcio', c: '#4CD97B', q: 'focus', ic: '<circle cx="12" cy="12" r="8.5"/><path d="M12 8.4l3.4 2.5-1.3 4h-4.2l-1.3-4z"/><path d="M12 8.4V3.5M15.4 10.9l4.5-1.5M14.1 14.9l2.8 3.9M9.9 14.9 7.1 18.8M8.6 10.9 4.1 9.4"/>' },
+  pad: { name: 'Padel', c: '#FFC9A8', q: 'focus', ic: '<path d="M12 3c3.5 0 6 2.6 6 6.1s-2.7 6.1-6 6.1-6-2.6-6-6.1S8.5 3 12 3z"/><path d="M12 15.2V21"/><path d="M10.2 7.6h.01M13.8 7.6h.01M12 10.4h.01M10.2 13h.01" stroke-width="2.2"/>' },
+  ten: { name: 'Tennis', c: '#D7F25C', q: 'focus', ic: '<circle cx="12" cy="12" r="8.5"/><path d="M5.6 6.4c2.8 2.3 2.8 8.9 0 11.2M18.4 6.4c-2.8 2.3-2.8 8.9 0 11.2"/>' },
+  yog: { name: 'Yoga', c: '#E79BFF', q: 'sat', ic: '<path d="M12 4.5c2.1 2.3 2.7 5.6 0 9.8-2.7-4.2-2.1-7.5 0-9.8z"/><path d="M12 14.3c-2.7-.5-5.8-2.4-7.6-5.1.2 4.7 3.5 7.3 7.6 7.3s7.4-2.6 7.6-7.3c-1.8 2.7-4.9 4.6-7.6 5.1z"/><path d="M6 19.5h12"/>' },
+  pil: { name: 'Pilates', c: '#FFA8D2', q: 'sat', ic: '<circle cx="12" cy="12" r="7.8"/><path d="M9.3 3.4h5.4M9.3 20.6h5.4"/><circle cx="12" cy="12" r="5"/>' },
+  wsf: { name: 'Windsurf', c: '#6FA8FF', q: 'none', ic: '<path d="M11.5 3.5V17"/><path d="M11.5 3.5c4.6 3.2 6.9 7.6 6.4 13.5h-6.4"/><path d="M5 17.8h14"/><path d="M3 20.6c1.8.9 3.4.9 5.2 0s3.4-.9 5.2 0 3.4.9 5.2 0"/>' },
+  ski: { name: 'Sci', c: '#C3D4FF', q: 'none', ic: '<path d="M2.5 19.5 9 8.5l3.6 5.6 2.6-3.6 6.3 9z"/><path d="M6.9 12.1l2.1 1.4 1.9-1.6"/><path d="M17 4.5v3M15.5 6h3"/>' },
+  bld: { name: 'Boulder', c: '#B98CFF', q: 'bld', ic: '<path d="M5.2 15.6C3.6 12.5 5 8 9 6.4c3.6-1.4 7.6-.6 9.6 2.4 1.8 2.8.8 6.6-2 8.6-3.1 2.2-9.4 1.7-11.4-1.8z"/><circle cx="12" cy="11.6" r="1.7"/>' },
+  bon: { name: 'Bonus', c: '#DCE6F5', q: 'bon', ic: '<circle cx="12" cy="12" r="8.5"/><path d="M14.8 9.2l-1.6 4-4 1.6 1.6-4z"/>' }
 };
-var ORDER = ['gym', 'bld', 'bch', 'swm', 'run', 'bon'];
+var ORDER = ['gym', 'cal', 'cfx', 'run', 'swm', 'bik', 'row', 'bch', 'soc', 'pad', 'ten', 'yog', 'pil', 'wsf', 'ski', 'bld', 'bon'];
+var FAMS = [['Forza', ['gym', 'cal', 'cfx']], ['Distanza', ['run', 'swm', 'bik', 'row']], ['Gioco', ['bch', 'soc', 'pad', 'ten']], ['Corpo e mente', ['yog', 'pil']], ['Stagionali', ['wsf', 'ski']], ['A sé', ['bld', 'bon']]];
+var MAX_SPORTS = 6;
+var DIST = {
+  run: { f: 'km', step: 0.5, rnd: 0.5, def: 5 }, swm: { f: 'm', step: 50, rnd: 50, def: 1000 },
+  bik: { f: 'km', step: 1, rnd: 5, def: 30 }, row: { f: 'm', step: 250, rnd: 500, def: 5000 }
+};
 var GROUPS = {
   petto: { name: 'Petto', key: 'Panca piana', ex: ['Panca piana', 'Panca inclinata 30°', 'Panca 45°', 'Dips'] },
   spalle: { name: 'Spalle', key: 'Military press', ex: ['Military press', 'Alzate laterali', 'Alzate frontali', 'Panca 45°'] },
   schiena: { name: 'Schiena', key: 'Pulley', ex: ['Pulley', 'Rematore con manubrio', 'Stacchi'] },
   gambe: { name: 'Gambe', key: 'Leg press', ex: ['Leg press', 'Squat', 'Squat bulgaro', 'Stacchi'] },
-  braccia: { name: 'Braccia', key: 'Dips', ex: ['Dips', 'Curl con bilanciere', 'Pushdown ai cavi'] }
+  braccia: { name: 'Braccia', key: 'Dips', ex: ['Dips', 'Curl con bilanciere', 'Pushdown ai cavi'] },
+  core: { name: 'Core', key: 'Plank', ex: ['Plank', 'Crunch', 'Leg raise'] },
+  altro: { name: 'Altro', key: null, ex: [] },
+  cal: { name: 'Calisthenics', key: 'Trazioni', ex: ['Trazioni', 'Piegamenti', 'Dips', 'Muscle-up', 'Pistol squat', 'L-sit'] }
 };
-var GROUP_ORDER = ['petto', 'spalle', 'schiena', 'gambe', 'braccia'];
+var GROUP_ORDER = ['petto', 'spalle', 'schiena', 'gambe', 'braccia', 'core', 'altro'];
 var EX = {
   'Panca piana': { start: 40, inc: 2.5 }, 'Panca inclinata 30°': { start: 30, inc: 2.5 }, 'Panca 45°': { start: 30, inc: 2.5 },
   'Dips': { start: 0, inc: 2.5, reps: true }, 'Military press': { start: 25, inc: 2.5 }, 'Alzate laterali': { start: 6, inc: 2 },
   'Alzate frontali': { start: 6, inc: 2 }, 'Pulley': { start: 40, inc: 2.5 }, 'Rematore con manubrio': { start: 14, inc: 2 },
   'Stacchi': { start: 60, inc: 2.5 }, 'Leg press': { start: 80, inc: 5 }, 'Squat': { start: 40, inc: 2.5 },
-  'Squat bulgaro': { start: 8, inc: 2 }, 'Curl con bilanciere': { start: 20, inc: 2.5 }, 'Pushdown ai cavi': { start: 20, inc: 2.5 }
+  'Squat bulgaro': { start: 8, inc: 2 }, 'Curl con bilanciere': { start: 20, inc: 2.5 }, 'Pushdown ai cavi': { start: 20, inc: 2.5 },
+  'Plank': { t: 't', start: 30, inc: 5 }, 'Crunch': { t: 'r', start: 15 }, 'Leg raise': { t: 'r', start: 10 },
+  'Trazioni': { t: 'r', start: 5 }, 'Piegamenti': { t: 'r', start: 15 }, 'Muscle-up': { t: 'r', start: 2 },
+  'Pistol squat': { t: 'r', start: 5 }, 'L-sit': { t: 't', start: 10, inc: 5 }
 };
+var EX_TYPES = [['w', 'Con carico'], ['r', 'Corpo libero'], ['t', 'A tempo']];
 var COLORS = [
   { k: 'bianco', name: 'Bianco', c: '#F2F5FA' }, { k: 'blu', name: 'Blu', c: '#4F8CFF' }, { k: 'verde', name: 'Verde', c: '#3FBF6F' },
   { k: 'giallo', name: 'Giallo', c: '#F4D35E' }, { k: 'rosso', name: 'Rosso', c: '#FF5A5A' }, { k: 'nero', name: 'Nero', c: '#3A3F4A' }
 ];
 var FUND = [['battuta', 'Battuta'], ['ricezione', 'Ricezione'], ['difesa', 'Difesa'], ['alzata', 'Alzata'], ['attacco', 'Attacco', 'm']];
+var FUNDS = {
+  bch: FUND,
+  soc: [['passaggio', 'Passaggio', 'm'], ['tiro', 'Tiro', 'm'], ['dribbling', 'Dribbling', 'm'], ['difesa', 'Difesa'], ['testa', 'Colpo di testa', 'm']],
+  pad: [['servizio', 'Servizio', 'm'], ['volee', 'Volée'], ['bandeja', 'Bandeja'], ['vetro', 'Uscita dal vetro'], ['smash', 'Smash', 'm']],
+  ten: [['servizio', 'Servizio', 'm'], ['dritto', 'Dritto', 'm'], ['rovescio', 'Rovescio', 'm'], ['volee', 'Volée'], ['risposta', 'Risposta']]
+};
+var GAME_TYPES = { bch: ['allenamento', 'partitella', 'torneo'], def: ['allenamento', 'partita', 'torneo'] };
+var SAT = [[1, 'Così così'], [2, 'Bene'], [3, 'Top']];
+var NONE_TEXT = {
+  cfx: 'Il crossfit non ha quest: ogni allenamento è diverso, conta esserci.',
+  wsf: 'Giornata di vento segnata. Le stagionali non hanno quest: goditela.',
+  ski: 'Giornata in pista segnata. Le stagionali non hanno quest: goditela.'
+};
 var FACES = [['g', '#5EE08F'], ['y', '#F4D35E'], ['r', '#FF7A59']];
 var FACE_NAME = { g: ['verde', 'verde'], y: ['giallo', 'gialla'], r: ['rosso', 'rossa'] };
 var DIFF = {
@@ -274,7 +314,7 @@ function uid() { return Date.now().toString(36) + Math.random().toString(36).sli
 
 /* ---------- interfaccia (non salvata) ---------- */
 var now = new Date();
-var ui = { screen: 'home', ov: null, vm: { y: now.getFullYear(), m: now.getMonth() }, ob: { step: 0, name: '', sports: ['gym', 'bld', 'bch', 'swm', 'run', 'bon'] } };
+var ui = { screen: 'home', ov: null, vm: { y: now.getFullYear(), m: now.getMonth() }, ob: { step: 0, name: '', sports: ['bon'] } };
 var toastMsg = null, toastTimer = null, lastAnim = {};
 
 /* ---------- calcoli ---------- */
@@ -367,83 +407,97 @@ function history(sport) {
   allKeysSorted().reverse().forEach(function (k) { sessions(k).slice().reverse().forEach(function (s) { if (s.sport === sport) out.push({ k: k, s: s }); }); });
   return out;
 }
+function qType(s) { return (SPORTS[s] || SPORTS.bon).q; }
+/* esercizi: di serie + personalizzati */
+function custom() { S.custom = S.custom || { ex: {}, key: {} }; S.custom.ex = S.custom.ex || {}; S.custom.key = S.custom.key || {}; return S.custom; }
+function exMeta(name) {
+  var m = EX[name]; if (m) return { t: m.t || 'w', start: m.start, inc: m.inc || (m.t === 't' ? 5 : 2.5), reps: !!m.reps };
+  var c = S && S.custom && S.custom.ex[name], t = c ? c.t : 'w';
+  return { t: t, start: t === 'w' ? 20 : t === 't' ? 30 : 10, inc: t === 't' ? 5 : 2.5, reps: false };
+}
+function groupEx(g) { var base = GROUPS[g].ex.slice(), c = (S && S.custom) ? S.custom.ex : {}; Object.keys(c).forEach(function (n) { if (c[n].g === g && base.indexOf(n) < 0) base.push(n); }); return base; }
+function groupKey(g) { var k = S && S.custom && S.custom.key[g]; var list = groupEx(g); if (k && list.indexOf(k) >= 0) return k; return GROUPS[g].key || list[0] || null; }
+function exLabel(t, e) { if (t === 't') return '3×' + e.sec + ' s'; if (t === 'r' || !e.w) return '3×' + e.reps + ' a corpo libero'; return '3×' + e.reps + ' a ' + kg(e.w); }
+function defGroup(sport) { return sport === 'cal' ? 'cal' : 'petto'; }
 function baseline(sport, group) {
-  var h = history(sport);
+  var h = history(sport), qt = qType(sport);
   for (var i = 0; i < h.length; i++) {
     var s = h[i].s, d = s.d, q = s.quest;
-    if (sport === 'gym') {
-      var ex = GROUPS[group].key;
-      if (d && d.ex && d.ex[ex]) return { w: d.ex[ex].w, reps: d.ex[ex].reps };
-      if (q && q.done === true && q.t && q.t.ex === ex) return { w: q.t.w, reps: q.t.reps };
-    } else if (sport === 'bld') {
+    if (qt === 'ex') {
+      var ex = groupKey(group); if (!ex) return null;
+      if (d && d.ex && d.ex[ex]) return { ex: ex, w: d.ex[ex].w || 0, reps: d.ex[ex].reps || 8, sec: d.ex[ex].sec || 30 };
+      if (q && q.done === true && q.t && q.t.ex === ex) return { ex: ex, w: q.t.w || 0, reps: q.t.reps || 8, sec: q.t.sec || 30 };
+    } else if (qt === 'bld') {
       if (d && d.colors) { for (var c = COLORS.length - 1; c >= 0; c--) { var v = d.colors[COLORS[c].k]; if (v && (v.c + v.f) > 0) return { ci: c, n: v.c + v.f }; } }
-      if (q && q.done === true && q.t) return { ci: q.t.ci, n: q.t.n };
-    } else if (sport === 'swm') {
-      if (d && d.m) return { m: d.m };
-      if (q && q.done === true && q.t) return { m: q.t.m };
-    } else if (sport === 'run') {
-      if (d && d.km) return { km: d.km };
-      if (q && q.done === true && q.t) return { km: q.t.km };
+      if (q && q.done === true && q.t && q.t.ci !== undefined) return { ci: q.t.ci, n: q.t.n };
+    } else if (qt === 'dist') {
+      var f = DIST[sport].f;
+      if (d && d[f]) return { v: d[f] };
+      if (q && q.done === true && q.t && q.t[f]) return { v: q.t[f] };
     }
   }
   return null;
 }
-function fundOf(k) { for (var i = 0; i < FUND.length; i++) if (FUND[i][0] === k) return FUND[i]; return FUND[0]; }
-function lastFund(k) {
-  var h = history('bch'), out = { face: null, note: '' };
+function funds(sport) { return FUNDS[sport] || FUND; }
+function fundOf(sport, k) { var l = funds(sport); for (var i = 0; i < l.length; i++) if (l[i][0] === k) return l[i]; return l[0]; }
+function lastFund(sport, k) {
+  var h = history(sport), out = { face: null, note: '' };
   for (var i = 0; i < h.length; i++) { var d = h[i].s.d; if (!d) continue; if (!out.face && d.f && d.f[k]) out.face = d.f[k]; if (!out.note && d.n && d.n[k]) out.note = d.n[k]; if (out.face && out.note) break; }
   return out;
 }
+function distFmt(sport, v) { return DIST[sport].f === 'km' ? num(v) + ' km' : meters(v); }
 function questsFor(sport, group) {
+  var qt = qType(sport), out = {};
+  if (qt === 'focus') {
+    var fd = fundOf(sport, group), lf = lastFund(sport, group), m = fd[2] === 'm';
+    out.easy = { t: { fund: group, lvl: 'y' }, label: fd[1] + ' almeno ' + (m ? 'giallo' : 'gialla') };
+    out.med = { t: { fund: group, lvl: 'g' }, label: fd[1] + ' verde' };
+    out.hard = { t: { fund: group, lvl: 'g+' }, label: fd[1] + ' verde e nessun rosso' };
+    out.title = SPORTS[sport].name + ' · Focus ' + fd[1].toLowerCase();
+    out.last = lf.face ? 'Ultima volta: ' + FACE_NAME[lf.face][m ? 0 : 1] : 'Prima volta in focus: punta in alto.';
+    out.note = lf.note || '';
+    return out;
+  }
   var b = baseline(sport, group);
-  if (!b && sport !== 'bch') return null;
-  var out = {};
-  if (sport === 'gym') {
-    var ex = GROUPS[group].key, meta = EX[ex];
-    if (meta.reps && !b.w) {
-      ['easy', 'med', 'hard'].forEach(function (d, i) { var r = Math.max(1, b.reps + i - 1); out[d] = { t: { ex: ex, w: 0, reps: r }, label: '3×' + r + ' a corpo libero' }; });
-    } else {
-      ['easy', 'med', 'hard'].forEach(function (d, i) { var w = Math.max(0, b.w + (i - 1) * meta.inc); out[d] = { t: { ex: ex, w: w, reps: b.reps || 8 }, label: '3×' + (b.reps || 8) + ' a ' + kg(w) }; });
-    }
-    out.title = 'Palestra · ' + ex;
-    out.last = 'Ultima volta: 3×' + (b.reps || 8) + (b.w ? ' a ' + kg(b.w) : ' a corpo libero');
-  } else if (sport === 'bld') {
+  if (!b) return null;
+  if (qt === 'ex') {
+    var ex = b.ex, meta = exMeta(ex);
+    ['easy', 'med', 'hard'].forEach(function (d, i) {
+      var t;
+      if (meta.t === 't') t = { ex: ex, w: 0, reps: 0, sec: Math.max(5, b.sec + (i - 1) * meta.inc) };
+      else if (meta.t === 'r' || (meta.reps && !b.w)) t = { ex: ex, w: 0, reps: Math.max(1, b.reps + i - 1) };
+      else t = { ex: ex, w: Math.max(0, b.w + (i - 1) * meta.inc), reps: b.reps };
+      out[d] = { t: t, label: exLabel(meta.t, t) };
+    });
+    out.title = SPORTS[sport].name + ' · ' + ex;
+    out.last = 'Ultima volta: ' + exLabel(meta.t, b);
+  } else if (qt === 'bld') {
     var col = COLORS[b.ci], nxt = COLORS[b.ci + 1];
     out.easy = { t: { ci: b.ci, n: Math.max(1, b.n - 1) }, label: 'Chiudi ' + Math.max(1, b.n - 1) + ' ' + col.name.toLowerCase() };
     out.med = { t: { ci: b.ci, n: b.n }, label: 'Chiudi ' + b.n + ' ' + col.name.toLowerCase() };
     out.hard = { t: { ci: b.ci, n: b.n + 1 }, label: 'Chiudi ' + (b.n + 1) + ' ' + col.name.toLowerCase() + (nxt ? ' o un ' + nxt.name.toLowerCase() + ' in WIP' : '') };
     out.title = 'Boulder'; out.last = 'Ultima volta: ' + b.n + ' ' + col.name.toLowerCase() + ' chiusi';
-  } else if (sport === 'bch') {
-    var fd = fundOf(group), lf = lastFund(group), m = fd[2] === 'm';
-    out.easy = { t: { fund: group, lvl: 'y' }, label: fd[1] + ' almeno ' + (m ? 'giallo' : 'gialla') };
-    out.med = { t: { fund: group, lvl: 'g' }, label: fd[1] + ' verde' };
-    out.hard = { t: { fund: group, lvl: 'g+' }, label: fd[1] + ' verde e nessun rosso' };
-    out.title = 'Beach · Focus ' + fd[1].toLowerCase();
-    out.last = lf.face ? 'Ultima volta: ' + FACE_NAME[lf.face][m ? 0 : 1] : 'Prima volta in focus: punta in alto.';
-    out.note = lf.note || '';
-  } else if (sport === 'swm') {
-    var em = Math.max(50, Math.floor(b.m * 0.9 / 50) * 50), hm = Math.max(b.m + 50, Math.ceil(b.m * 1.1 / 50) * 50);
-    out.easy = { t: { m: em }, label: meters(em) }; out.med = { t: { m: b.m }, label: meters(b.m) }; out.hard = { t: { m: hm }, label: meters(hm) };
-    out.title = 'Nuoto'; out.last = 'Ultima volta: ' + meters(b.m);
-  } else if (sport === 'run') {
-    var ek = Math.max(0.5, Math.floor(b.km * 0.9 * 2) / 2), hk = Math.max(b.km + 0.5, Math.ceil(b.km * 1.1 * 2) / 2);
-    out.easy = { t: { km: ek }, label: num(ek) + ' km' }; out.med = { t: { km: b.km }, label: num(b.km) + ' km' }; out.hard = { t: { km: hk }, label: num(hk) + ' km' };
-    out.title = 'Corsa'; out.last = 'Ultima volta: ' + num(b.km) + ' km';
+  } else if (qt === 'dist') {
+    var cf = DIST[sport], r = cf.rnd, v = b.v;
+    var e = Math.max(r, Math.floor(v * 0.9 / r) * r), hh = Math.max(v + r, Math.ceil(v * 1.1 / r) * r);
+    [['easy', e], ['med', v], ['hard', hh]].forEach(function (p) { var t = {}; t[cf.f] = Math.round(p[1] * 10) / 10; out[p[0]] = { t: t, label: distFmt(sport, t[cf.f]) }; });
+    out.title = SPORTS[sport].name; out.last = 'Ultima volta: ' + distFmt(sport, v);
   } else return null;
   return out;
 }
-function goalText(s) { if (!s.quest) return ''; return (s.sport === 'gym' ? s.quest.t.ex + ': ' : SPORTS[s.sport].name + ': ') + s.quest.label; }
+function goalText(s) { if (!s.quest) return ''; return (qType(s.sport) === 'ex' && s.quest.t.ex ? s.quest.t.ex + ': ' : SPORTS[s.sport].name + ': ') + s.quest.label; }
 function sessSummary(s) {
-  var d = s.d, parts = [];
+  var d = s.d, parts = [], qt = qType(s.sport);
   if (s.quest) parts.push(DIFF[s.quest.diff].label + (s.quest.done === true ? ' · riuscita' : s.quest.done === false ? ' · non oggi' : ' · in corso'));
   if (d) {
-    if (s.sport === 'gym' && d.ex) { var ks = Object.keys(d.ex); if (ks.length) parts.push(ks[0] + ' ' + (d.ex[ks[0]].w ? kg(d.ex[ks[0]].w) : '3×' + d.ex[ks[0]].reps) + (ks.length > 1 ? ' + altri ' + (ks.length - 1) : '')); }
-    if (s.sport === 'bld' && d.colors) { var tops = []; COLORS.forEach(function (c) { var v = d.colors[c.k]; if (v && v.c + v.f) tops.push((v.c + v.f) + ' ' + c.name.toLowerCase()); }); if (tops.length) parts.push(tops.slice(-2).join(', ')); }
-    if (s.sport === 'bch' && d.type) parts.push(d.type);
-    if (s.sport === 'bch' && d.n && Object.keys(d.n).length) parts.push(Object.keys(d.n).length + (Object.keys(d.n).length === 1 ? ' nota' : ' note'));
-    if (s.sport === 'swm' && d.m) parts.push(meters(d.m));
-    if (s.sport === 'run' && d.km) parts.push(num(d.km) + ' km');
-    if (s.sport === 'bon' && d.name) parts.push(d.name);
+    if (qt === 'ex' && d.ex) { var ks = Object.keys(d.ex); if (ks.length) { var e0 = d.ex[ks[0]], t0 = exMeta(ks[0]).t; parts.push(ks[0] + ' ' + (t0 === 't' ? e0.sec + ' s' : e0.w ? kg(e0.w) : '3×' + e0.reps) + (ks.length > 1 ? ' + altri ' + (ks.length - 1) : '')); } }
+    if (qt === 'bld' && d.colors) { var tops = []; COLORS.forEach(function (c) { var v = d.colors[c.k]; if (v && v.c + v.f) tops.push((v.c + v.f) + ' ' + c.name.toLowerCase()); }); if (tops.length) parts.push(tops.slice(-2).join(', ')); }
+    if (qt === 'focus' && d.type) parts.push(d.type);
+    if (qt === 'focus' && d.n && Object.keys(d.n).length) parts.push(Object.keys(d.n).length + (Object.keys(d.n).length === 1 ? ' nota' : ' note'));
+    if (qt === 'dist' && d[DIST[s.sport].f]) parts.push(distFmt(s.sport, d[DIST[s.sport].f]));
+    if (qt === 'sat' && d.sat) parts.push(SAT[d.sat - 1][1] + (d.min ? ' · ' + d.min + ' min' : ''));
+    if (qt === 'bon' && d.name) parts.push(d.name);
+    if ((qt === 'none' || qt === 'bon') && d.note) parts.push('nota');
   } else if (!s.quest) parts.push('Solo segnato');
   return parts.join(' · ');
 }
@@ -527,7 +581,7 @@ var A = {
   },
   obBack: function () { ui.ob.step = 0; render(); },
   obG: function (g) { ui.ob.g = g; ding('tap'); render(); },
-  obSport: function (s) { var i = ui.ob.sports.indexOf(s); if (i >= 0) ui.ob.sports.splice(i, 1); else ui.ob.sports.push(s); ding('tap'); render(); },
+  obSport: function (s) { var i = ui.ob.sports.indexOf(s); if (i >= 0) ui.ob.sports.splice(i, 1); else { if (ui.ob.sports.length >= MAX_SPORTS) return toast('Massimo 6 sport: togline uno prima.'); ui.ob.sports.push(s); } ding('tap'); render(); },
   /* navigazione */
   go: function (scr) { ui.screen = scr; ui.ov = null; ding('tap'); render(); },
   month: function (dir) { var m = ui.vm.m + +dir, y = ui.vm.y; if (m < 0) { m = 11; y--; } if (m > 11) { m = 0; y++; } var n = new Date(); if (y > n.getFullYear() || (y === n.getFullYear() && m > n.getMonth())) return; ui.vm = { y: y, m: m }; ding('tap'); render(); },
@@ -550,7 +604,7 @@ var A = {
     if (sessions(k).length || hasMark(k)) open({ t: 'day', k: k }); else open({ t: 'past', k: k });
   },
   pick: function (s) {
-    var k = ui.ov.k, t = todayKey();
+    var k = ui.ov.k, t = todayKey(), qt = qType(s);
     if (k !== t) { // giorno passato: solo segno
       var b = addSession(k, { sport: s, d: null, star: false });
       ding('tap'); ui.ov = null;
@@ -558,12 +612,17 @@ var A = {
       toast(SPORTS[s].name + ' segnato il ' + niceDate(k) + '. +10 XP' + badge); return;
     }
     if (s === 'gym') { ding('open'); open({ t: 'group', k: k }); return; }
-    if (s === 'bch') { ding('open'); open({ t: 'focus', k: k }); return; }
-    if (s === 'bon') { var bb = addSession(k, { sport: 'bon', d: null, star: false }); rewardAfter(k, bb, 'Giorno segnato', 10, 'Le attività bonus non hanno quest: conta il fatto di ' + gw('esserti mosso.', 'esserti mossa.')); return; }
+    if (qt === 'ex') { ding('open'); open({ t: 'quest', k: k, sport: s, group: defGroup(s), diff: null }); return; }
+    if (qt === 'focus') { ding('open'); open({ t: 'focus', k: k, sport: s }); return; }
+    if (qt === 'bon' || qt === 'none' || qt === 'sat') {
+      var bb = addSession(k, { sport: s, d: null, star: false });
+      var body = qt === 'bon' ? 'Le attività bonus non hanno quest: conta il fatto di ' + gw('esserti mosso.', 'esserti mossa.') : qt === 'sat' ? 'Com’è andata la lezione? In Dettagli dai il tuo voto e, se vuoi, i minuti.' : NONE_TEXT[s];
+      rewardAfter(k, bb, 'Giorno segnato', 10, body); return;
+    }
     ding('open'); open({ t: 'quest', k: k, sport: s, diff: null });
   },
   group: function (g) { ding('open'); open({ t: 'quest', k: ui.ov.k, sport: 'gym', group: g, diff: null }); },
-  focus: function (f) { ding('open'); open({ t: 'quest', k: ui.ov.k, sport: 'bch', group: f, diff: null }); },
+  focus: function (f) { ding('open'); open({ t: 'quest', k: ui.ov.k, sport: ui.ov.sport, group: f, diff: null }); },
   hw: function () {
     var k = ui.ov.k; S.marks = S.marks || {};
     if (S.marks[k]) { delete S.marks[k]; save(); ding('tap'); ui.ov = null; toast('Segno di Hard Study/Work tolto.'); return; }
@@ -606,19 +665,34 @@ var A = {
   /* dettagli */
   step: function (arg) { var p = arg.split('|'), f = ui.ov.form, path = p[0].split('.'), delta = +p[1], min = p[2] !== undefined ? +p[2] : 0, o = f; for (var i = 0; i < path.length - 1; i++) o = o[path[i]]; var last = path[path.length - 1]; o[last] = Math.max(min, Math.round((o[last] + delta) * 10) / 10); ding('tap'); render(); },
   exOn: function (ex) { var e = ui.ov.form.ex[ex]; e.on = !e.on; ding('tap'); render(); },
-  dgroup: function (g) { var f = ui.ov.form; f.group = g; f.ex = gymForm(g, null); ding('tap'); render(); },
+  dgroup: function (g) { var f = ui.ov.form; f.group = g; f.ex = exForm(ui.ov.sport, g, null); f.adding = null; ding('tap'); render(); },
+  keyEx: function (ex) { var f = ui.ov.form; custom().key[f.group] = ex; f.ex[ex].on = true; save(); ding('tap'); toast('Quest di ' + GROUPS[f.group].name.toLowerCase() + ': ' + ex + '.'); },
+  addEx: function () { ui.ov.form.adding = { name: '', t: 'w' }; ui.focusNext = 'exname'; ding('tap'); render(); },
+  addType: function (t) { ui.ov.form.adding.t = t; ding('tap'); render(); },
+  addCancel: function () { ui.ov.form.adding = null; ding('tap'); render(); },
+  addOk: function () {
+    var f = ui.ov.form, a = f.adding, name = (a.name || '').replace(/[.|]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 30);
+    if (!name) { toast('Scrivi il nome dell’esercizio.'); return; }
+    if (groupEx(f.group).indexOf(name) >= 0 || EX[name]) { toast('Questo esercizio c’è già.'); return; }
+    custom().ex[name] = { t: a.t, g: f.group }; save();
+    var m = exMeta(name);
+    f.ex[name] = { on: true, w: a.t === 'w' ? m.start : 0, reps: a.t === 'r' ? m.start : 8, sec: m.start, sets: 3 };
+    if (!GROUPS[f.group].key && !custom().key[f.group]) custom().key[f.group] = name;
+    save(); f.adding = null; ding('tap'); toast(name + ' aggiunto a ' + GROUPS[f.group].name.toLowerCase() + '.');
+  },
+  sat: function (v) { var f = ui.ov.form; f.sat = f.sat === +v ? null : +v; ding('tap'); render(); },
   face: function (arg) { var p = arg.split('|'), f = ui.ov.form.f; f[p[0]] = f[p[0]] === p[1] ? null : p[1]; ding('tap'); render(); },
   btype: function (t) { ui.ov.form.type = ui.ov.form.type === t ? null : t; ding('tap'); render(); },
   star: function () { ui.ov.form.star = !ui.ov.form.star; ding('tap'); render(); },
   saveDetails: function () {
     var o = ui.ov, s = findSession(o.k, o.id); if (!s) return close();
-    var f = o.form, d = null;
-    if (s.sport === 'gym') { d = { group: f.group, ex: {} }; Object.keys(f.ex).forEach(function (ex) { var e = f.ex[ex]; if (e.on) d.ex[ex] = { w: e.w, reps: e.reps, sets: e.sets }; }); s.group = f.group; }
-    else if (s.sport === 'bld') { d = { colors: {} }; COLORS.forEach(function (c) { var v = f.colors[c.k]; if (v.c || v.f || v.w) d.colors[c.k] = { c: v.c, f: v.f, w: v.w }; }); }
-    else if (s.sport === 'bch') { d = { type: f.type, f: {}, n: {} }; FUND.forEach(function (x) { if (f.f[x[0]]) d.f[x[0]] = f.f[x[0]]; var nt = (f.n[x[0]] || '').trim().slice(0, 140); if (nt) d.n[x[0]] = nt; }); }
-    else if (s.sport === 'swm') d = { m: f.m, min: f.min || null };
-    else if (s.sport === 'run') d = { km: f.km, min: f.min || null };
-    else if (s.sport === 'bon') d = { name: (f.name || '').trim().slice(0, 40), note: (f.note || '').trim().slice(0, 280) };
+    var f = o.form, d = null, qt = qType(s.sport);
+    if (qt === 'ex') { d = { group: f.group, ex: {} }; Object.keys(f.ex).forEach(function (ex) { var e = f.ex[ex], t = exMeta(ex).t; if (!e.on) return; d.ex[ex] = t === 't' ? { sec: e.sec, sets: e.sets } : t === 'r' ? { w: 0, reps: e.reps, sets: e.sets } : { w: e.w, reps: e.reps, sets: e.sets }; }); s.group = f.group; }
+    else if (qt === 'bld') { d = { colors: {} }; COLORS.forEach(function (c) { var v = f.colors[c.k]; if (v.c || v.f || v.w) d.colors[c.k] = { c: v.c, f: v.f, w: v.w }; }); }
+    else if (qt === 'focus') { d = { type: f.type, f: {}, n: {} }; funds(s.sport).forEach(function (x) { if (f.f[x[0]]) d.f[x[0]] = f.f[x[0]]; var nt = (f.n[x[0]] || '').trim().slice(0, 140); if (nt) d.n[x[0]] = nt; }); }
+    else if (qt === 'dist') { d = { min: f.min || null }; d[DIST[s.sport].f] = f.v; }
+    else if (qt === 'sat') d = { sat: f.sat || null, min: f.min || null };
+    else d = { name: qt === 'bon' ? (f.name || '').trim().slice(0, 40) : '', note: (f.note || '').trim().slice(0, 280) };
     var wasAssess = s.assess && !s.d;
     var hadStar = s.star, wkB = weekCount(o.k, s.id);
     s.d = d; s.star = !!f.star; save();
@@ -629,41 +703,45 @@ var A = {
   archive: function () { ding('open'); open({ t: 'archive' }); },
   sport: function (s) { ding('open'); open({ t: 'sport', sport: s }); },
   /* impostazioni */
-  setSport: function (s) { var l = S.profile.sports, i = l.indexOf(s); if (i >= 0) { if (l.length === 1) return toast('Serve almeno uno sport.'); l.splice(i, 1); } else { l.push(s); S.profile.sports = ORDER.filter(function (x) { return l.indexOf(x) >= 0; }); } save(); ding('tap'); render(); },
+  setSport: function (s) { var l = S.profile.sports, i = l.indexOf(s); if (i >= 0) { if (l.length === 1) return toast('Serve almeno uno sport.'); l.splice(i, 1); } else { if (l.length >= MAX_SPORTS) return toast('Massimo 6 sport: togline uno prima.'); l.push(s); S.profile.sports = ORDER.filter(function (x) { return l.indexOf(x) >= 0; }); } save(); ding('tap'); render(); },
   exportData: function () { exportBackup(); },
   importData: function () { var inp = document.getElementById('imp'); if (inp) inp.click(); },
   askReset: function () { ui.resetAsk = !ui.resetAsk; render(); },
-  reset: function () { try { localStorage.removeItem(KEY); } catch (e) {} S = null; ui = { screen: 'home', ov: null, vm: ui.vm, ob: { step: 0, name: '', sports: ORDER.slice() } }; render(); }
+  reset: function () { try { localStorage.removeItem(KEY); } catch (e) {} S = null; ui = { screen: 'home', ov: null, vm: ui.vm, ob: { step: 0, name: '', sports: ['bon'] } }; render(); }
 };
 
-function gymForm(group, existing) {
-  var out = {};
-  GROUPS[group].ex.forEach(function (ex, i) {
-    var e = existing && existing[ex], b = null;
-    if (!e) { var h = history('gym'); for (var j = 0; j < h.length; j++) { var d = h[j].s.d; if (d && d.ex && d.ex[ex]) { b = d.ex[ex]; break; } } }
-    out[ex] = e ? { on: true, w: e.w, reps: e.reps, sets: e.sets || 3 } : { on: i === 0, w: b ? b.w : EX[ex].start, reps: b ? b.reps : 8, sets: 3 };
+function exForm(sport, group, existing) {
+  var out = {}, key = groupKey(group), h = existing ? [] : history(sport);
+  groupEx(group).forEach(function (ex) {
+    var e = existing && existing[ex], b = null, m = exMeta(ex);
+    if (!e) { for (var j = 0; j < h.length; j++) { var d = h[j].s.d; if (d && d.ex && d.ex[ex]) { b = d.ex[ex]; break; } } }
+    var src = e || b;
+    out[ex] = src ? { on: !!e || ex === key, w: src.w || 0, reps: src.reps || (m.t === 'r' ? m.start : 8), sec: src.sec || m.start, sets: src.sets || 3 }
+      : { on: ex === key, w: m.t === 'w' ? m.start : 0, reps: m.t === 'r' ? m.start : 8, sec: m.start, sets: 3 };
+    if (existing && !e) out[ex].on = false;
   });
   return out;
 }
 function openDetails(k, id, assess) {
   var s = findSession(k, id); if (!s) return;
-  var d = s.d, f = { star: !!s.star };
-  if (s.sport === 'gym') {
-    var g = (d && d.group) || s.group || 'petto';
-    f.group = g; f.ex = gymForm(g, d && d.ex);
-    if (!d && s.quest && s.quest.done === true) { var e = f.ex[s.quest.t.ex]; if (e) { e.on = true; e.w = s.quest.t.w; e.reps = s.quest.t.reps; } }
-  } else if (s.sport === 'bld') {
+  var d = s.d, f = { star: !!s.star }, qt = qType(s.sport), q = s.quest && s.quest.done === true ? s.quest.t : null;
+  if (qt === 'ex') {
+    var g = (d && d.group) || s.group || defGroup(s.sport);
+    f.group = g; f.ex = exForm(s.sport, g, d && d.ex);
+    if (!d && q && f.ex[q.ex]) { var e = f.ex[q.ex]; e.on = true; e.w = q.w || 0; e.reps = q.reps || e.reps; e.sec = q.sec || e.sec; }
+  } else if (qt === 'bld') {
     f.colors = {}; COLORS.forEach(function (c) { var v = d && d.colors && d.colors[c.k]; f.colors[c.k] = { c: v ? v.c : 0, f: v ? v.f : 0, w: v ? v.w : 0 }; });
-    if (!d && s.quest && s.quest.done === true) f.colors[COLORS[s.quest.t.ci].k].c = s.quest.t.n;
-  } else if (s.sport === 'bch') {
-    f.type = d ? d.type : 'allenamento'; f.f = {}; f.n = {}; f.nopen = {}; FUND.forEach(function (x) { f.f[x[0]] = d && d.f ? d.f[x[0]] || null : null; f.n[x[0]] = d && d.n ? d.n[x[0]] || '' : ''; if (f.n[x[0]]) f.nopen[x[0]] = true; });
-    if (!d && s.quest && s.quest.t && s.quest.t.fund && s.quest.done === true) f.f[s.quest.t.fund] = s.quest.t.lvl === 'y' ? 'y' : 'g';
+    if (!d && q && q.ci !== undefined) f.colors[COLORS[q.ci].k].c = q.n;
+  } else if (qt === 'focus') {
+    f.type = d ? d.type : 'allenamento'; f.f = {}; f.n = {}; f.nopen = {};
+    funds(s.sport).forEach(function (x) { f.f[x[0]] = d && d.f ? d.f[x[0]] || null : null; f.n[x[0]] = d && d.n ? d.n[x[0]] || '' : ''; if (f.n[x[0]]) f.nopen[x[0]] = true; });
+    if (!d && q && q.fund) f.f[q.fund] = q.lvl === 'y' ? 'y' : 'g';
     f.focus = s.quest && s.quest.t ? s.quest.t.fund || null : null;
-  } else if (s.sport === 'swm') {
-    var bm = baseline('swm'); f.m = d ? d.m : (s.quest && s.quest.done === true ? s.quest.t.m : (bm ? bm.m : 1000)); f.min = d && d.min ? d.min : 0;
-  } else if (s.sport === 'run') {
-    var bk = baseline('run'); f.km = d ? d.km : (s.quest && s.quest.done === true ? s.quest.t.km : (bk ? bk.km : 5)); f.min = d && d.min ? d.min : 0;
-  } else if (s.sport === 'bon') { f.name = d ? d.name : ''; f.note = d ? d.note : ''; }
+  } else if (qt === 'dist') {
+    var cf = DIST[s.sport], b = baseline(s.sport);
+    f.v = d && d[cf.f] ? d[cf.f] : (q && q[cf.f] ? q[cf.f] : (b ? b.v : cf.def)); f.min = d && d.min ? d.min : 0;
+  } else if (qt === 'sat') { f.sat = d ? d.sat || null : null; f.min = d && d.min ? d.min : 0; }
+  else { f.name = d ? d.name || '' : ''; f.note = d ? d.note || '' : ''; }
   ui.ov = { t: 'details', k: k, id: id, sport: s.sport, assess: !!assess, form: f };
   render();
 }
@@ -761,12 +839,12 @@ function viewStato() {
     '<div style="width:76px;height:84px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;position:relative"><svg width="76" height="84" viewBox="0 0 76 84" aria-hidden="true" style="position:absolute;inset:0"><path d="M38 3l33 19v40L38 81 5 62V22z" fill="#0E1A30" stroke="#3BA7FF" stroke-width="2" stroke-linejoin="round"/></svg><span style="position:relative;font:700 44px/1 var(--fd);text-shadow:0 0 16px rgba(59,167,255,.9)">' + ms.rank + '</span></div>' +
     '<div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:6px"><span style="font:700 24px/28px var(--fd);letter-spacing:2px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(S.profile.name) + '</span><span style="font:500 14px/18px var(--fb);color:var(--soft)">Rango ' + ms.rank + ' · Livello ' + lv + '</span><div class="track"><div class="fill" style="width:' + Math.round(inLv / li.need * 100) + '%"></div></div><span class="hint">' + inLv + ' / ' + li.need + ' XP al livello ' + (lv + 1) + '</span></div></div>';
   h += '<div style="border-radius:14px;border:1px solid rgba(255,201,77,.55);background:#14120A;box-shadow:0 0 18px rgba(255,201,77,.16);padding:14px 16px;display:flex;flex-direction:column;gap:2px"><span class="lbl" style="color:#D9B04A">Titolo di ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span class="fit1 t28" style="color:var(--rew);text-shadow:0 0 14px rgba(255,201,77,.45);letter-spacing:1px;text-transform:uppercase">' + esc(ms.title) + '</span><div style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px"><span style="font:500 13px/18px var(--fb);color:#C9BFA0;min-width:0">' + titleWhy(ms) + (ms.top ? ' questo mese' : '') + '</span><span style="font:500 13px/18px var(--fb);color:#C9BFA0;white-space:nowrap;flex:0 0 auto">' + ms.weeksOk + '/' + ms.weeksTot + ' settimane</span></div></div>';
-  h += '<div style="display:flex;flex-direction:column;gap:10px;padding-top:4px"><div class="row" style="padding:0 2px"><span class="lbl">Parametri · ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span class="hint">' + ms.pts + ' punti · ' + (nr.next ? (nr.next[1] - ms.pts) + ' al rango ' + nr.next[0] : 'rango massimo') + '</span></div><div class="g2" style="gap:10px">';
+  h += '<div style="display:flex;flex-direction:column;gap:10px;padding-top:4px"><div class="row" style="padding:0 2px"><span class="lbl">Parametri · ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span class="hint">' + ms.pts + (ms.pts === 1 ? ' punto · ' : ' punti · ') + (nr.next ? (nr.next[1] - ms.pts) + ' al rango ' + nr.next[0] : 'rango massimo') + '</span></div><div class="g2" style="gap:10px">';
   S.profile.sports.forEach(function (s) {
     var sp = SPORTS[s], p = ms.sportPts[s] || 0, val, pct;
     if (s === 'bon') { val = ms.counts.bon || 0; pct = Math.min(100, val * 25); }
     else { val = rankOf(p, SPORT_RANKS); var r = nextRank(p, SPORT_RANKS); pct = r.next ? Math.round((p - r.prev) / (r.next[1] - r.prev) * 100) : 100; }
-    h += '<button class="tile" data-a="sport" data-v="' + s + '">' + sportIc(s, 28, true) + '<span class="tname">' + sp.name + '</span><span class="trank" style="' + (s === 'bon' ? 'font-size:20px;' : '') + 'text-shadow:0 0 12px ' + sp.c + '">' + val + '</span><span class="tbar"><i style="width:' + pct + '%;background:' + sp.c + '"></i></span></button>';
+    h += '<button class="tile" data-a="sport" data-v="' + s + '">' + sportIc(s, 28, true) + '<span class="tname"' + (sp.name.length > 9 ? ' style="font-size:12.5px;letter-spacing:0"' : '') + '>' + sp.name + '</span><span class="trank" style="' + (s === 'bon' ? 'font-size:20px;' : '') + 'text-shadow:0 0 12px ' + sp.c + '">' + val + '</span><span class="tbar"><i style="width:' + pct + '%;background:' + sp.c + '"></i></span></button>';
   });
   h += '</div></div>';
   // ultime quest
@@ -783,14 +861,12 @@ function viewStato() {
 function viewSettings() {
   var h = header('Profilo', '<button class="icon-btn" data-a="go" data-v="stato" aria-label="Torna a Stato">' + svg(IC.close) + '</button>');
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><label class="lbl" for="pname">Nome</label><input id="pname" class="inp" maxlength="24" value="' + esc(S.profile.name) + '" data-f="pname" autocomplete="off"><span class="hint">Titoli del mese</span><div class="chips"><button class="chip' + (!fem() ? ' on' : '') + '" data-a="gender" data-v="m">Al maschile · Il Ragno</button><button class="chip' + (fem() ? ' on' : '') + '" data-a="gender" data-v="f">Al femminile · La Ragna</button></div></div>';
-  h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">I tuoi sport</span><div class="g2">';
-  ORDER.forEach(function (s) { var on = S.profile.sports.indexOf(s) >= 0; h += '<button class="opt pick' + (on ? ' on' : '') + '" style="--diff:' + SPORTS[s].c + '" data-a="setSport" data-v="' + s + '">' + sportIc(s) + SPORTS[s].name + '</button>'; });
-  h += '</div><span class="hint">Quelli spenti non compaiono nella scelta del giorno né in Stato. I dati già segnati restano.</span></div>';
+  h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:8px"><div class="row"><span class="lbl">I tuoi sport</span>' + sportCount(S.profile.sports) + '</div><span class="hint">' + PICK_HINT + '</span>' + sportPicker(S.profile.sports, 'setSport') + '<span class="hint">Quelli spenti non compaiono nella scelta del giorno né in Stato. I dati già segnati restano.</span></div>';
   h += '<div class="card" style="padding:6px 12px"><button class="toggle" data-a="sound"><span style="font:600 15px/20px var(--fd)">Suoni</span><span class="sw' + (S.settings.sound ? ' on' : '') + '"></span></button></div>';
   var lb = S.lastBackup, age = lb ? diffDays(todayKey(), lb) : null;
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo in iCloud Drive: se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 1.3.1</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 1.4</span>';
   return h;
 }
 
@@ -810,15 +886,15 @@ function viewOverlay() {
       '<div class="g2">' + S.profile.sports.map(function (s) { return '<button class="opt pick" data-a="pick" data-v="' + s + '">' + sportIc(s) + SPORTS[s].name + '</button>'; }).join('') + '</div>' +
       (hasMark(o.k) ? '' : '<button class="hwbtn" data-a="hw">' + svg(HW.ic, '#AEBBD3', 20) + (past ? 'Giornata di Hard Study/Work' : 'Oggi Hard Study/Work') + '</button>') + '</div>';
   } else if (o.t === 'group') {
-    h = '<div class="' + cls + '">' + whead('Palestra', true) + '<p class="wtitle">Cosa alleni?</p><div style="display:flex;flex-direction:column;gap:8px">' +
-      GROUP_ORDER.map(function (g) { return '<button class="opt" data-a="group" data-v="' + g + '"><span style="font:600 16px/22px var(--fd);letter-spacing:1px">' + GROUPS[g].name + '</span><span class="hint">quest: ' + GROUPS[g].key + '</span></button>'; }).join('') + '</div></div>';
+    h = '<div class="' + cls + '">' + whead('Palestra', true) + '<p class="wtitle">Cosa alleni?</p><div class="wbody" data-keep style="gap:8px">' +
+      GROUP_ORDER.map(function (g) { var kx = groupKey(g); return '<button class="opt" style="min-height:48px" data-a="group" data-v="' + g + '"><span style="font:600 16px/22px var(--fd);letter-spacing:1px">' + GROUPS[g].name + '</span><span class="hint">' + (kx ? 'quest: ' + esc(kx) : 'esercizi tuoi') + '</span></button>'; }).join('') + '</div></div>';
   } else if (o.t === 'focus') {
-    h = '<div class="' + cls + '">' + whead('Beach', true) + '<div style="display:flex;flex-direction:column;gap:4px"><p class="wtitle">Su cosa lavori oggi?</p><p class="wtext" style="font-size:13px">Scegli il fondamentale: la quest è portarlo a verde.</p></div><div style="display:flex;flex-direction:column;gap:8px">' +
-      FUND.map(function (x) { var lf = lastFund(x[0]), fc = lf.face ? FACES.filter(function (q) { return q[0] === lf.face; })[0][1] : null; return '<button class="opt" data-a="focus" data-v="' + x[0] + '"><span style="font:600 16px/22px var(--fd);letter-spacing:1px">' + x[1] + '</span><span class="hint" style="display:flex;align-items:center;gap:6px">' + (fc ? 'ultima volta <i style="display:block;width:10px;height:10px;border-radius:5px;background:' + fc + '"></i>' : 'ancora nessun voto') + '</span></button>'; }).join('') + '</div></div>';
+    h = '<div class="' + cls + '">' + whead(SPORTS[o.sport].name, true) + '<div style="display:flex;flex-direction:column;gap:4px"><p class="wtitle">Su cosa lavori oggi?</p><p class="wtext" style="font-size:13px">Scegli il fondamentale: la quest è portarlo a verde.</p></div><div style="display:flex;flex-direction:column;gap:8px">' +
+      funds(o.sport).map(function (x) { var lf = lastFund(o.sport, x[0]), fc = lf.face ? FACES.filter(function (q) { return q[0] === lf.face; })[0][1] : null; return '<button class="opt" data-a="focus" data-v="' + x[0] + '"><span style="font:600 16px/22px var(--fd);letter-spacing:1px">' + x[1] + '</span><span class="hint" style="display:flex;align-items:center;gap:6px">' + (fc ? 'ultima volta <i style="display:block;width:10px;height:10px;border-radius:5px;background:' + fc + '"></i>' : 'ancora nessun voto') + '</span></button>'; }).join('') + '</div></div>';
   } else if (o.t === 'quest') {
     var q = questsFor(o.sport, o.group);
     if (!q) {
-      h = '<div class="' + cls + '">' + whead('Quest', true) + '<p class="wtitle">Prima volta: ' + (o.sport === 'gym' ? GROUPS[o.group].key : SPORTS[o.sport].name) + '</p><p class="wtext">Nessuna quest oggi. Allenati come sempre e a fine sessione segna i dati: diventano il tuo punto di partenza, e dalla prossima volta arrivano le quest.</p><div class="acts"><button class="btn" data-a="close">Annulla</button><button class="btn main" data-a="assess">Inizia</button></div></div>';
+      h = '<div class="' + cls + '">' + whead('Quest', true) + '<p class="wtitle">Prima volta: ' + esc(qType(o.sport) === 'ex' ? (groupKey(o.group) || GROUPS[o.group].name) : SPORTS[o.sport].name) + '</p><p class="wtext">Nessuna quest oggi. Allenati come sempre e a fine sessione segna i dati: diventano il tuo punto di partenza, e dalla prossima volta arrivano le quest.</p><div class="acts"><button class="btn" data-a="close">Annulla</button><button class="btn main" data-a="assess">Inizia</button></div></div>';
     } else {
       h = '<div class="' + cls + '" style="gap:14px">' + whead('Quest', true) + '<div style="display:flex;flex-direction:column;gap:4px"><p class="wtitle">' + q.title + '</p><p class="wtext" style="font-size:13px">' + q.last + '</p>' + (q.note ? '<p class="wtext" style="font-size:13px;color:var(--soft)">Nota: “' + esc(q.note) + '”</p>' : '') + '</div><div style="display:flex;flex-direction:column;gap:8px">';
       ['easy', 'med', 'hard'].forEach(function (d) {
@@ -868,13 +944,14 @@ function viewOverlay() {
   } else if (o.t === 'sport') {
     var sp = SPORTS[o.sport], since = addDays(todayKey(), -29), hh = history(o.sport), last30 = hh.filter(function (e) { return e.k >= since; });
     var qdone = hh.filter(function (e) { return e.s.quest && e.s.quest.done === true; }).length, stars = hh.filter(function (e) { return e.s.star; }).length;
-    var best = '—';
-    if (o.sport === 'gym') { var bw = {}; hh.forEach(function (e) { var d = e.s.d; if (d && d.ex) Object.keys(d.ex).forEach(function (x) { if (!bw[x] || d.ex[x].w > bw[x]) bw[x] = d.ex[x].w; }); }); var ks = Object.keys(bw); best = ks.length ? ks.slice(0, 3).map(function (x) { return x + ' ' + (bw[x] ? kg(bw[x]) : 'corpo libero'); }).join(' · ') : '—'; }
-    if (o.sport === 'bld') { var bc = -1; hh.forEach(function (e) { var d = e.s.d; if (d && d.colors) COLORS.forEach(function (c, i) { var v = d.colors[c.k]; if (v && v.c + v.f > 0 && i > bc) bc = i; }); }); best = bc >= 0 ? 'Colore più alto chiuso: ' + COLORS[bc].name.toLowerCase() : '—'; }
-    if (o.sport === 'bch') { var bg = -1; hh.forEach(function (e) { var d = e.s.d; if (d && d.f) { var g = 0; FUND.forEach(function (f) { if (d.f[f[0]] === 'g') g++; }); bg = Math.max(bg, g); } }); best = bg >= 0 ? 'Massimo ' + bg + ' fondamentali verdi in una sessione' : '—'; }
-    if (o.sport === 'swm') { var bm = 0; hh.forEach(function (e) { if (e.s.d && e.s.d.m > bm) bm = e.s.d.m; }); best = bm ? 'Distanza massima: ' + meters(bm) : '—'; }
-    if (o.sport === 'run') { var bk = 0; hh.forEach(function (e) { if (e.s.d && e.s.d.km > bk) bk = e.s.d.km; }); best = bk ? 'Distanza massima: ' + num(bk) + ' km' : '—'; }
-    if (o.sport === 'bon') { var names = {}; hh.forEach(function (e) { if (e.s.d && e.s.d.name) names[e.s.d.name] = 1; }); best = Object.keys(names).length ? Object.keys(names).slice(0, 4).join(', ') : '—'; }
+    var best = '—', qt = qType(o.sport);
+    if (qt === 'ex') { var bw = {}; hh.forEach(function (e) { var d = e.s.d; if (d && d.ex) Object.keys(d.ex).forEach(function (x) { var v = d.ex[x], t = exMeta(x).t, sc = t === 't' ? v.sec || 0 : v.w ? v.w * 1000 : v.reps || 0; if (!bw[x] || sc > bw[x].sc) bw[x] = { sc: sc, txt: t === 't' ? (v.sec || 0) + ' s' : v.w ? kg(v.w) : (v.reps || 0) + ' rip.' }; }); }); var ks = Object.keys(bw); best = ks.length ? ks.slice(0, 3).map(function (x) { return x + ' ' + bw[x].txt; }).join(' · ') : '—'; }
+    if (qt === 'bld') { var bc = -1; hh.forEach(function (e) { var d = e.s.d; if (d && d.colors) COLORS.forEach(function (c, i) { var v = d.colors[c.k]; if (v && v.c + v.f > 0 && i > bc) bc = i; }); }); best = bc >= 0 ? 'Colore più alto chiuso: ' + COLORS[bc].name.toLowerCase() : '—'; }
+    if (qt === 'focus') { var gc = {}; hh.forEach(function (e) { var d = e.s.d; if (d && d.f) Object.keys(d.f).forEach(function (x) { if (d.f[x] === 'g') gc[x] = (gc[x] || 0) + 1; }); }); var top = Object.keys(gc).sort(function (a, b) { return gc[b] - gc[a]; })[0]; best = top ? fundOf(o.sport, top)[1] + ': verde ' + gc[top] + (gc[top] === 1 ? ' volta' : ' volte') : '—'; }
+    if (qt === 'dist') { var df = DIST[o.sport].f, bm = 0; hh.forEach(function (e) { if (e.s.d && e.s.d[df] > bm) bm = e.s.d[df]; }); best = bm ? 'Distanza massima: ' + distFmt(o.sport, bm) : '—'; }
+    if (qt === 'sat') { var tops = hh.filter(function (e) { return e.s.d && e.s.d.sat === 3; }).length; best = tops ? tops + (tops === 1 ? ' lezione Top' : ' lezioni Top') : '—'; }
+    if (qt === 'none') { var nn = hh.filter(function (e) { return e.s.d && e.s.d.note; }).length; best = nn ? nn + (nn === 1 ? ' giornata raccontata' : ' giornate raccontate') + ' nelle note' : '—'; }
+    if (qt === 'bon') { var names = {}; hh.forEach(function (e) { if (e.s.d && e.s.d.name) names[e.s.d.name] = 1; }); best = Object.keys(names).length ? Object.keys(names).slice(0, 4).join(', ') : '—'; }
     h = '<div class="' + cls + '">' + whead(sp.name, true) + '<div style="display:flex;align-items:center;gap:14px">' + sportIc(o.sport, 40, true) + '<div style="display:flex;flex-direction:column"><span style="font:700 32px/36px var(--fd)">' + last30.length + '</span><span class="hint">volte negli ultimi 30 giorni</span></div></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Traguardo top</span><span style="font:600 15px/21px var(--fb)">' + esc(best) + '</span></div>' +
       '<div class="g2"><div class="fld"><span class="lbl" style="font-size:11px">Quest riuscite</span><span style="font:700 22px/26px var(--fd)">' + qdone + '</span></div><div class="fld"><span class="lbl" style="font-size:11px">Stelle</span><span style="font:700 22px/26px var(--fd)">' + stars + '</span></div></div>' +
@@ -894,43 +971,72 @@ function viewRecap(o, cls) {
   h += '<div class="acts one"><button class="btn main" data-a="recapOk">' + (o.first ? 'Inizia ' + MONTHS[new Date().getMonth()].toLowerCase() : 'Chiudi') + '</button></div></div>';
   return h;
 }
+function exRow(sport, f, ex) {
+  var e = f.ex[ex], m = exMeta(ex), p = 'ex.' + ex, isKey = ex === groupKey(f.group);
+  var h = '<div class="fld' + (e.on ? '' : ' off') + '"><div class="row" style="gap:6px"><button class="toggle" style="min-height:36px;padding:0;flex:1 1 auto;min-width:0" data-a="exOn" data-v="' + esc(ex) + '"><span style="font:600 15px/20px var(--fd);min-width:0;overflow:hidden;text-overflow:ellipsis">' + esc(ex) + '</span><span class="sw' + (e.on ? ' on' : '') + '"></span></button>' +
+    '<button class="keyst' + (isKey ? ' on' : '') + '" data-a="keyEx" data-v="' + esc(ex) + '" aria-label="' + (isKey ? 'Esercizio della quest' : 'Usa per la quest') + '">' + svg(IC.star, isKey ? '#FFC94D' : '#5A6B88', 18) + '</button></div>';
+  if (e.on) {
+    if (m.t === 't') h += '<div class="row"><span class="hint">Tenuta · 3 serie</span>' + stepper(esc(p) + '.sec', e.sec, m.inc, 5, function (v) { return '3×' + v + ' s'; }) + '</div>';
+    else {
+      if (m.t === 'w') h += '<div class="row"><span class="hint">Carico</span>' + stepper(esc(p) + '.w', e.w, m.inc, 0, function (v) { return v ? kg(v) : 'corpo'; }) + '</div>';
+      h += '<div class="row"><span class="hint">Ripetizioni · 3 serie</span>' + stepper(esc(p) + '.reps', e.reps, 1, 1, function (v) { return '3×' + v; }) + '</div>';
+    }
+  }
+  return h + '</div>';
+}
 function viewDetails(o, cls) {
-  var f = o.form, s = o.sport, h = '<div class="' + cls + ' tall" style="gap:12px">' + whead(o.assess ? 'Punto di partenza' : 'Dettagli · ' + SPORTS[s].name, true);
+  var f = o.form, s = o.sport, qt = qType(s), h = '<div class="' + cls + ' tall" style="gap:12px">' + whead(o.assess ? 'Punto di partenza' : 'Dettagli · ' + SPORTS[s].name, true);
   h += '<div class="wbody" data-keep>';
-  if (s === 'gym') {
-    h += '<div class="chips">' + GROUP_ORDER.map(function (g) { return '<button class="chip' + (f.group === g ? ' on' : '') + '" data-a="dgroup" data-v="' + g + '">' + GROUPS[g].name + '</button>'; }).join('') + '</div>';
-    GROUPS[f.group].ex.forEach(function (ex) {
-      var e = f.ex[ex], meta = EX[ex], p = 'ex.' + ex;
-      h += '<div class="fld' + (e.on ? '' : ' off') + '"><button class="toggle" style="min-height:36px;padding:0" data-a="exOn" data-v="' + esc(ex) + '"><span style="font:600 15px/20px var(--fd)">' + esc(ex) + (ex === GROUPS[f.group].key ? ' <span class="hint">· quest</span>' : '') + '</span><span class="sw' + (e.on ? ' on' : '') + '"></span></button>';
-      if (e.on) h += '<div class="row"><span class="hint">Carico</span>' + stepper(esc(p) + '.w', e.w, meta.inc, 0, function (v) { return v ? kg(v) : 'corpo'; }) + '</div><div class="row"><span class="hint">Ripetizioni · 3 serie</span>' + stepper(esc(p) + '.reps', e.reps, 1, 1, function (v) { return '3×' + v; }) + '</div>';
-      h += '</div>';
-    });
-  } else if (s === 'bld') {
+  if (qt === 'ex') {
+    if (s === 'gym') h += '<div class="chips">' + GROUP_ORDER.map(function (g) { return '<button class="chip' + (f.group === g ? ' on' : '') + '" data-a="dgroup" data-v="' + g + '">' + GROUPS[g].name + '</button>'; }).join('') + '</div>';
+    h += '<p class="hint" style="margin:0">La stella sceglie l’esercizio della quest' + (s === 'gym' ? ' per ' + GROUPS[f.group].name.toLowerCase() : '') + '.</p>';
+    var list = groupEx(f.group);
+    if (!list.length) h += '<p class="wtext" style="font-size:13px">Ancora nessun esercizio qui: aggiungi il primo.</p>';
+    list.forEach(function (ex) { h += exRow(s, f, ex); });
+    if (f.adding) {
+      h += '<div class="fld" style="border-color:var(--sysl)"><label class="hint" for="exname">Nuovo esercizio · ' + GROUPS[f.group].name + '</label><input id="exname" class="inp" maxlength="30" placeholder="Es. Hip thrust" value="' + esc(f.adding.name) + '" data-f="exname" autocomplete="off"><div class="chips">' +
+        EX_TYPES.map(function (t) { return '<button class="chip' + (f.adding.t === t[0] ? ' on' : '') + '" data-a="addType" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div><div class="acts"><button class="btn sm" data-a="addCancel">Annulla</button><button class="btn sm main" data-a="addOk">Aggiungi</button></div></div>';
+    } else h += '<button class="hwbtn" data-a="addEx">+ Aggiungi esercizio</button>';
+  } else if (qt === 'bld') {
     h += '<p class="hint" style="margin:0">Blocchi della sessione per colore. Flash = chiuso al primo tentativo. WIP = almeno 3-4 tentativi seri, non ancora chiuso.</p>';
     COLORS.forEach(function (c) {
       var v = f.colors[c.k], p = 'colors.' + c.k;
       h += '<div class="fld" style="gap:6px"><div class="row"><span style="display:flex;align-items:center;gap:8px;font:600 15px/20px var(--fd)"><i style="width:14px;height:14px;border-radius:4px;background:' + c.c + ';border:1px solid #5A6478;display:block"></i>' + c.name + '</span></div><div class="trio">' +
         ['c', 'f', 'w'].map(function (x, i) { return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px"><span class="hint" style="font-size:11px">' + ['Chiusi', 'Flash', 'WIP'][i] + '</span>' + stepper(p + '.' + x, v[x], 1, 0, function (n) { return n; }, true) + '</div>'; }).join('') + '</div></div>';
     });
-  } else if (s === 'bch') {
-    h += '<div class="chips">' + ['allenamento', 'partitella', 'torneo'].map(function (t) { return '<button class="chip' + (f.type === t ? ' on' : '') + '" data-a="btype" data-v="' + t + '">' + t.charAt(0).toUpperCase() + t.slice(1) + '</button>'; }).join('') + '</div>';
+  } else if (qt === 'focus') {
+    h += '<div class="chips">' + (GAME_TYPES[s] || GAME_TYPES.def).map(function (t) { return '<button class="chip' + (f.type === t ? ' on' : '') + '" data-a="btype" data-v="' + t + '">' + t.charAt(0).toUpperCase() + t.slice(1) + '</button>'; }).join('') + '</div>';
     h += '<p class="hint" style="margin:0">Com’è andato ogni fondamentale, rispetto al tuo livello di oggi. Pallini e note sono facoltativi.</p>';
-    FUND.forEach(function (x) {
-      h += '<div class="fld"' + (f.focus === x[0] ? ' style="border-color:var(--sysl)"' : '') + '><div class="row"><span style="display:flex;flex-direction:column;font:600 15px/20px var(--fd)">' + x[1] + (f.focus === x[0] ? '<span class="hint" style="color:var(--sysl)">focus di oggi</span>' : '') + '</span><div style="display:flex;gap:8px">' + FACES.map(function (fc) { return '<button class="face' + (f.f[x[0]] === fc[0] ? ' on' : '') + '" style="color:' + fc[1] + '" data-a="face" data-v="' + x[0] + '|' + fc[0] + '" aria-label="' + x[1] + ' ' + ({ g: 'verde', y: 'gialla', r: 'rossa' })[fc[0]] + '"><i style="background:' + fc[1] + '"></i></button>'; }).join('') + '</div></div>' +
+    funds(s).forEach(function (x) {
+      h += '<div class="fld"' + (f.focus === x[0] ? ' style="border-color:var(--sysl)"' : '') + '><div class="row"><span style="display:flex;flex-direction:column;font:600 15px/20px var(--fd)">' + x[1] + (f.focus === x[0] ? '<span class="hint" style="color:var(--sysl)">focus di oggi</span>' : '') + '</span><div style="display:flex;gap:8px">' + FACES.map(function (fc) { return '<button class="face' + (f.f[x[0]] === fc[0] ? ' on' : '') + '" style="color:' + fc[1] + '" data-a="face" data-v="' + x[0] + '|' + fc[0] + '" aria-label="' + x[1] + ' ' + FACE_NAME[fc[0]][x[2] === 'm' ? 0 : 1] + '"><i style="background:' + fc[1] + '"></i></button>'; }).join('') + '</div></div>' +
         (f.nopen[x[0]] ? '<input class="inp fnote" maxlength="140" placeholder="Cosa ricordarti la prossima volta" value="' + esc(f.n[x[0]]) + '" data-f="fn:' + x[0] + '" autocomplete="off">' : '<button class="notebtn" data-a="fnote" data-v="' + x[0] + '">+ nota</button>') + '</div>';
     });
-  } else if (s === 'swm') {
-    h += '<div class="fld"><div class="row"><span class="hint">Distanza</span>' + stepper('m', f.m, 50, 50, meters) + '</div><div class="row"><span class="hint">Tempo (facoltativo)</span>' + stepper('min', f.min, 1, 0, function (v) { return v ? v + ' min' : '—'; }) + '</div></div>';
-  } else if (s === 'run') {
-    var pace = f.min && f.km ? f.min / f.km : 0;
-    h += '<div class="fld"><div class="row"><span class="hint">Distanza</span>' + stepper('km', f.km, 0.5, 0.5, function (v) { return num(v) + ' km'; }) + '</div><div class="row"><span class="hint">Tempo (facoltativo)</span>' + stepper('min', f.min, 1, 0, function (v) { return v ? v + ' min' : '—'; }) + '</div>' + (pace ? '<span class="hint">Passo: ' + Math.floor(pace) + '’' + pad(Math.round((pace % 1) * 60)) + '” al km</span>' : '') + '</div>';
-  } else if (s === 'bon') {
-    h += '<div class="fld"><label class="hint" for="bname">Attività</label><input id="bname" class="inp" maxlength="40" placeholder="Squash, sci, yoga…" value="' + esc(f.name) + '" data-f="bname" autocomplete="off"><label class="hint" for="bnote">Nota</label><textarea id="bnote" class="inp" maxlength="280" data-f="bnote">' + esc(f.note) + '</textarea></div>';
+  } else if (qt === 'dist') {
+    var cf = DIST[s], fmt = function (v) { return distFmt(s, v); }, pace = s === 'run' && f.min && f.v ? f.min / f.v : 0;
+    h += '<div class="fld"><div class="row"><span class="hint">Distanza</span>' + stepper('v', f.v, cf.step, cf.step, fmt) + '</div><div class="row"><span class="hint">Tempo (facoltativo)</span>' + stepper('min', f.min, 1, 0, function (v) { return v ? v + ' min' : '—'; }) + '</div>' + (pace ? '<span class="hint">Passo: ' + Math.floor(pace) + '’' + pad(Math.round((pace % 1) * 60)) + '” al km</span>' : '') + '</div>';
+  } else if (qt === 'sat') {
+    h += '<p class="wtext" style="font-size:13px">Com’è andata la lezione?</p><div style="display:flex;flex-direction:column;gap:8px">' +
+      SAT.map(function (x) { return '<button class="opt' + (f.sat === x[0] ? ' on' : '') + '" style="--diff:' + SPORTS[s].c + '" data-a="sat" data-v="' + x[0] + '"><span class="optg">' + x[1] + '</span><span class="marks">' + [1, 2, 3].map(function (i) { return '<i class="' + (i <= x[0] ? 'on' : '') + '"></i>'; }).join('') + '</span></button>'; }).join('') + '</div>';
+    h += '<div class="fld"><div class="row"><span class="hint">Durata (facoltativa)</span>' + stepper('min', f.min, 5, 0, function (v) { return v ? v + ' min' : '—'; }) + '</div></div>';
+  } else {
+    h += '<div class="fld">' + (qt === 'bon' ? '<label class="hint" for="bname">Attività</label><input id="bname" class="inp" maxlength="40" placeholder="Squash, arrampicata in falesia, sup…" value="' + esc(f.name) + '" data-f="bname" autocomplete="off">' : '') + '<label class="hint" for="bnote">Nota' + (s === 'cfx' ? ' · il WOD di oggi' : '') + '</label><textarea id="bnote" class="inp" maxlength="280" data-f="bnote">' + esc(f.note) + '</textarea></div>';
   }
   h += '<div class="fld"><button class="toggle" style="min-height:40px;padding:0" data-a="star"><span style="display:flex;align-items:center;gap:10px;font:600 15px/20px var(--fd)">' + svg(IC.star, f.star ? '#FFC94D' : '#8FA3C2', 20) + 'Sessione top</span><span class="sw' + (f.star ? ' on' : '') + '"></span></button><span class="hint">Solo per le giornate davvero speciali: +5 XP e una stella sul calendario.</span></div>';
   h += '</div><button class="btn main" data-a="saveDetails">' + (o.assess ? 'Salva il punto di partenza' : 'Salva') + '</button></div>';
   return h;
 }
+function sportPicker(sel, act) {
+  var full = sel.length >= MAX_SPORTS, h = '';
+  FAMS.forEach(function (fm) {
+    h += '<span class="lbl" style="font-size:11px;padding-top:4px">' + fm[0] + '</span><div class="g2">' + fm[1].map(function (s) {
+      var on = sel.indexOf(s) >= 0;
+      return '<button class="opt pick sm' + (on ? ' on' : '') + (full && !on ? ' dim' : '') + '" style="--diff:' + SPORTS[s].c + '" data-a="' + act + '" data-v="' + s + '">' + sportIc(s) + SPORTS[s].name + '</button>';
+    }).join('') + '</div>';
+  });
+  return h;
+}
+function sportCount(sel) { return '<span class="hint" style="color:' + (sel.length >= MAX_SPORTS ? 'var(--rew)' : 'var(--mut)') + '">' + sel.length + ' di ' + MAX_SPORTS + '</span>'; }
+var PICK_HINT = 'Scegli quelli che fai con costanza. Uno sport fatto ogni tanto? Segnalo come Bonus.';
 
 function viewOnboarding() {
   var o = ui.ob, h = '<div class="ob">';
@@ -939,9 +1045,8 @@ function viewOnboarding() {
     h += '<div class="win anim" style="gap:16px">' + whead('Notifica', false) + '<p class="wtitle">Nuovo giocatore rilevato</p><p class="wtext">Il sistema premia la costanza: segni gli sport che fai, ricevi quest, sali di livello. Come ti chiami?</p><input id="obname" class="inp" maxlength="24" placeholder="Il tuo nome" value="' + esc(o.name) + '" data-f="obname" autocomplete="given-name" enterkeyhint="next"><div class="g2"><button class="chip' + (o.g !== 'f' ? ' on' : '') + '" data-a="obG" data-v="m">Il Ragno</button><button class="chip' + (o.g === 'f' ? ' on' : '') + '" data-a="obG" data-v="f">La Ragna</button></div><span class="hint" style="text-align:center;margin-top:-8px">Così il sistema declina i tuoi titoli del mese.</span><button class="btn main" data-a="obNext">Avanti</button></div>';
     if (!standalone) h += '<p class="hint" style="text-align:center">Per averla come app: in Safari tocca Condividi, poi “Aggiungi alla schermata Home”. Fallo prima di iniziare, così i dati restano nell’app.</p>';
   } else {
-    h += '<div class="win anim" style="gap:16px">' + whead('Notifica', false) + '<p class="wtitle">Che sport fai, ' + esc(o.name) + '?</p><p class="wtext">Puoi cambiarli quando vuoi dal profilo.</p><div class="g2">' +
-      ORDER.map(function (s) { var on = o.sports.indexOf(s) >= 0; return '<button class="opt pick' + (on ? ' on' : '') + '" style="--diff:' + SPORTS[s].c + '" data-a="obSport" data-v="' + s + '">' + sportIc(s) + SPORTS[s].name + '</button>'; }).join('') +
-      '</div><div class="acts"><button class="btn" data-a="obBack">Indietro</button><button class="btn main" data-a="obNext">Inizia</button></div></div>';
+    h += '<div class="win anim obwin" style="gap:12px">' + whead('Notifica', false) + '<div style="display:flex;flex-direction:column;gap:4px"><p class="wtitle">Che sport fai, ' + esc(o.name) + '?</p><p class="wtext" style="font-size:13px">' + PICK_HINT + '</p></div><div class="wbody" data-keep style="gap:8px">' + sportPicker(o.sports, 'obSport') + '</div>' +
+      '<div class="row">' + sportCount(o.sports) + '<span class="hint">Puoi cambiarli dal profilo</span></div><div class="acts"><button class="btn" data-a="obBack">Indietro</button><button class="btn main" data-a="obNext">Inizia</button></div></div>';
   }
   return h + '</div>';
 }
@@ -995,6 +1100,7 @@ root.addEventListener('input', function (e) {
   else if (f === 'pname') { var v = e.target.value.trim(); if (v) { S.profile.name = v.slice(0, 24); save(); } }
   else if (f === 'bname') ui.ov.form.name = e.target.value;
   else if (f === 'bnote') ui.ov.form.note = e.target.value;
+  else if (f === 'exname') ui.ov.form.adding.name = e.target.value;
   else if (f.indexOf('fn:') === 0) ui.ov.form.n[f.slice(3)] = e.target.value;
 });
 root.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.getAttribute('data-f') === 'obname') { e.preventDefault(); A.obNext(); } });
