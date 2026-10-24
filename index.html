@@ -58,6 +58,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .hwbtn.on{border-style:solid;border-color:#7E8DAA;background:#1A2336;color:var(--ink)}
 .notebtn{border:none;background:none;color:var(--sysl);font:600 12px/16px var(--fb);padding:0;cursor:pointer;text-align:left;min-height:28px}
 .fnote{height:40px;font-size:14px}
+.fit1{display:block;white-space:nowrap;overflow:hidden}.t28{font:700 28px/34px var(--fd)}.t24{font:700 24px/30px var(--fd)}
 .recap-big{font:700 64px/1 var(--fd);text-shadow:0 0 22px rgba(59,167,255,.9)}
 .recap-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .recap-grid .fld{align-items:center;gap:2px;padding:10px 6px}
@@ -759,7 +760,7 @@ function viewStato() {
   h += '<div style="border-radius:14px;border:1px solid rgba(59,167,255,.6);background:#0B1424;box-shadow:0 0 22px rgba(59,167,255,.22),inset 0 0 22px rgba(59,167,255,.08);padding:16px;display:flex;gap:16px;align-items:center">' +
     '<div style="width:76px;height:84px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;position:relative"><svg width="76" height="84" viewBox="0 0 76 84" aria-hidden="true" style="position:absolute;inset:0"><path d="M38 3l33 19v40L38 81 5 62V22z" fill="#0E1A30" stroke="#3BA7FF" stroke-width="2" stroke-linejoin="round"/></svg><span style="position:relative;font:700 44px/1 var(--fd);text-shadow:0 0 16px rgba(59,167,255,.9)">' + ms.rank + '</span></div>' +
     '<div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:6px"><span style="font:700 24px/28px var(--fd);letter-spacing:2px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(S.profile.name) + '</span><span style="font:500 14px/18px var(--fb);color:var(--soft)">Rango ' + ms.rank + ' · Livello ' + lv + '</span><div class="track"><div class="fill" style="width:' + Math.round(inLv / li.need * 100) + '%"></div></div><span class="hint">' + inLv + ' / ' + li.need + ' XP al livello ' + (lv + 1) + '</span></div></div>';
-  h += '<div style="border-radius:14px;border:1px solid rgba(255,201,77,.55);background:#14120A;box-shadow:0 0 18px rgba(255,201,77,.16);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px"><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="lbl" style="color:#D9B04A">Titolo di ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span style="font:700 28px/32px var(--fd);color:var(--rew);text-shadow:0 0 14px rgba(255,201,77,.45);letter-spacing:1px;text-transform:uppercase;text-wrap:balance' + (ms.title.length > 16 ? ';font-size:22px;line-height:26px' : '') + '">' + esc(ms.title) + '</span><span style="font:500 13px/18px var(--fb);color:#C9BFA0">' + titleWhy(ms) + (ms.top ? ' questo mese' : '') + '</span></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:0 0 auto"><span style="font:700 22px/26px var(--fd)">' + ms.weeksOk + '/' + ms.weeksTot + '</span><span style="font:500 11px/14px var(--fb);color:#C9BFA0;text-align:right">settimane<br>promosse</span></div></div>';
+  h += '<div style="border-radius:14px;border:1px solid rgba(255,201,77,.55);background:#14120A;box-shadow:0 0 18px rgba(255,201,77,.16);padding:14px 16px;display:flex;flex-direction:column;gap:2px"><span class="lbl" style="color:#D9B04A">Titolo di ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span class="fit1 t28" style="color:var(--rew);text-shadow:0 0 14px rgba(255,201,77,.45);letter-spacing:1px;text-transform:uppercase">' + esc(ms.title) + '</span><div style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px"><span style="font:500 13px/18px var(--fb);color:#C9BFA0;min-width:0">' + titleWhy(ms) + (ms.top ? ' questo mese' : '') + '</span><span style="font:500 13px/18px var(--fb);color:#C9BFA0;white-space:nowrap;flex:0 0 auto">' + ms.weeksOk + '/' + ms.weeksTot + ' settimane</span></div></div>';
   h += '<div style="display:flex;flex-direction:column;gap:10px;padding-top:4px"><div class="row" style="padding:0 2px"><span class="lbl">Parametri · ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span class="hint">' + ms.pts + ' punti · ' + (nr.next ? (nr.next[1] - ms.pts) + ' al rango ' + nr.next[0] : 'rango massimo') + '</span></div><div class="g2" style="gap:10px">';
   S.profile.sports.forEach(function (s) {
     var sp = SPORTS[s], p = ms.sportPts[s] || 0, val, pct;
@@ -789,7 +790,7 @@ function viewSettings() {
   var lb = S.lastBackup, age = lb ? diffDays(todayKey(), lb) : null;
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo in iCloud Drive: se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 1.3</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 1.3.1</span>';
   return h;
 }
 
@@ -887,7 +888,7 @@ function viewRecap(o, cls) {
   var cmp = !pv.days ? 'Il tuo primo mese nel sistema.' : dd > 0 ? '+' + dd + (dd === 1 ? ' giorno' : ' giorni') + ' rispetto a ' + MONTHS[p.m].toLowerCase() + '.' : dd === 0 ? 'Stessi giorni di ' + MONTHS[p.m].toLowerCase() + ': costanza pura.' : 'Ogni mese conta: questo è nel libro.';
   var h = '<div class="' + cls + ' gold" style="text-align:center;gap:14px">' + whead('Recap · ' + MONTHS[o.m] + ' ' + o.y, !o.first);
   h += '<div style="display:flex;flex-direction:column;align-items:center;gap:6px"><span class="lbl" style="color:#D9B04A">Rango del mese</span><span class="recap-big pop">' + ms.rank + '</span></div>';
-  h += '<div class="pop" style="display:flex;flex-direction:column;gap:2px"><span class="lbl" style="color:#D9B04A;font-size:11px">Titolo</span><span style="font:700 24px/28px var(--fd);color:var(--rew);text-shadow:0 0 14px rgba(255,201,77,.45);letter-spacing:1px;text-transform:uppercase;text-wrap:balance">' + esc(ms.title) + '</span><span class="hint">' + titleWhy(ms) + '</span></div>';
+  h += '<div class="pop" style="display:flex;flex-direction:column;gap:2px"><span class="lbl" style="color:#D9B04A;font-size:11px">Titolo</span><span class="fit1 t24" style="color:var(--rew);text-shadow:0 0 14px rgba(255,201,77,.45);letter-spacing:1px;text-transform:uppercase">' + esc(ms.title) + '</span><span class="hint">' + titleWhy(ms) + '</span></div>';
   h += '<div class="recap-grid"><div class="fld"><b>' + ms.days + '</b><span class="hint">giorni</span></div><div class="fld"><b>' + ms.qd + '</b><span class="hint">quest riuscite</span></div><div class="fld"><b>' + ms.weeksOk + '/' + ms.weeksTot + '</b><span class="hint">settimane</span></div></div>';
   h += '<p class="wtext">' + cmp + (ms.hw ? ' E ' + ms.hw + (ms.hw === 1 ? ' giornata' : ' giornate') + ' di Hard Study/Work.' : '') + '</p>';
   h += '<div class="acts one"><button class="btn main" data-a="recapOk">' + (o.first ? 'Inizia ' + MONTHS[new Date().getMonth()].toLowerCase() : 'Chiudi') + '</button></div></div>';
@@ -947,6 +948,12 @@ function viewOnboarding() {
 
 /* ---------- render ---------- */
 var root = document.getElementById('app');
+function fitTitles() {
+  root.querySelectorAll('.fit1').forEach(function (el) {
+    el.style.fontSize = ''; var fs = parseFloat(getComputedStyle(el).fontSize);
+    while (el.scrollWidth > el.clientWidth + 1 && fs > 13) { fs -= 1; el.style.fontSize = fs + 'px'; }
+  });
+}
 function fitCalendar() {
   if (!S || ui.screen !== 'home') return;
   var sc = root.querySelector('.scroller'), grids = root.querySelectorAll('.scroller .grid7'); if (!sc || grids.length < 2) return;
@@ -955,7 +962,7 @@ function fitCalendar() {
   var rows = Math.ceil(g.children.length / 7);
   g.style.setProperty('--ch', Math.max(28, 40 - Math.ceil(over / rows)) + 'px');
 }
-window.addEventListener('resize', function () { fitCalendar(); });
+window.addEventListener('resize', function () { fitCalendar(); fitTitles(); });
 function render() {
   var keep = root.querySelector('[data-keep]'), keepTop = keep ? keep.scrollTop : 0;
   var main = root.querySelector('.scroller'), mainTop = main ? main.scrollTop : 0;
@@ -971,7 +978,7 @@ function render() {
   if (toastMsg) h += '<div class="toast' + (S && ui.ov ? ' low' : '') + '"' + (toastShown === toastMsg ? ' style="animation-delay:-' + Math.min(2.5, (Date.now() - toastAt) / 1000) + 's"' : '') + ' role="status"><span class="mark">!</span><span>' + esc(toastMsg) + '</span></div>';
   root.innerHTML = h;
   if (toastMsg && toastShown !== toastMsg) { toastShown = toastMsg; toastAt = Date.now(); }
-  fitCalendar();
+  fitCalendar(); fitTitles();
   var k2 = root.querySelector('[data-keep]'); if (k2 && keep) k2.scrollTop = keepTop;
   var m2 = root.querySelector('.scroller'); if (m2 && main) m2.scrollTop = mainTop;
   if (ui.focusNext) { focus = ui.focusNext; ui.focusNext = null; }
@@ -1001,6 +1008,7 @@ document.addEventListener('visibilitychange', function () { if (!document.hidden
 autoClose();
 startupNotice();
 render();
+try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
 if ('serviceWorker' in navigator && location.protocol !== 'file:') { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }
 window.__sistema = { get state() { return S; }, ui: ui, A: A };
