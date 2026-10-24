@@ -272,8 +272,13 @@ var HW = { name: 'Hard Study/Work', ic: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v
 var MONTHS = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
 var MSHORT = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
 var DAYS_SHORT = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
-var RANKS = [['S', 75], ['A', 62], ['B', 50], ['C', 32], ['D', 20], ['E', 0]];
-var SPORT_RANKS = [['S', 26], ['A', 20], ['B', 14], ['C', 8], ['D', 3], ['E', 0]];
+// Rango del mese: 2 punti per giorno attivo, +1 se quel giorno hai completato una quest. Giorni contati fino a 16.
+// [rango, punti, stelle richieste nel mese]
+var RANKS = [['S', 46, 3], ['A', 36, 1], ['B', 24, 0], ['C', 16, 0], ['D', 8, 0], ['E', 0, 0]];
+var DAY_CAP = 16;
+// Rango del singolo sport: 2 punti a sessione (fino a 6 al mese), +1 per quest riuscita.
+var SPORT_RANKS = [['S', 16], ['A', 14], ['B', 10], ['C', 6], ['D', 2], ['E', 0]];
+var SPORT_CAP = 6;
 var KEY = 'sistema.v1';
 
 /* ---------- utilità ---------- */
@@ -357,19 +362,22 @@ function dayPts(k) { var m = 0; sessions(k).forEach(function (s) { m = Math.max(
 function totalXp() { var x = 0; Object.keys(S.days).forEach(function (k) { S.days[k].forEach(function (s) { x += sessXp(s); }); }); return x; }
 function levelInfo(xp) { var lv = 1, need = 100; while (xp >= need) { xp -= need; lv++; need = 100 + 50 * (lv - 1); } return { lv: lv, inLv: xp, need: need }; }
 function levelOf(xp) { return levelInfo(xp).lv; }
-function rankOf(p, table) { table = table || RANKS; for (var i = 0; i < table.length; i++) if (p >= table[i][1]) return table[i][0]; return 'E'; }
+function rankOf(p, table, stars) { table = table || RANKS; for (var i = 0; i < table.length; i++) if (p >= table[i][1] && (stars === undefined || (stars || 0) >= (table[i][2] || 0))) return table[i][0]; return 'E'; }
 function nextRank(p, table) { table = table || RANKS; var nx = null, prev = 0; for (var i = table.length - 1; i >= 0; i--) { if (p < table[i][1]) { nx = table[i]; break; } prev = table[i][1]; } return { next: nx, prev: prev }; }
 function monthKeys(y, m) { var pre = y + '-' + pad(m + 1); return Object.keys(S.days).filter(function (k) { return k.indexOf(pre) === 0 && S.days[k].length; }); }
 function monthStats(y, m) {
-  var keys = monthKeys(y, m), pts = 0, counts = {}, sportPts = {}, n = 0, qd = 0, qt = 0;
+  var keys = monthKeys(y, m), counts = {}, sportQ = {}, n = 0, qd = 0, qt = 0, qDays = 0, stars = 0;
   keys.forEach(function (k) {
-    pts += dayPts(k);
+    var dq = false;
     sessions(k).forEach(function (s) {
       counts[s.sport] = (counts[s.sport] || 0) + 1; n++;
-      sportPts[s.sport] = (sportPts[s.sport] || 0) + sessPts(s);
-      if (s.quest && s.quest.done !== null && s.quest.done !== undefined) { qt++; if (s.quest.done) qd++; }
+      if (s.star) stars++;
+      if (s.quest && s.quest.done !== null && s.quest.done !== undefined) { qt++; if (s.quest.done) { qd++; dq = true; sportQ[s.sport] = (sportQ[s.sport] || 0) + 1; } }
     });
+    if (dq) qDays++;
   });
+  var pts = monthPts(keys.length, qDays), sportPts = {};
+  Object.keys(counts).forEach(function (sp) { sportPts[sp] = Math.min(counts[sp], SPORT_CAP) * 2 + Math.min(sportQ[sp] || 0, SPORT_CAP); });
   var rk = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a] || ORDER.indexOf(a) - ORDER.indexOf(b); });
   var top = rk[0] || null, second = rk[1] && counts[rk[1]] >= 0.7 * counts[top] ? rk[1] : null;
   var title = titleOf(top, second);
@@ -379,7 +387,24 @@ function monthStats(y, m) {
   Object.keys(seen).forEach(function (w) { if (seen[w] >= 2) weeksOk++; });
   var first = new Date(y, m, 1), last = new Date(y, m + 1, 0), wTot = {};
   for (var d = new Date(first); d <= last; d.setDate(d.getDate() + 1)) wTot[mondayOf(keyOf(d))] = 1;
-  return { keys: keys, days: keys.length, pts: pts, rank: rankOf(pts), counts: counts, sportPts: sportPts, sessions: n, top: top, second: second, title: title, qd: qd, qt: qt, weeksOk: weeksOk, weeksTot: Object.keys(wTot).length, hw: hw };
+  return { keys: keys, days: keys.length, qDays: qDays, stars: stars, pts: pts, rank: rankOf(pts, RANKS, stars), counts: counts, sportPts: sportPts, sessions: n, top: top, second: second, title: title, qd: qd, qt: qt, weeksOk: weeksOk, weeksTot: Object.keys(wTot).length, hw: hw };
+}
+function monthPts(days, qDays) { return Math.min(days, DAY_CAP) * 2 + Math.min(qDays, DAY_CAP); }
+function nextGoal(ms) {
+  var cur = RANKS.map(function (r) { return r[0]; }).indexOf(ms.rank); if (cur <= 0) return 'rango massimo';
+  var nx = RANKS[cur - 1], parts = [];
+  if (ms.pts < nx[1]) parts.push((nx[1] - ms.pts) + (nx[1] - ms.pts === 1 ? ' punto' : ' punti'));
+  if (ms.stars < nx[2]) parts.push((nx[2] - ms.stars) + (nx[2] - ms.stars === 1 ? ' stella' : ' stelle'));
+  return parts.join(' e ') + ' al rango ' + nx[0];
+}
+function projection(y, m, ms) {
+  var nd = new Date(), len = new Date(y, m + 1, 0).getDate(), el = nd.getDate();
+  if (y !== nd.getFullYear() || m !== nd.getMonth()) return null;
+  if (el < 8) return { early: true };
+  var f = len / el, pd = Math.min(len, Math.round(ms.days * f)), pq = Math.min(pd, Math.round(ms.qDays * f)), ps = Math.round(ms.stars * f);
+  var r = rankOf(monthPts(pd, pq), RANKS, ps), order = 'SABCDE';
+  if (order.indexOf(r) > order.indexOf(ms.rank)) r = ms.rank;
+  return { rank: r };
 }
 function titleOf(top, second) {
   if (!top) return '—';
@@ -843,13 +868,13 @@ function viewHome() {
 }
 
 function viewStato() {
-  var n = new Date(), ms = monthStats(n.getFullYear(), n.getMonth()), li = levelInfo(totalXp()), lv = li.lv, inLv = li.inLv, nr = nextRank(ms.pts);
+  var n = new Date(), ms = monthStats(n.getFullYear(), n.getMonth()), li = levelInfo(totalXp()), lv = li.lv, inLv = li.inLv, pj = projection(n.getFullYear(), n.getMonth(), ms);
   var h = header('Stato', '<button class="icon-btn" data-a="go" data-v="settings" aria-label="Impostazioni" style="position:relative">' + svg(IC.gear) + (backupDue() ? '<i style="position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:4px;background:#FFC94D;box-shadow:0 0 6px #FFC94D"></i>' : '') + '</button>');
   h += '<div style="border-radius:14px;border:1px solid rgba(59,167,255,.6);background:#0B1424;box-shadow:0 0 22px rgba(59,167,255,.22),inset 0 0 22px rgba(59,167,255,.08);padding:16px;display:flex;gap:16px;align-items:center">' +
     '<div style="width:76px;height:84px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;position:relative"><svg width="76" height="84" viewBox="0 0 76 84" aria-hidden="true" style="position:absolute;inset:0"><path d="M38 3l33 19v40L38 81 5 62V22z" fill="#0E1A30" stroke="#3BA7FF" stroke-width="2" stroke-linejoin="round"/></svg><span style="position:relative;font:700 44px/1 var(--fd);text-shadow:0 0 16px rgba(59,167,255,.9)">' + ms.rank + '</span></div>' +
-    '<div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:6px"><span style="font:700 24px/28px var(--fd);letter-spacing:2px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(S.profile.name) + '</span><span style="font:500 14px/18px var(--fb);color:var(--soft)">Rango ' + ms.rank + ' · Livello ' + lv + '</span><div class="track"><div class="fill" style="width:' + Math.round(inLv / li.need * 100) + '%"></div></div><span class="hint">' + inLv + ' / ' + li.need + ' XP al livello ' + (lv + 1) + '</span></div></div>';
+    '<div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:6px"><span style="font:700 24px/28px var(--fd);letter-spacing:2px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(S.profile.name) + '</span><span style="font:500 14px/18px var(--fb);color:var(--soft)">Rango ' + ms.rank + ' · Livello ' + lv + '</span>' + (pj ? '<span style="font:600 12px/16px var(--fd);letter-spacing:1px;color:' + (pj.early ? 'var(--mut)' : '#D9B04A') + '">' + (pj.early ? 'Proiezione dalla seconda settimana' : pj.rank === ms.rank ? 'Al tuo ritmo resti ' + ms.rank : 'Al tuo ritmo chiudi in ' + pj.rank) + '</span>' : '') + '<div class="track"><div class="fill" style="width:' + Math.round(inLv / li.need * 100) + '%"></div></div><span class="hint">' + inLv + ' / ' + li.need + ' XP al livello ' + (lv + 1) + '</span></div></div>';
   h += '<div style="border-radius:14px;border:1px solid rgba(255,201,77,.55);background:#14120A;box-shadow:0 0 18px rgba(255,201,77,.16);padding:14px 16px;display:flex;flex-direction:column;gap:2px"><span class="lbl" style="color:#D9B04A">Titolo di ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span class="fit1 t28" style="color:var(--rew);text-shadow:0 0 14px rgba(255,201,77,.45);letter-spacing:1px;text-transform:uppercase">' + esc(ms.title) + '</span><div style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px"><span style="font:500 13px/18px var(--fb);color:#C9BFA0;min-width:0">' + titleWhy(ms) + (ms.top ? ' questo mese' : '') + '</span><span style="font:500 13px/18px var(--fb);color:#C9BFA0;white-space:nowrap;flex:0 0 auto">' + ms.weeksOk + '/' + ms.weeksTot + ' settimane</span></div></div>';
-  h += '<div style="display:flex;flex-direction:column;gap:10px;padding-top:4px"><div class="row" style="padding:0 2px"><span class="lbl">Parametri · ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span class="hint">' + ms.pts + (ms.pts === 1 ? ' punto · ' : ' punti · ') + (nr.next ? (nr.next[1] - ms.pts) + ' al rango ' + nr.next[0] : 'rango massimo') + '</span></div><div class="g2" style="gap:10px">';
+  h += '<div style="display:flex;flex-direction:column;gap:10px;padding-top:4px"><div style="padding:0 2px;display:flex;flex-direction:column;gap:2px"><span class="lbl">Parametri · ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span class="hint">' + ms.pts + (ms.pts === 1 ? ' punto · ' : ' punti · ') + nextGoal(ms) + '</span></div><div class="g2" style="gap:10px">';
   S.profile.sports.forEach(function (s) {
     var sp = SPORTS[s], p = ms.sportPts[s] || 0, val, pct;
     if (s === 'bon') { val = ms.counts.bon || 0; pct = Math.min(100, val * 25); }
@@ -876,7 +901,7 @@ function viewSettings() {
   var lb = S.lastBackup, age = lb ? diffDays(todayKey(), lb) : null;
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + CLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 1.4.2</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 1.5</span>';
   return h;
 }
 
