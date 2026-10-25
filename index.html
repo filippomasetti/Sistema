@@ -65,6 +65,11 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .fit1{display:block;white-space:nowrap;overflow:hidden}.t28{font:700 28px/34px var(--fd)}.t24{font:700 24px/30px var(--fd)}
 .rules p{margin:0;font:500 14px/21px var(--fb);color:var(--soft)}.rules p b{color:var(--ink)}.rules{display:flex;flex-direction:column;gap:10px}
 .rtab{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 12px}.rtab span{font:500 13px/18px var(--fb);color:var(--soft)}.rtab b{display:inline-block;width:20px;font:700 15px/18px var(--fd);color:var(--ink)}
+.rbar{position:relative;height:20px;border-radius:6px;background:var(--line);overflow:hidden}
+.rfill{position:absolute;left:0;top:0;bottom:0;border-radius:6px;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.rtick{position:absolute;top:0;bottom:0;width:1px;margin-left:-1px;background:rgba(7,11,20,.55)}
+.rtxt{position:absolute;right:8px;top:0;bottom:0;display:flex;align-items:center;font:700 11px/1 var(--fd);letter-spacing:.5px;color:var(--ink);text-shadow:0 0 4px #000,0 0 2px #000}
+.rlets{position:relative;height:14px;margin-top:-4px}.rlets .rlet{position:absolute;transform:translateX(-50%);font:700 10px/14px var(--fd);color:var(--mut)}.rlets .rlet.on{color:var(--ink)}.rlets .rlet:last-child{transform:translateX(-100%)}
 .recap-big{font:700 64px/1 var(--fd);text-shadow:0 0 22px rgba(59,167,255,.9)}
 .recap-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .recap-grid .fld{align-items:center;gap:2px;padding:10px 6px}
@@ -302,6 +307,11 @@ var SPORT_CAP = 6;
 // Punti rango per quest riuscita: facile solo XP, media mezzo punto, difficile un punto.
 var QPTS = { easy: 0, med: 0.5, hard: 1 };
 function qPts(s) { return s.quest && s.quest.done === true ? (QPTS[s.quest.diff] || 0) : 0; }
+function rankBar(p, table, c) {
+  var max = table[0][1], w = Math.min(100, p / max * 100), nx = nextRank(p, table).next;
+  var ticks = table.slice(0, table.length - 1).map(function (r) { var x = r[1] / max * 100; return x < 100 ? '<i class="rtick" style="left:' + x + '%"></i>' : ''; }).join('');
+  return '<div class="rbar"><div class="rfill" style="width:' + w + '%;background:' + c + ';box-shadow:0 0 10px ' + c + '88"></div>' + ticks + '<span class="rtxt">' + num(p) + (nx ? ' / ' + nx[1] : '') + '</span></div><div class="rlets">' + table.slice(0, table.length - 1).map(function (r) { return '<span class="rlet' + (p >= r[1] ? ' on' : '') + '" style="left:' + (r[1] / max * 100) + '%">' + r[0] + '</span>'; }).join('') + '</div>';
+}
 function pfmt(p) { return num(p) + (p === 1 ? ' punto' : ' punti'); }
 var KEY = 'sistema.v1';
 
@@ -932,7 +942,7 @@ function viewStato() {
   S.profile.sports.forEach(function (s) {
     var sp = SPORTS[s], p = ms.sportPts[s] || 0, val, pct;
     if (s === 'bon') { val = ms.counts.bon || 0; pct = Math.min(100, val * 25); }
-    else { val = rankOf(p, SPORT_RANKS); var r = nextRank(p, SPORT_RANKS); pct = r.next ? Math.round((p - r.prev) / (r.next[1] - r.prev) * 100) : 100; }
+    else { val = rankOf(p, SPORT_RANKS); var r = nextRank(p, SPORT_RANKS); pct = Math.min(100, Math.round(p / SPORT_RANKS[0][1] * 100)); }
     h += '<div class="tw" data-s="' + s + '"><button class="tile' + (ui.arrange ? ' jig' : '') + '" data-a="sport" data-v="' + s + '" style="animation-delay:-' + ((ORDER.indexOf(s) * 0.07) % 0.3).toFixed(2) + 's">' + sportIc(s, 28, true) + '<span class="tname"' + (sp.name.length > 9 ? ' style="font-size:12.5px;letter-spacing:0"' : '') + '>' + sp.name + '</span><span class="trank" style="' + (s === 'bon' ? 'font-size:20px;' : '') + 'text-shadow:0 0 12px ' + sp.c + '">' + val + '</span><span class="tbar"><i style="width:' + pct + '%;background:' + sp.c + '"></i></span></button></div>';
   });
   h += '</div>' + (ui.arrange ? '<div class="row" id="arrbar" style="padding:0 2px"><span class="hint">Trascina per cambiare l’ordine</span><button class="btn sm main" data-a="arrangeDone">Fatto</button></div>' : '<span class="hint" id="arrbar" style="padding:0 2px;font-size:11px">Tieni premuto uno sport per riordinarli</span>') + '</div>';
@@ -956,7 +966,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">Punti, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + CLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 1.6.3</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 1.6.4</span>';
   return h;
 }
 
@@ -1062,7 +1072,7 @@ function viewOverlay() {
     if (qt === 'none') { var nn = hh.filter(function (e) { return e.s.d && e.s.d.note; }).length; best = nn ? nn + (nn === 1 ? ' giornata raccontata' : ' giornate raccontate') + ' nelle note' : '—'; }
     if (qt === 'bon') { var names = {}; hh.forEach(function (e) { if (e.s.d && e.s.d.name) names[e.s.d.name] = 1; }); best = Object.keys(names).length ? Object.keys(names).slice(0, 4).join(', ') : '—'; }
     var nn0 = new Date(), msS = monthStats(nn0.getFullYear(), nn0.getMonth()), spp = msS.sportPts[o.sport] || 0, sr = rankOf(spp, SPORT_RANKS), snx = nextRank(spp, SPORT_RANKS);
-    var rankLine = o.sport === 'bon' ? '' : '<div class="fld" style="flex-direction:row;align-items:center;gap:12px"><span style="font:700 30px/32px var(--fd);text-shadow:0 0 12px ' + sp.c + ';min-width:26px;text-align:center">' + sr + '</span><span style="display:flex;flex-direction:column;flex:1 1 auto;min-width:0"><span class="lbl" style="font-size:11px">Rango di ' + MONTHS[nn0.getMonth()].toLowerCase() + '</span><span style="font:600 14px/19px var(--fb)">' + (snx.next ? num(spp) + ' di ' + snx.next[1] + ' punti per il rango ' + snx.next[0] : 'Rango massimo') + '</span><span class="tbar" style="height:8px;border-radius:4px;margin-top:4px"><i style="height:8px;border-radius:4px;width:' + (snx.next ? Math.round((spp - snx.prev) / (snx.next[1] - snx.prev) * 100) : 100) + '%;background:' + sp.c + ';box-shadow:0 0 8px ' + sp.c + '"></i></span></span></div>';
+    var rankLine = o.sport === 'bon' ? '' : '<div class="fld" style="gap:8px"><div class="row"><span class="lbl" style="font-size:11px">Rango di ' + MONTHS[nn0.getMonth()].toLowerCase() + '</span><span style="font:700 22px/24px var(--fd);text-shadow:0 0 12px ' + sp.c + '">' + sr + '</span></div>' + rankBar(spp, SPORT_RANKS, sp.c) + '</div>';
     h = '<div class="' + cls + '">' + whead(sp.name, true) + '<div style="display:flex;align-items:center;gap:14px">' + sportIc(o.sport, 40, true) + '<div style="display:flex;flex-direction:column"><span style="font:700 32px/36px var(--fd)">' + last30.length + '</span><span class="hint">volte negli ultimi 30 giorni</span></div></div>' + rankLine +
       '<div class="fld"><span class="lbl" style="font-size:11px">Traguardo top</span><span style="font:600 15px/21px var(--fb)">' + esc(best) + '</span></div>' +
       '<div class="g2"><div class="fld"><span class="lbl" style="font-size:11px">Quest riuscite</span><span style="font:700 22px/26px var(--fd)">' + qdone + '</span></div><div class="fld"><span class="lbl" style="font-size:11px">Stelle</span><span style="font:700 22px/26px var(--fd)">' + stars + '</span></div></div>' +
