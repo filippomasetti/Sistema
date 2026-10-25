@@ -93,7 +93,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .mrays{position:absolute;inset:-60px;background:repeating-conic-gradient(from 0deg,rgba(255,201,77,.22) 0 6deg,transparent 6deg 30deg);-webkit-mask:radial-gradient(circle,#000 20%,transparent 70%);mask:radial-gradient(circle,#000 20%,transparent 70%);opacity:0;animation:rays .6s ease 1.3s forwards}
 @keyframes rays{to{opacity:1}}
 .mwin{animation:fade .35s ease 1.45s both}
-.story{position:absolute;inset:0;z-index:30;background:radial-gradient(120% 70% at 50% 30%,rgba(59,167,255,.16),transparent 60%),#070B14;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 12px) 22px calc(env(safe-area-inset-bottom,0px) + 22px);cursor:pointer;-webkit-user-select:none;user-select:none}
+.story{position:absolute;inset:0;z-index:30;touch-action:none;background:radial-gradient(120% 70% at 50% 30%,rgba(59,167,255,.16),transparent 60%),#070B14;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 12px) 22px calc(env(safe-area-inset-bottom,0px) + 22px);cursor:pointer;-webkit-user-select:none;user-select:none}
 .story.gold{background:radial-gradient(120% 70% at 50% 30%,rgba(255,201,77,.15),transparent 60%),#070B14}
 .ssegs{display:flex;gap:4px}.ssegs i{flex:1 1 0;height:3px;border-radius:2px;background:#1E2A42;display:block}.ssegs i.on{background:#BDEBFF}
 .shead{display:flex;align-items:center;gap:10px;padding-top:6px;font:600 11px/16px var(--fd);letter-spacing:2px;white-space:nowrap;color:var(--mut)}.shead span:first-child{flex:1 1 auto;color:var(--sysl)}.shead .x{margin:-8px -12px -8px 0}
@@ -1011,7 +1011,7 @@ function viewStato() {
     '<div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:6px"><span style="font:700 24px/28px var(--fd);letter-spacing:2px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(S.profile.name) + '</span><span style="font:500 14px/18px var(--fb);color:var(--soft)">Rango ' + ms.rank + ' · Livello ' + lv + '</span>' + (pj ? '<span style="font:600 12px/16px var(--fd);letter-spacing:1px;color:' + (pj.early ? 'var(--mut)' : '#D9B04A') + '">' + (pj.early ? 'Proiezione dalla seconda settimana' : pj.rank === ms.rank ? 'Al tuo ritmo resti ' + ms.rank : 'Al tuo ritmo chiudi in ' + pj.rank) + '</span>' : '') + '<div class="track"><div class="fill" style="width:' + Math.round(inLv / li.need * 100) + '%"></div></div><span class="hint">' + inLv + ' / ' + li.need + ' XP al livello ' + (lv + 1) + '</span></div></div>';
   h += '<div style="border-radius:14px;border:1px solid rgba(255,201,77,.55);background:#14120A;box-shadow:0 0 18px rgba(255,201,77,.16);padding:14px 16px;display:flex;flex-direction:column;gap:2px"><span class="lbl" style="color:#D9B04A">Titolo di ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span class="fit1 t28" style="color:var(--rew);text-shadow:0 0 14px rgba(255,201,77,.45);letter-spacing:1px;text-transform:uppercase">' + esc(ms.title) + '</span><div style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px"><span style="font:500 13px/18px var(--fb);color:#C9BFA0;min-width:0">' + titleWhy(ms) + (ms.top ? ' questo mese' : '') + '</span><span style="font:500 13px/18px var(--fb);color:#C9BFA0;white-space:nowrap;flex:0 0 auto">' + ms.weeksOk + '/' + ms.weeksTot + ' settimane</span></div></div>';
   var mtc = monthTraits(n.getFullYear(), n.getMonth());
-  h += '<div class="card tcard">' + (mtc ? rombo(mtc.v, ms.rank, 92, false) : '') + '<div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span class="lbl" style="font-size:11px">Tratto del mese</span>' + (mtc ? '<span style="font:700 20px/24px var(--fd);letter-spacing:2px;text-transform:uppercase;color:' + TRAITS[mtc.top].c + '">' + TRAITS[mtc.top].name + '</span><span style="font:500 13px/18px var(--fb);color:var(--mut)">' + traitPhrase(mtc) + '</span>' : '<span class="hint">Si accende con il primo allenamento del mese.</span>') + '</div></div>';
+  h += '<div class="card tcard"' + (mtc ? ' style="border-color:' + TRAITS[mtc.top].c + '8C;box-shadow:0 0 18px ' + TRAITS[mtc.top].c + '29;background:#0C1320;background:color-mix(in srgb, ' + TRAITS[mtc.top].c + ' 6%, #0A0F1A)"' : '') + '>' + (mtc ? rombo(mtc.v, ms.rank, 92, false) : '') + '<div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span class="lbl" style="font-size:11px">Tratto del mese</span>' + (mtc ? '<span style="font:700 20px/24px var(--fd);letter-spacing:2px;text-transform:uppercase;color:' + TRAITS[mtc.top].c + '">' + TRAITS[mtc.top].name + '</span><span style="font:500 13px/18px var(--fb);color:var(--mut)">' + traitPhrase(mtc) + '</span>' : '<span class="hint">Si accende con il primo allenamento del mese.</span>') + '</div></div>';
   h += '<div style="display:flex;flex-direction:column;gap:10px;padding-top:4px"><div style="padding:0 2px;display:flex;flex-direction:column;gap:2px"><span class="lbl">Parametri · ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span class="hint">' + pfmt(ms.pts) + ' · ' + nextGoal(ms) + '</span></div><div class="g2" id="tiles" style="gap:10px">';
   S.profile.sports.forEach(function (s) {
     var sp = SPORTS[s], p = ms.sportPts[s] || 0, val, pct;
@@ -1355,14 +1355,14 @@ function noteCount(c, sp) { return bySport(c, sp).filter(function (e) { var d = 
 var MEDALS = [];
 function M(d) { MEDALS.push(d); }
 // costanza
-M({ id: 'c_weeks', grp: 'cost', name: 'Settimane di fila', ic: MIC.cal, col: '#BDEBFF', th: [1, 2, 4, 8, 12, 26, 52], unit: 'settimane', desc: 'Settimane consecutive con almeno 2 giorni di sport.', val: function (c) { return c.bestWeekStreak; } });
-M({ id: 'c_months', grp: 'cost', name: 'Mesi in B o più', ic: MIC.cal, col: '#BDEBFF', th: [1, 2, 3, 6, 9, 12, 24], unit: 'mesi', desc: 'Mesi consecutivi chiusi in rango B o meglio.', val: function (c) { return c.bestMonthStreak; } });
-M({ id: 'c_hard', grp: 'cost', name: 'Quest difficili', ic: MIC.quest, col: '#BDEBFF', th: N100, unit: 'quest', desc: 'Quest difficili completate.', val: function (c) { return c.all.filter(function (e) { return e.s.quest && e.s.quest.done === true && e.s.quest.diff === 'hard'; }).length; } });
-M({ id: 'c_stars', grp: 'cost', name: 'Stelle', ic: MIC.star, col: '#FFC94D', th: [1, 3, 7, 15, 25, 40, 60], unit: 'stelle', desc: 'Sessioni top, segnate con la stella.', val: function (c) { return c.all.filter(function (e) { return e.s.star; }).length; } });
+M({ id: 'c_weeks', grp: 'cost', name: 'Settimane di fila', ic: MIC.cal, col: '#BDEBFF', th: [1, 2, 4, 8, 12, 26, 52], unit: 'settimane', gl: ['settimane di fila con almeno 2 giorni di sport', 'settimana con almeno 2 giorni di sport'], desc: 'Settimane consecutive con almeno 2 giorni di sport.', val: function (c) { return c.bestWeekStreak; } });
+M({ id: 'c_months', grp: 'cost', name: 'Mesi in B o più', ic: MIC.cal, col: '#BDEBFF', th: [1, 2, 3, 6, 9, 12, 24], unit: 'mesi', gl: ['mesi di fila chiusi in rango B o meglio', 'mese chiuso in rango B o meglio'], desc: 'Mesi consecutivi chiusi in rango B o meglio.', val: function (c) { return c.bestMonthStreak; } });
+M({ id: 'c_hard', grp: 'cost', name: 'Quest difficili', ic: MIC.quest, col: '#BDEBFF', th: N100, unit: 'quest', gl: ['quest difficili completate', 'quest difficile completata'], desc: 'Quest difficili completate.', val: function (c) { return c.all.filter(function (e) { return e.s.quest && e.s.quest.done === true && e.s.quest.diff === 'hard'; }).length; } });
+M({ id: 'c_stars', grp: 'cost', name: 'Stelle', ic: MIC.star, col: '#FFC94D', th: [1, 3, 7, 15, 25, 40, 60], unit: 'stelle', gl: ['stelle conquistate', 'stella conquistata'], desc: 'Sessioni top, segnate con la stella.', val: function (c) { return c.all.filter(function (e) { return e.s.star; }).length; } });
 // tratti
-TKEYS.forEach(function (t) { M({ id: 't_' + t, grp: 'trait', name: TRAITS[t].name, ic: TRAITS[t].ic, col: TRAITS[t].c, th: [1, 10, 25, 50, 100, 150, 250], unit: 'punti', desc: 'Punti accumulati dalle sessioni che allenano ' + TRAITS[t].name.toLowerCase() + '.', val: function (c) { return c.tv[t]; } }); });
+TKEYS.forEach(function (t) { M({ id: 't_' + t, grp: 'trait', name: TRAITS[t].name, ic: TRAITS[t].ic, col: TRAITS[t].c, th: [1, 10, 25, 50, 100, 150, 250], unit: 'punti', gl: ['punti di ' + TRAITS[t].name, 'punto di ' + TRAITS[t].name], desc: 'Punti accumulati dalle sessioni che allenano ' + TRAITS[t].name.toLowerCase() + '.', val: function (c) { return c.tv[t]; } }); });
 // sport
-ORDER.forEach(function (sp) { M({ id: 's_' + sp, grp: 'sport', sp: [sp], name: SPORTS[sp].name, ic: SPORTS[sp].ic, col: SPORTS[sp].c, th: N100, unit: 'sessioni', desc: 'Sessioni di ' + SPORTS[sp].name.toLowerCase() + ' segnate.', val: function (c) { return bySport(c, sp).length; } }); });
+ORDER.forEach(function (sp) { M({ id: 's_' + sp, grp: 'sport', sp: [sp], name: SPORTS[sp].name, ic: SPORTS[sp].ic, col: SPORTS[sp].c, th: N100, unit: 'sessioni', gl: ['sessioni di ' + SPORTS[sp].name.toLowerCase(), 'sessione di ' + SPORTS[sp].name.toLowerCase()], desc: 'Sessioni di ' + SPORTS[sp].name.toLowerCase() + ' segnate.', val: function (c) { return bySport(c, sp).length; } }); });
 // ranghi
 [['B', '#7CC4FF'], ['A', '#7CC4FF'], ['S', '#FFC94D']].forEach(function (r) { M({ id: 'r_' + r[0], grp: 'rank', name: 'Prim' + (r[0] === 'S' ? 'a ' : 'o ') + r[0], letter: r[0], col: r[1], th: [1], desc: 'Un mese chiuso in rango ' + r[0] + ' o meglio.', val: function (c) { return c.ranksHit[r[0]] ? 1 : 0; } }); });
 // segrete
@@ -1554,10 +1554,9 @@ function viewMedalDetail(o, cls) {
     '<div style="display:flex;align-items:center;gap:14px">' + medalHex(d, st.t, 88, locked) + '<div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font:700 22px/26px var(--fd);text-transform:uppercase;letter-spacing:.5px">' + esc(secretL ? 'Segreta' : d.name) + '</span><span style="font:700 12px/16px var(--fd);letter-spacing:2px;text-transform:uppercase;color:' + (locked ? 'var(--mut)' : tierCol(d, st.t)) + '">' + (locked ? 'Da scoprire' : tierName(d, st.t)) + '</span><span class="hint">' + prog + '</span></div></div>' +
     '<p class="wtext" style="text-align:left">' + sub + '</p>' + (secretL ? '' : medalLadder(d, st)) + '</div>';
 }
-var LEAGUE_TXT = ['Ci hai provato.', 'Ci torni, ed è già tanto.', 'È un’abitudine.', 'Fa parte di te.', 'Ormai sei di casa.', 'I nuovi ti chiedono consigli.', 'Iscriviti a un torneino.'];
 function viewMedalWin(o, cls) {
   var d = MBYID[o.id], t = o.tr, nx = d.th[t + 1], more = (ui.mq || []).length;
-  var line = d.th.length === 1 ? d.desc : (d.labels ? d.desc : LEAGUE_TXT[t] + ' ' + d.desc);
+  var line = d.th.length === 1 || !d.gl ? d.desc : mfmt(d, d.th[t]) + ' ' + d.gl[d.th[t] === 1 ? 1 : 0] + '.';
   return '<div class="medalwin">' +
     '<div class="mspin-wrap"><div class="mrays"></div><div class="mspin">' + medalHex(d, t, 150, false) + '</div></div>' +
     '<div class="' + cls.replace(' anim', '') + ' mwin">' + whead('Nuova medaglia' + (o.tot > 1 ? ' · ' + o.n + ' di ' + o.tot : ''), false) +
@@ -1686,7 +1685,7 @@ function viewStory(o) {
     body = mt ? '<span class="skick">Il tratto di ' + mname + '</span><div style="display:flex;align-items:center;justify-content:center;gap:12px;max-width:100%">' + svg(TRAITS[mt.top].ic, TRAITS[mt.top].c, 40) + '<span class="sbig fit1 t42" style="min-width:0;color:' + TRAITS[mt.top].c + ';text-shadow:0 0 18px ' + TRAITS[mt.top].c + '99">' + TRAITS[mt.top].name + '</span></div><p class="stext" style="font-size:18px;color:var(--soft)">' + traitPhrase(mt) + '</p><div style="align-self:center">' + rombo(mt.v, ms.rank, 250, true) + '</div>' + (mt.grow ? '<div class="sgrow"><span style="display:flex;align-items:center;gap:10px">' + svg(TRAITS[mt.grow].ic, TRAITS[mt.grow].c, 20) + 'In crescita: ' + TRAITS[mt.grow].name + '</span><span style="color:#9BE15D">↑ da ' + MONTHS[prevMonth(D.y, D.m).m].toLowerCase() + '</span></div>' : '')
       : '<span class="skick">Il tratto di ' + mname + '</span><p class="stext">Si accende con il primo allenamento.</p>';
   } else if (i === 4) {
-    body = '<span class="skick">Questo mese assomigli a</span>' + (D.pers ? D.pers.map(function (p, k) { var ct = PCAT[p[1]]; return '<div class="pcard"><span class="pn">' + (k + 1) + '</span><div style="flex:1 1 auto;display:flex;flex-direction:column;gap:3px;min-width:0"><span class="pname">' + esc(p[0]) + '</span><span class="hint" style="font-size:13px">' + esc(p[2]) + '</span></div><span class="pcat">' + svg(ct[1], '#7CC4FF', 22) + '<span>' + ct[0] + '</span></span></div>'; }).join('') : '') + '<p class="stext" style="font-size:12px;color:#5A6B88">Scelti da: ' + (D.mt ? 'mese di ' + TRAITS[D.mt.top].name : '—') + ' · rango ' + ms.rank + '</p>';
+    body = '<span class="skick">Questo mese mi sei proprio ' + gw('sembrato', 'sembrata') + '</span>' + (D.pers ? D.pers.map(function (p, k) { var ct = PCAT[p[1]]; return '<div class="pcard"><span class="pn">' + (k + 1) + '</span><div style="flex:1 1 auto;display:flex;flex-direction:column;gap:3px;min-width:0"><span class="pname">' + esc(p[0]) + '</span><span class="hint" style="font-size:13px">' + esc(p[2]) + '</span></div><span class="pcat">' + svg(ct[1], '#7CC4FF', 22) + '<span>' + ct[0] + '</span></span></div>'; }).join('') : '') + '<p class="stext" style="font-size:12px;color:#5A6B88">Scelti da: ' + (D.mt ? 'mese di ' + TRAITS[D.mt.top].name : '—') + ' · rango ' + ms.rank + '</p>';
   } else {
     body = '<span class="skick">Da condividere</span>' + shareCardHTML(D) + '<div class="acts"><button class="btn" data-a="storyClose">Chiudi</button><button class="btn main" data-a="shareRecap">Condividi</button></div>';
   }
@@ -1697,16 +1696,16 @@ function shareCardHTML(D) {
   var ms = D.ms, mt = D.mt;
   return '<div class="scard"><div class="row"><span class="skick" style="font-size:11px;letter-spacing:3px">[ Sistema ]</span><span class="hint" style="letter-spacing:2px;font-size:11px">' + MONTHS[D.m].toUpperCase() + ' ' + D.y + '</span></div>' +
     '<div style="display:flex;align-items:center;gap:8px"><div style="flex:1 1 auto;display:flex;flex-direction:column;gap:4px;min-width:0"><span style="font:700 44px/44px var(--fd);color:#FFF4D6;text-shadow:0 0 16px rgba(255,201,77,.8)">' + ms.rank + '</span><span style="font:700 16px/20px var(--fd);color:var(--rew);text-transform:uppercase;letter-spacing:1px">' + esc(ms.title) + '</span>' + (mt ? '<span style="font:600 12px/16px var(--fd);letter-spacing:2px;color:' + TRAITS[mt.top].c + '">' + TRAITS[mt.top].name.toUpperCase() + ' <span style="color:var(--mut);letter-spacing:0;font-family:var(--fb);font-weight:500">' + traitPhrase(mt) + '</span></span>' : '') + '</div>' + (mt ? rombo(mt.v, ms.rank, 104, false) : '') + '</div>' +
-    '<div style="border-top:1px solid var(--line);padding-top:10px;font:500 13px/18px var(--fb);color:var(--soft)">' + ms.days + ' giorni · ' + ms.qd + ' quest' + (D.pers ? ' · assomiglia ' + persList(D.pers, function (b) { return '<b style="color:var(--ink)">' + esc(b) + '</b>'; }) : '') + '</div></div>';
+    '<div style="border-top:1px solid var(--line);padding-top:10px;font:500 13px/18px var(--fb);color:var(--soft)">' + ms.days + ' giorni · ' + ms.qd + ' quest · ' + ms.stars + ' stelle' + (D.pers ? '<div style="margin-top:6px"><span style="font:600 11px/16px var(--fd);letter-spacing:2px;color:var(--mut)">PERSONAGGI: </span>' + persList(D.pers, function (b) { return '<b style="color:var(--ink)">' + esc(b) + '</b>'; }, true) + '</div>' : '') + '</div></div>';
 }
 /* immagine da condividere (canvas 1080x1350) */
-function persList(ps, wrap) {
+function persList(ps, wrap, bare) {
   var AP = { il: 'al', lo: 'allo', la: 'alla', i: 'ai', gli: 'agli', le: 'alle' };
   var out = ps.map(function (p, i) {
     var n = p[0], m = n.match(/^(Il|Lo|La|I|Gli|Le) (.*)$/), ap = n.match(/^L['’](.*)$/), pre = '', body = n;
-    if (m) { pre = i === 0 ? AP[m[1].toLowerCase()] + ' ' : m[1].toLowerCase() + ' '; body = m[2]; }
-    else if (ap) { pre = i === 0 ? 'all’' : 'l’'; body = ap[1]; }
-    else if (i === 0) pre = 'a ';
+    if (m) { pre = i === 0 ? (bare ? m[1] + ' ' : AP[m[1].toLowerCase()] + ' ') : m[1].toLowerCase() + ' '; body = m[2]; }
+    else if (ap) { pre = i === 0 ? (bare ? 'L’' : 'all’') : 'l’'; body = ap[1]; }
+    else if (i === 0 && !bare) pre = 'a ';
     return pre + (wrap ? wrap(body) : body);
   });
   return out.slice(0, -1).join(', ') + ' e ' + out[out.length - 1];
@@ -1729,7 +1728,7 @@ function shareImage(D, cb) {
   g.fillStyle = '#EAF3FF'; g.font = '700 120px ' + FD; g.fillText(String(ms.days), 100, 960); g.fillStyle = '#8FA3C2'; g.font = '600 30px ' + FD; g.fillText('GIORNI', 100, 1005);
   g.fillStyle = '#7CC4FF'; g.font = '700 120px ' + FD; g.fillText(String(ms.qd), 420, 960); g.fillStyle = '#8FA3C2'; g.font = '600 30px ' + FD; g.fillText('QUEST', 420, 1005);
   g.fillStyle = '#FFC94D'; g.font = '700 120px ' + FD; g.fillText(String(ms.stars), 700, 960); g.fillStyle = '#8FA3C2'; g.font = '600 30px ' + FD; g.fillText('STELLE', 700, 1005);
-  if (D.pers) { g.fillStyle = '#C6D6EA'; g.font = '500 36px ' + FB; wrapText(g, 'Assomiglia ' + persList(D.pers) + '.', 100, 1120, W - 200, 48); }
+  if (D.pers) { g.fillStyle = '#C6D6EA'; g.font = '500 36px ' + FB; g.fillStyle = '#8FA3C2'; g.font = '600 26px ' + FD; g.fillText('PERSONAGGI', 100, 1085); g.fillStyle = '#C6D6EA'; g.font = '500 36px ' + FB; wrapText(g, persList(D.pers, null, true), 100, 1135, W - 200, 48); }
   g.fillStyle = '#5A6B88'; g.font = '600 26px ' + FD; g.fillText('SISTEMA · IL GIOCO DELLA COSTANZA', 100, H - 100);
   cv.toBlob(function (b) { cb(b); }, 'image/png');
 }
@@ -1892,7 +1891,41 @@ function render() {
 }
 var lastTapX = 999;
 document.addEventListener('pointerdown', function (e) { lastTapX = e.clientX; }, true);
+/* recap: trascina verso il basso per chiudere, stile storie */
+var sdrag = null, storySwallow = false;
+document.addEventListener('pointerdown', function (e) {
+  storySwallow = false;
+  var st = e.target.closest && e.target.closest('.story');
+  sdrag = st && !e.target.closest('.x') ? { x: e.clientX, y: e.clientY, el: st, dy: 0, on: false } : null;
+}, true);
+document.addEventListener('pointermove', function (e) {
+  if (!sdrag) return;
+  var dy = e.clientY - sdrag.y, dx = e.clientX - sdrag.x;
+  if (!sdrag.on && dy > 10 && dy > Math.abs(dx)) sdrag.on = true;
+  if (!sdrag.on) return;
+  sdrag.dy = Math.max(0, dy);
+  var el = sdrag.el; el.style.transition = 'none';
+  el.style.transform = 'translateY(' + sdrag.dy + 'px) scale(' + Math.max(0.88, 1 - sdrag.dy / 1800) + ')';
+  el.style.borderRadius = Math.min(22, sdrag.dy / 6) + 'px'; el.style.overflow = 'hidden';
+}, true);
+function storyRelease() {
+  if (!sdrag) return;
+  var d = sdrag; sdrag = null; if (!d.on) return;
+  storySwallow = true;
+  var el = d.el;
+  if (d.dy > 110) {
+    el.style.transition = 'transform .2s ease-in, opacity .2s ease-in';
+    el.style.transform = 'translateY(' + window.innerHeight + 'px) scale(.85)';
+    setTimeout(function () { if (ui.ov && ui.ov.t === 'story') A.storyClose(); }, 190);
+  } else {
+    el.style.transition = 'transform .22s ease-out, border-radius .22s';
+    el.style.transform = ''; el.style.borderRadius = '';
+  }
+}
+document.addEventListener('pointerup', storyRelease, true);
+document.addEventListener('pointercancel', storyRelease, true);
 root.addEventListener('click', function (e) {
+  if (storySwallow) { storySwallow = false; return; }
   if (swallowClick) { swallowClick = false; if (tileOf(e)) return; }
   var b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
   if (ui.arrange && b.getAttribute('data-a') === 'sport') return;
