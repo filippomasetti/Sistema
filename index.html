@@ -1954,7 +1954,7 @@ function viewGloveWin(o) {
   var f = friend(c.from);
   var win = '<div class="win gold mwin" style="gap:12px">' + '<div class="whead"><span class="mark" style="border-color:' + PGOLD + ';color:' + PGOLD + '">!</span><span class="wlabel" style="color:' + PGOLD + '">' + (c.counter ? 'Guanto rimandato' : 'Guanto di sfida') + '</span><span class="rule"></span><button class="x" data-a="close" aria-label="Chiudi">' + svg(IC.close, null, 20) + '</button></div>' +
     '<div style="display:flex;align-items:center;gap:12px">' + rkHex(f.r, 36) + '<span style="display:flex;flex-direction:column;gap:2px"><span style="font:700 17px/22px var(--fd);letter-spacing:1px;text-transform:uppercase">' + f.n + '</span><span class="hint">' + (c.counter ? 'ti propone una modifica' : 'ti lancia il guanto') + ' · scade a mezzanotte</span></span></div>' +
-    '<div style="border-radius:12px;border:1px solid ' + PGOLD + '8C;background:#14120A;padding:10px 14px;display:flex;align-items:center;gap:12px">' + sportIc(c.sp, 28, true) + '<span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="lbl" style="color:#D9B04A;font-size:11px">' + SPORTS[c.sp].name + '</span><span style="font:700 20px/24px var(--fd);letter-spacing:1px;text-transform:uppercase;color:var(--rew)">' + esc(c.q) + '</span></span></div>' +
+    '<div style="border-radius:12px;border:1px solid ' + PGOLD + '8C;background:#14120A;padding:10px 14px;display:flex;align-items:center;gap:12px">' + sportIc(c.sp, 28, true) + '<span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="lbl" style="color:#D9B04A;font-size:11px">' + SPORTS[c.sp].name + (S.profile.sports.indexOf(c.sp) < 0 ? ' · sport bonus' : '') + '</span><span style="font:700 20px/24px var(--fd);letter-spacing:1px;text-transform:uppercase;color:var(--rew)">' + esc(c.q) + '</span></span></div>' +
     '<div class="row" style="padding:0 2px">' + (c.shared ? pPill('Quest condivisa', '#7CC4FF') : '<span></span>') + '<span class="hint">+' + GXP + ' XP · ½ punto</span></div>' +
     (c.msg ? '<div style="border-radius:12px 12px 12px 4px;background:#13203A;padding:8px 12px;font:500 14px/20px var(--fb);color:var(--soft);align-self:flex-start;max-width:92%">“' + esc(c.msg) + '”</div>' : '') +
     '<textarea class="inp" data-f="greply" style="height:48px" placeholder="Rispondi a ' + f.n + ' (facoltativo)">' + esc(o.reply || '') + '</textarea>' +
@@ -1967,11 +1967,12 @@ function viewGloveWin(o) {
 function viewLaunch(o, cls) {
   var f = o.fid ? friend(o.fid) : null, g = o.gid ? P().gangs.filter(function (x) { return x.id === o.gid; })[0] : null;
   var mine = S.profile.sports.filter(function (s) { return s !== 'bon'; });
-  var sps = f ? f.sports : mine; sps = sps.slice(0, 5);
+  var base = (f ? f.sports : mine).slice(0, 5), sps = o.all ? ORDER.filter(function (s) { return s !== 'bon'; }) : base.slice();
+  if (!o.all && sps.indexOf(o.sp) < 0) sps.push(o.sp);
   var pre = PRESETS[o.sp] || [];
   return '<div class="' + cls + '">' + whead(f ? 'Guanto a ' + f.n : 'Guanto alla Gang', true) + '<div class="wbody" data-keep>' +
-    '<div class="fld"><span class="lbl" style="font-size:11px">Sport</span><div class="chips">' + sps.map(function (s) { return '<button class="chip' + (o.sp === s ? ' on' : '') + '" data-a="lSp" data-v="' + s + '" style="display:flex;align-items:center;gap:6px">' + sportIc(s, 16, true) + SPORTS[s].name + '</button>'; }).join('') + '</div><span class="hint" style="font-size:11px">' + (f ? 'Gli sport di ' + f.n : g ? esc(g.name) : '') + '</span></div>' +
-    '<div class="fld"><span class="lbl" style="font-size:11px">La quest</span><input class="inp" data-f="lq" maxlength="40" value="' + esc(o.q) + '" placeholder="Es. 3 verdi chiusi"><div class="chips">' + pre.map(function (t) { return '<button class="chip" data-a="lPre" data-v="' + esc(t) + '" style="height:30px;font-size:12px">' + esc(t) + '</button>'; }).join('') + '</div></div>' +
+    '<div class="fld"><span class="lbl" style="font-size:11px">Sport</span><div class="chips">' + sps.map(function (s) { return '<button class="chip' + (o.sp === s ? ' on' : '') + '" data-a="lSp" data-v="' + s + '" style="display:flex;align-items:center;gap:6px">' + sportIc(s, 16, true) + SPORTS[s].name + '</button>'; }).join('') + (o.all ? '' : '<button class="chip" data-a="lAll" style="border-style:dashed;display:flex;align-items:center;gap:6px">' + svg(PI.plus, null, 14) + 'Altro</button>') + '</div><span class="hint" style="font-size:11px">' + (o.all ? 'Tutti gli sport: se non è tra i suoi, gli arriva come sport bonus' : f ? 'Gli sport di ' + f.n + (base.indexOf(o.sp) < 0 ? ' · ' + SPORTS[o.sp].name + ' gli arriva come sport bonus' : '') : g ? esc(g.name) : '') + '</span></div>' +
+    '<div class="fld"><span class="lbl" style="font-size:11px">La sfida</span><input class="inp" data-f="lq" maxlength="60" value="' + esc(o.q) + '" placeholder="Scrivi qui la sfida">' + (pre.length ? '<span style="font:600 10px/13px var(--fd);letter-spacing:2px;text-transform:uppercase;color:#5A6B88">Predefiniti</span><div class="chips" style="gap:5px">' + pre.map(function (t) { return '<button class="chip" data-a="lPre" data-v="' + esc(t) + '" style="height:26px;padding:0 10px;font-size:11.5px;color:var(--mut);border-color:var(--line)">' + esc(t) + '</button>'; }).join('') + '</div>' : '') + '</div>' +
     '<button class="toggle" data-a="lSh" style="min-height:44px"><span style="display:flex;flex-direction:column;gap:2px"><span style="font:600 15px/20px var(--fb)">La faccio anch’io</span><span class="hint" style="font-size:11.5px">Diventa una quest condivisa</span></span><span class="sw' + (o.sh ? ' on' : '') + '"></span></button>' +
     '<div class="fld"><span class="lbl" style="font-size:11px">Messaggio</span><textarea class="inp" data-f="lmsg" maxlength="120" style="height:56px" placeholder="Facoltativo">' + esc(o.msg) + '</textarea></div>' +
     '<span class="hint" style="padding:0 2px">Premio per chi la completa: +' + GXP + ' XP e mezzo punto quest. Vale per S+.</span></div>' +
@@ -1986,11 +1987,11 @@ function viewGCounter(o, cls) {
     '<div class="acts"><button class="btn" data-a="gOpen" data-v="' + c.id + '">Annulla</button><button class="btn main" data-a="cGo"' + (o.q.trim() ? '' : ' disabled') + '>Rimanda</button></div></div>';
 }
 function viewGDone(o, cls) {
-  var c = chById(o.id), f = friend(c.from === 'me' ? c.to : c.from), has = sessions(todayKey()).some(function (s) { return s.sport === c.sp; });
+  var c = chById(o.id), f = friend(c.from === 'me' ? c.to : c.from), extra = S.profile.sports.indexOf(c.sp) < 0, has = sessions(todayKey()).some(function (s) { return s.sport === c.sp || (extra && s.sport === 'bon'); });
   return '<div class="' + cls + ' gold">' + '<div class="whead"><span class="mark" style="border-color:' + PGOLD + ';color:' + PGOLD + '">!</span><span class="wlabel" style="color:' + PGOLD + '">Quest bonus</span><span class="rule"></span><button class="x" data-a="close" aria-label="Chiudi">' + svg(IC.close, null, 20) + '</button></div>' +
     '<p class="wtitle">' + esc(chLabel(c)) + '</p><p class="wtext">' + (c.from === 'me' ? 'La quest condivisa con ' + f.n + '.' : 'Il guanto di ' + f.n + (c.shared ? ', quest condivisa.' : '.')) + '</p>' +
     (has ? '<p class="wtext" style="color:var(--ink)">Ce l’hai fatta?</p><div class="acts"><button class="btn" data-a="close">Non ancora</button><button class="btn main" data-a="gWin" data-v="' + c.id + '" style="background:' + PGOLD + ';border-color:' + PGOLD + '">Fatta</button></div>' :
-      '<p class="wtext">Prima segna la sessione di ' + SPORTS[c.sp].name.toLowerCase() + ' di oggi dal calendario, poi torna qui.</p><div class="acts one"><button class="btn main" data-a="close">Ok</button></div>') + '</div>';
+      '<p class="wtext">Prima segna la sessione di oggi dal calendario' + (extra ? ': ' + SPORTS[c.sp].name.toLowerCase() + ' non è tra i tuoi sport, segnala come Bonus' : ' (' + SPORTS[c.sp].name.toLowerCase() + ')') + ', poi torna qui.</p><div class="acts one"><button class="btn main" data-a="close">Ok</button></div>') + '</div>';
 }
 function viewGWin(o, cls) {
   var c = chById(o.id), f = friend(c.from === 'me' ? c.to : c.from), n = new Date(), ms = monthStats(n.getFullYear(), n.getMonth());
@@ -2020,9 +2021,10 @@ var PA = {
   cGo: function () { var o = ui.ov, c = chById(o.id); c.st = 'countered'; c.sp2 = o.sp; c.q2 = o.q.trim(); c.msg2 = o.msg; c.tc = Date.now(); save(); ui.ov = null; ding('ok'); toast('Modifica rimandata a ' + friend(c.from).n + '.'); },
   gHome: function (id) { ui.ov = { t: 'gdone', id: id }; ding('open'); render(); },
   gWin: function (id) { var c = chById(id); c.me = true; if (c.to === 'me' && !c.shared) c.st = 'won'; if (c.to === 'me' && c.shared && c.done) c.st = 'won'; save(); ui.ov = { t: 'gwin', id: id }; medalSound(); render(); },
-  launch: function (fid) { var f = friend(fid), sp = f.sports.filter(function (s) { return S.profile.sports.indexOf(s) >= 0; })[0] || f.sports[0]; ui.ov = { t: 'launch', fid: fid, sp: sp, q: (PRESETS[sp] || [''])[0], sh: true, msg: '' }; ding('open'); render(); },
-  launchGang: function (gid) { var sp = S.profile.sports.filter(function (s) { return s !== 'bon'; })[0] || 'run'; ui.ov = { t: 'launch', gid: gid, sp: sp, q: (PRESETS[sp] || [''])[0], sh: true, msg: '' }; ding('open'); render(); },
-  lSp: function (s) { ui.ov.sp = s; ui.ov.q = (PRESETS[s] || [''])[0]; render(); },
+  launch: function (fid) { var f = friend(fid), sp = f.sports.filter(function (s) { return S.profile.sports.indexOf(s) >= 0; })[0] || f.sports[0]; ui.ov = { t: 'launch', fid: fid, sp: sp, q: '', sh: true, msg: '' }; ding('open'); render(); },
+  launchGang: function (gid) { var sp = S.profile.sports.filter(function (s) { return s !== 'bon'; })[0] || 'run'; ui.ov = { t: 'launch', gid: gid, sp: sp, q: '', sh: true, msg: '' }; ding('open'); render(); },
+  lSp: function (s) { ui.ov.sp = s; render(); },
+  lAll: function () { ui.ov.all = true; ding('tap'); render(); },
   lPre: function (t) { ui.ov.q = t; render(); },
   lSh: function () { ui.ov.sh = !ui.ov.sh; render(); },
   lGo: function () {
