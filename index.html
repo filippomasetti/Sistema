@@ -72,7 +72,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .rlets{position:relative;height:14px;margin-top:-4px}.rlets .rlet{position:absolute;transform:translateX(-50%);font:700 10px/14px var(--fd);color:var(--mut)}.rlets .rlet.on{color:var(--ink)}.rlets .rlet:last-child{transform:translateX(-100%)}
 .tcard{padding:10px 12px 10px 16px;display:flex;align-items:center;gap:12px}
 .bachbtn{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 14px;cursor:pointer;text-align:left;border-color:#7A6430!important;background:#14120A!important;box-shadow:0 0 14px rgba(255,201,77,.12)}
-.qinl{animation:qinl .24s cubic-bezier(.2,.8,.2,1) both}.qinr{animation:qinr .24s cubic-bezier(.2,.8,.2,1) both}@keyframes qinl{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}@keyframes qinr{from{transform:translateX(-40px);opacity:0}to{transform:none;opacity:1}}.mlink{background:none;border:0;padding:2px 0 0;font:600 12px/16px var(--fd);letter-spacing:1px;color:#D9B04A;cursor:pointer;text-align:center}.mcount{white-space:nowrap;flex:0 0 auto;font:700 14px/18px var(--fd);color:var(--rew);border:1px solid #7A6430;border-radius:6px;padding:2px 10px}
+.qitem>*{flex:1 1 auto}.qinl{animation:qinl .24s cubic-bezier(.2,.8,.2,1) both}.qinr{animation:qinr .24s cubic-bezier(.2,.8,.2,1) both}@keyframes qinl{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}@keyframes qinr{from{transform:translateX(-40px);opacity:0}to{transform:none;opacity:1}}.mlink{background:none;border:0;padding:2px 0 0;font:600 12px/16px var(--fd);letter-spacing:1px;color:#D9B04A;cursor:pointer;text-align:center}.mcount{white-space:nowrap;flex:0 0 auto;font:700 14px/18px var(--fd);color:var(--rew);border:1px solid #7A6430;border-radius:6px;padding:2px 10px}
 .msec{display:flex;flex-direction:column;gap:10px}
 .mgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px 4px}
 .mcell{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--ink);cursor:pointer;padding:0;min-width:0}
@@ -457,7 +457,7 @@ function monthStats(y, m) {
     });
     if (dq) { qDays++; qSum += best; }
   });
-  var gw = S.party ? gloveWonCount(ymKey(y, m)) : 0; qSum += gw * GPTS;
+  var cp = S.party ? chPoints(ymKey(y, m)) : { recv: 0, both: 0, gang: 0 }, gw = cp.recv; qSum += (cp.recv + cp.both + cp.gang) * GPTS;
   var pts = monthPts(keys.length, qSum), sportPts = {};
   Object.keys(counts).forEach(function (sp) { sportPts[sp] = Math.min(counts[sp], SPORT_CAP) * 2 + (sportQ[sp] || 0); });
   var rk = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a] || ORDER.indexOf(a) - ORDER.indexOf(b); });
@@ -1052,7 +1052,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">Punti, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + CLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 2.2</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 2.3</span>';
   return h;
 }
 
@@ -1129,7 +1129,8 @@ function viewOverlay() {
       '<div class="fld"><span class="lbl" style="font-size:11px">Hard Study/Work</span><p>Un segno sul calendario per le giornate di testa. Non è sport e non dà punti: è solo un modo per ricordarle.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Tratto del mese</span><p>Ogni sport allena uno o più tratti: <b>Forza</b>, <b>Agilità</b>, <b>Resistenza</b>, <b>Equilibrio</b>. Il tratto del mese è quello che hai allenato di più; il rombo ne mostra la forma, e la sua grandezza segue il rango.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Bacheca</span><p>Medaglie che non si azzerano mai e salgono di lega: Legno, Bronzo, Argento, Oro, Platino, Diamante, Challenger. Molte sono <b>segrete</b>: le scopri facendo.</p></div>' +
-      '<div class="fld"><span class="lbl" style="font-size:11px">Party e guanto di sfida</span><p>Un amico ti lancia il <b>guanto</b>: uno sport e una quest precisa. Puoi accettare, dire non oggi o modificarla e rimandarla. Scade a mezzanotte. Se lo completi vale <b>+15 XP</b> e <b>mezzo punto</b> per il rango del mese. Se chi lancia sceglie “la faccio anch’io”, diventa una <b>quest condivisa</b>.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Party e guanto di sfida</span><p>Un amico ti lancia il <b>guanto</b>: uno sport e una quest precisa. Puoi accettare, dire non oggi o modificarla e rimandarla. Scade a mezzanotte. Se lo completi vale <b>+15 XP</b> e <b>mezzo punto</b> per il rango del mese. Se chi lancia sceglie “la faccio anch’io”, diventa una <b>quest condivisa</b>: se la completate tutti e due, mezzo punto anche a chi l’ha lanciata.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Gang</span><p>Un <b>obiettivo Gang</b> al giorno, uguale per tutti. È superato se lo completano almeno 2 membri su 3: mezzo punto a tutti, fino a 3 al mese. Il <b>rango della Gang</b> sale solo con gli obiettivi superati: D a 1, C a 2, B a 4, A a 6, S a 8.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Rango S+</span><p>Il gradino sopra S: tutti i requisiti di S più almeno un guanto di un amico completato nel mese.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Cinque</span><p>Un applauso a un amico, uno a settimana per amico. Non dà punti: fa solo piacere.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">XP e livello</span><p>Ogni sessione dà 10 XP, una quest riuscita da 5 a 20 in più, una stella 5, un guanto completato 15. Il livello cresce e non si perde mai.</p></div>' +
@@ -1784,7 +1785,7 @@ var PI = {
   edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
   medal: '<path d="M12 3.5l7 4v8l-7 4-7-4v-8z"/>'
 };
-var PSCR = ['party', 'friend', 'letters', 'psettings', 'gang'];
+var PSCR = ['party', 'friend', 'letters', 'psettings', 'gang', 'sfide'];
 var PGOLD = '#FFC94D', GXP = 15, GPTS = 0.5;
 var PRESETS = {
   gym: ['Panca 60 kg × 5', '3 serie di trazioni', 'Squat 80 kg × 5'], cal: ['10 trazioni di fila', '20 dip', 'Plank 2 minuti'], cfx: ['Un WOD sotto i 15 minuti', '50 burpees'],
@@ -1854,6 +1855,7 @@ function partyTick() {
     if (c.to === 'me' && c.shared && c.st === 'accepted' && !c.done && now - (c.ta || c.t) > 60000) { c.done = true; dirty = true; }
   });
   if (dirty) save();
+  gangTick();
 }
 function gloveQueue() {
   if (S && !S.party && PSCR.indexOf(ui.screen) >= 0) partyInit();
@@ -1897,10 +1899,12 @@ function viewParty() {
   if (!p.demo) return h + '<div class="card" style="padding:16px;display:flex;flex-direction:column;gap:8px"><span class="lbl kick">Party in arrivo</span><p style="margin:0;font:500 14px/21px var(--fb);color:var(--soft)">Gli amici veri arrivano con il cloud. Intanto puoi riaccendere la modalità prova dalle impostazioni.</p><button class="btn" data-a="go" data-v="psettings">Impostazioni</button></div>';
   var t = todayKey();
   myCh().filter(function (c) { return c.day === t && (c.to === 'me' && ['pending', 'accepted', 'countered'].indexOf(c.st) >= 0 && !c.me); }).forEach(function (c) { h += gloveCard(c, c.st === 'pending' ? 'gOpen' : 'gHome'); });
+  var ym0 = ymKey(new Date().getFullYear(), new Date().getMonth()), mch = myCh().filter(function (c) { return c.day.indexOf(ym0) === 0; }), mwon = mch.filter(function (c) { return c.me || (c.gang && c.st === 'passed'); }).length, mlive = mch.filter(function (c) { return c.day === t && !c.me && (c.gang ? c.st === 'open' : ['pending', 'accepted', 'countered'].indexOf(c.st) >= 0); }).length;
+  h += '<button class="card" data-a="go" data-v="sfide" style="padding:10px 14px;display:flex;align-items:center;gap:12px;text-align:left;color:var(--ink);width:100%">' + svg(PI.glove, 'var(--glow)', 22) + '<span style="flex:1 1 auto;display:flex;flex-direction:column;gap:2px"><span class="lbl" style="font-size:11px">Sfide di ' + MONTHS[new Date().getMonth()].toLowerCase() + '</span><span class="hint" style="font-size:11.5px">' + mlive + ' in corso · ' + mwon + ' vinte</span></span>' + svg(IC.right, 'var(--mut)', 18) + '</button>';
   h += pSec('Amici', DEMO.length + ' · in ordine alfabetico') + '<div style="display:flex;flex-direction:column;gap:8px">' + DEMO.slice().sort(function (a, b) { return a.n.localeCompare(b.n); }).map(function (f) { return friendRow(f); }).join('') + '</div>';
   h += pSec('Gang', '') + p.gangs.map(function (g) {
     var on = g.mem.filter(function (id) { return weekTrained(friend(id)); }).length + (weekCount(t) ? 1 : 0);
-    return '<button class="card" data-a="gangOpen" data-v="' + g.id + '" style="display:flex;align-items:center;gap:12px;padding:10px 12px;color:var(--ink);text-align:left;border-color:' + g.col + '66">' + gangBadge(g, 36) + '<span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font:700 15px/20px var(--fd);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(g.name) + '</span><span class="hint">' + (g.mem.length + 1) + ' membri · ' + on + ' allenati questa settimana</span></span>' + svg(IC.right, 'var(--mut)', 20) + '</button>';
+    return '<button class="card" data-a="gangOpen" data-v="' + g.id + '" style="display:flex;align-items:center;gap:12px;padding:10px 12px;color:var(--ink);text-align:left;border-color:' + g.col + '66">' + gangBadge(g, 36) + '<span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font:700 15px/20px var(--fd);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(g.name) + '</span><span class="hint">' + (g.mem.length + 1) + ' membri · ' + on + ' allenati questa settimana</span></span>' + rkHex(gangRank(g.id, ymKey(new Date().getFullYear(), new Date().getMonth())), 30) + '</button>';
   }).join('') + '<button class="hwbtn" style="min-height:44px" data-a="gangNew">' + svg(PI.plus, null, 18) + 'Crea una Gang</button>';
   h += '<div class="card" style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px"><span style="display:flex;flex-direction:column;gap:2px"><span class="lbl" style="font-size:11px">Il tuo codice amico</span><span style="font:700 17px/22px var(--fd);letter-spacing:2px">' + p.code + '</span></span><button class="btn sm" data-a="pInvite">Invita</button></div>';
   h += '<span class="hint" style="text-align:center;padding:0 10px 6px;font-size:11px">Modalità prova: amici finti che rispondono da soli, tutto resta sul telefono.</span>';
@@ -1911,9 +1915,9 @@ function gangBadge(g, s) { var ini = g.name.split(/\s+/).map(function (w) { retu
 function viewLetters() {
   var p = P(), h = pBack('Party', 'Letterine', 'party');
   var l = p.letters.slice(0, 30), nw = l.filter(function (x) { return !x.rd; }).length;
-  var col = { acc: '#9BE15D', won: PGOLD, none: '#8FA3C2', dec: '#8FA3C2', five: '#7CC4FF', medal: PGOLD };
+  var col = { acc: '#9BE15D', won: PGOLD, none: '#8FA3C2', dec: '#8FA3C2', five: '#7CC4FF', medal: PGOLD, gang: '#B98CFF' };
   h += pSec(nw ? 'Nuove' : 'Letterine', nw ? String(nw) : '') + '<div style="display:flex;flex-direction:column;gap:8px">' + (l.length ? l.map(function (x) {
-    var c = col[x.k] || '#7CC4FF', ic = x.k === 'five' ? PI.five : x.k === 'medal' ? PI.medal : PI.letter;
+    var c = col[x.k] || '#7CC4FF', ic = x.k === 'five' ? PI.five : x.k === 'medal' ? PI.medal : x.k === 'gang' ? PI.party : PI.letter;
     var when = diffDays(todayKey(), keyOf(new Date(x.t))), w = when === 0 ? 'oggi' : when === 1 ? 'ieri' : niceDate(keyOf(new Date(x.t)));
     return '<div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 12px;' + (x.rd ? '' : 'border-color:' + c + '66') + '"><span style="width:38px;height:38px;border-radius:10px;border:1px solid ' + c + '88;display:flex;align-items:center;justify-content:center;flex:0 0 auto">' + svg(ic, c, 20) + '</span><span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font:600 14px/19px var(--fb)">' + esc(x.tx) + '</span><span class="hint" style="font-size:11.5px">' + esc(x.sub || '') + '</span></span><span class="hint" style="font-size:11px;white-space:nowrap">' + w + '</span></div>';
   }).join('') : '<span class="hint">Nessuna letterina, per ora.</span>') + '</div>';
@@ -1929,23 +1933,6 @@ function viewPSettings() {
   h += '<div class="card" style="padding:4px 12px">' + pSec('A scelta', '') + pToggle('q', 'Quest del giorno', 'E se l’hai completata', st.q) + pToggle('det', 'Dettagli delle sessioni', 'Pesi, km, tempi', st.det) + pToggle('rec', 'Card del recap', 'La condividi tu quando vuoi', st.rec) + '</div>';
   h += '<div class="card" style="padding:4px 12px">' + pSec('Notifiche', 'arrivano con il cloud') + pToggle('nG', 'Guanti ricevuti', 'Solo se non ne hai già uno attivo', st.nG) + pToggle('nW', 'Sfide vinte dagli amici', '', st.nW) + pToggle('nF', 'Cinque ricevuti', '', st.nF) + '</div>';
   h += '<div class="card" style="padding:4px 12px">' + pSec('Modalità prova', '') + pToggle('demo', 'Amici finti', 'Per provare il Party prima del cloud', p.demo) + '<button class="btn sm" data-a="pReset" style="width:100%;margin:6px 0 10px">Ricomincia la prova</button></div>';
-  return h;
-}
-function viewGang() {
-  var g = P().gangs.filter(function (x) { return x.id === ui.gid; })[0]; if (!g) { ui.screen = 'party'; return viewParty(); }
-  var h = pBack('Party', g.name, 'party'), mem = g.mem.map(friend).filter(Boolean);
-  h += '<div class="card" style="border-color:' + g.col + '8C;box-shadow:0 0 18px ' + g.col + '29;padding:12px 14px;display:flex;align-items:center;gap:12px">' + gangBadge(g, 56) + '<span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="lbl" style="font-size:11px;color:' + g.col + '">Gang · ' + (mem.length + 1) + ' membri</span><span style="font:700 20px/24px var(--fd);letter-spacing:1px;text-transform:uppercase">' + esc(g.name) + '</span><span class="hint">Creata da ' + esc(S.profile.name) + ' · codice ' + g.code + '</span></span></div>';
-  var v = { F: 0, A: 0, R: 0, E: 0 }, mine = traitVals(monthKeys(new Date().getFullYear(), new Date().getMonth()));
-  mem.forEach(function (f) { TKEYS.forEach(function (k) { v[k] += f.v[k]; }); }); TKEYS.forEach(function (k) { v[k] += mine[k] || 0; });
-  var r = TKEYS.slice().sort(function (a, b) { return v[b] - v[a]; }), tc = TRAITS[r[0]].c;
-  h += '<div class="card tcard" style="border-color:' + tc + '8C;box-shadow:0 0 18px ' + tc + '29"><div style="display:flex;flex-direction:column;gap:3px;flex:1 1 auto"><span class="lbl" style="font-size:11px;color:' + tc + '">Tratto della Gang</span><span style="font:700 22px/28px var(--fd);letter-spacing:1.5px;text-transform:uppercase;color:' + tc + '">' + TRAITS[r[0]].name + '</span><span style="font:500 13px/18px var(--fb);color:var(--soft)">Con un tocco di <b style="color:' + TRAITS[r[1]].c + '">' + TRAITS[r[1]].name + '</b></span></div>' + rombo(v, 'B', 74, false) + '</div>';
-  var me = { id: 'me', n: S.profile.name, r: monthStats(new Date().getFullYear(), new Date().getMonth()).rank };
-  h += pSec('Membri', 'in ordine alfabetico') + '<div style="display:flex;flex-direction:column;gap:8px">' + mem.concat([me]).sort(function (a, b) { return a.n.localeCompare(b.n); }).map(function (f) {
-    if (f.id === 'me') { var ms = monthStats(new Date().getFullYear(), new Date().getMonth()); return '<div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 12px">' + rkHex(ms.rank, 36, ms.plus) + '<span style="display:flex;flex-direction:column;gap:2px"><span style="display:flex;align-items:center;gap:8px;font:700 16px/20px var(--fd);letter-spacing:1px;text-transform:uppercase">' + esc(f.n) + (sessions(todayKey()).length ? pDot(SPORTS[sessions(todayKey())[0].sport].c) : '') + '</span><span style="font:600 12px/16px var(--fd);color:var(--rew);text-transform:uppercase">' + esc(ms.title || '') + '</span></span></div>'; }
-    return friendRow(f, ' ');
-  }).join('') + '</div>';
-  h += '<button class="btn main" data-a="launchGang" data-v="' + g.id + '" style="display:flex;align-items:center;justify-content:center;gap:8px">' + svg(PI.glove, null, 20) + 'Guanto alla Gang</button>';
-  h += '<span class="hint" style="text-align:center;font-size:11px">Obiettivo di gruppo: ci stiamo ragionando.</span>';
   return h;
 }
 /* finestre */
@@ -1986,23 +1973,6 @@ function viewGCounter(o, cls) {
     '<textarea class="inp" data-f="cmsg" maxlength="120" style="height:52px" placeholder="Un messaggio (facoltativo)">' + esc(o.msg) + '</textarea>' +
     '<div class="acts"><button class="btn" data-a="gOpen" data-v="' + c.id + '">Annulla</button><button class="btn main" data-a="cGo"' + (o.q.trim() ? '' : ' disabled') + '>Rimanda</button></div></div>';
 }
-function viewGDone(o, cls) {
-  var c = chById(o.id), f = friend(c.from === 'me' ? c.to : c.from), extra = S.profile.sports.indexOf(c.sp) < 0, has = sessions(todayKey()).some(function (s) { return s.sport === c.sp || (extra && s.sport === 'bon'); });
-  return '<div class="' + cls + ' gold">' + '<div class="whead"><span class="mark" style="border-color:' + PGOLD + ';color:' + PGOLD + '">!</span><span class="wlabel" style="color:' + PGOLD + '">Quest bonus</span><span class="rule"></span><button class="x" data-a="close" aria-label="Chiudi">' + svg(IC.close, null, 20) + '</button></div>' +
-    '<p class="wtitle">' + esc(chLabel(c)) + '</p><p class="wtext">' + (c.from === 'me' ? 'La quest condivisa con ' + f.n + '.' : 'Il guanto di ' + f.n + (c.shared ? ', quest condivisa.' : '.')) + '</p>' +
-    (has ? '<p class="wtext" style="color:var(--ink)">Ce l’hai fatta?</p><div class="acts"><button class="btn" data-a="close">Non ancora</button><button class="btn main" data-a="gWin" data-v="' + c.id + '" style="background:' + PGOLD + ';border-color:' + PGOLD + '">Fatta</button></div>' :
-      '<p class="wtext">Prima segna la sessione di oggi dal calendario' + (extra ? ': ' + SPORTS[c.sp].name.toLowerCase() + ' non è tra i tuoi sport, segnala come Bonus' : ' (' + SPORTS[c.sp].name.toLowerCase() + ')') + ', poi torna qui.</p><div class="acts one"><button class="btn main" data-a="close">Ok</button></div>') + '</div>';
-}
-function viewGWin(o, cls) {
-  var c = chById(o.id), f = friend(c.from === 'me' ? c.to : c.from), n = new Date(), ms = monthStats(n.getFullYear(), n.getMonth());
-  var counts = c.to === 'me';
-  return '<div class="' + cls + ' gold">' + '<div class="whead"><span class="mark" style="border-color:' + PGOLD + ';color:' + PGOLD + '">!</span><span class="wlabel" style="color:' + PGOLD + '">Guanto vinto</span><span class="rule"></span></div>' +
-    '<div style="display:flex;justify-content:center">' + svg(PI.glove, PGOLD, 64) + '</div><span class="badge" style="text-align:center">Raccolto e vinto</span>' +
-    '<p class="wtext">' + esc(chLabel(c)) + '. ' + (counts ? f.n + ' lo sa già.' : 'Quest condivisa con ' + f.n + '.') + '</p>' +
-    '<div class="g2"><div class="fld" style="align-items:center"><span style="font:700 22px/26px var(--fd);color:var(--glow)">+' + GXP + ' XP</span><span class="hint">extra</span></div><div class="fld" style="align-items:center"><span style="font:700 22px/26px var(--fd);color:var(--rew)">' + (counts ? '+½' : '—') + '</span><span class="hint">' + (counts ? 'punto quest' : 'solo XP') + '</span></div></div>' +
-    (counts ? '<div class="row" style="padding:0 2px"><span class="hint">' + (ms.plus ? 'Sei in S+ questo mese.' : ms.rank === 'S' ? 'Con questo guanto sei in S+.' : 'Questo mese S+ è alla tua portata, se arrivi in S.') + '</span>' + rkHex('S', 30, true) + '</div>' : '') +
-    '<div class="acts one"><button class="btn main" data-a="close">Continua</button></div></div>';
-}
 function viewGangNew(o, cls) {
   return '<div class="' + cls + '">' + whead('Crea una Gang', true) + '<div class="wbody" data-keep>' +
     '<div class="fld"><span class="lbl" style="font-size:11px">Nome</span><input class="inp" data-f="gname" maxlength="24" value="' + esc(o.name) + '" placeholder="Es. Lunedì Padel"></div>' +
@@ -2028,7 +1998,9 @@ var PA = {
   lPre: function (t) { ui.ov.q = t; render(); },
   lSh: function () { ui.ov.sh = !ui.ov.sh; render(); },
   lGo: function () {
-    var o = ui.ov, t = todayKey(), now = Date.now(), to = o.fid ? [o.fid] : P().gangs.filter(function (g) { return g.id === o.gid; })[0].mem, sent = 0;
+    var o = ui.ov, t = todayKey(), now = Date.now();
+    if (o.gid) { if (!gangToday(o.gid)) P().ch.unshift({ id: uid(), gang: o.gid, from: 'me', to: 'gang', sp: o.sp, q: o.q.trim(), msg: o.msg, st: 'open', day: t, t: now, mem: {} }); save(); ui.ov = null; ding('ok'); toast('Obiettivo lanciato alla Gang ' + gangById(o.gid).name + '.'); return; }
+    var to = [o.fid], sent = 0;
     to.forEach(function (fid) { if (chOpenToday(fid)) return; P().ch.unshift({ id: uid(), from: 'me', to: fid, sp: o.sp, q: o.q.trim(), shared: o.sh, msg: o.msg, st: 'pending', day: t, t: now }); sent++; });
     save(); ui.ov = null; ding('ok');
     toast(sent ? (o.fid ? 'Guanto lanciato a ' + friend(o.fid).n + '.' : 'Guanto lanciato a ' + sent + (sent === 1 ? ' amico' : ' amici') + ' della Gang.') : 'Oggi con loro c’è già un guanto aperto.');
@@ -2103,20 +2075,6 @@ function vetrinaHTML(st) {
   return '<div class="msec"><div class="row" style="align-items:baseline"><span class="lbl kick" style="color:var(--rew)">Vetrina</span><span class="hint" style="font-size:11px">La vedono gli amici</span></div><div class="card" style="border-color:#7A6430;background:#14120A;padding:10px 6px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px">' + cells + '</div></div>';
 }
 /* slot quest in home */
-function questSlot(items) {
-  var n = items.length; if (!n) return ''; if (n === 1) { ui.hq = 0; return items[0]; }
-  var i = (((ui.hq || 0) % n) + n) % n; ui.hq = i;
-  var dir = ui.hqDir; ui.hqDir = null;
-  return '<div class="qslot" style="position:relative;touch-action:pan-y">' + '<div class="qitem' + (dir ? ' qin' + dir : '') + '">' + items[i] + '</div>' +
-    '<button data-a="hqNext" aria-label="Quest ' + (i + 1) + ' di ' + n + ', tocca per la prossima" style="position:absolute;top:-9px;right:14px;z-index:2;display:flex;align-items:center;gap:5px;height:20px;padding:0 9px;border-radius:10px;border:1px solid var(--line2);background:var(--ground);color:var(--soft);font:700 11px/1 var(--fd);letter-spacing:1px">' + items.map(function (_, j) { return '<i style="display:block;width:5px;height:5px;border-radius:3px;background:' + (j === i ? 'var(--glow)' : '#3A4866') + '"></i>'; }).join('') + '<span>' + (i + 1) + '/' + n + '</span></button></div>';
-}
-function homeGloveItems() {
-  if (!partyOn()) return [];
-  return activeGloves().map(function (c) {
-    var f = friend(c.from === 'me' ? c.to : c.from);
-    return '<button class="card" data-a="gHome" data-v="' + c.id + '" style="border-color:' + PGOLD + '8C;background:#14120A;box-shadow:0 0 14px rgba(255,201,77,.14);padding:12px 16px;display:flex;align-items:center;gap:12px;text-align:left;color:var(--ink);width:100%;min-height:84px">' + svg(PI.glove, PGOLD, 26) + '<span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px"><span class="lbl" style="color:#D9B04A;font-size:11px">Quest bonus · ' + (c.from === 'me' ? 'condivisa con ' : 'guanto di ') + f.n + '</span><span style="font:700 16px/21px var(--fd);letter-spacing:1px;text-transform:uppercase;color:var(--rew)">' + esc(chLabel(c)) + '</span><span class="hint" style="font-size:11.5px">' + (c.shared ? 'Quest condivisa · ' : '') + 'entro mezzanotte</span></span>' + svg(IC.right, '#D9B04A', 18) + '</button>';
-  });
-}
 var PA2 = {
   fCal: function (id) { ui.ov = { t: 'fcal', fid: id }; ding('open'); render(); },
   fCh: function (id) { ui.ov = { t: 'fch', fid: id }; ding('open'); render(); },
@@ -2127,10 +2085,10 @@ var PA2 = {
 for (var pk2 in PA2) A[pk2] = PA2[pk2];
 /* gesti: tira via le schermate secondarie e le finestre, scorri le quest */
 var gs = null, gSwallow = false;
-var SECSCR = ['friend', 'letters', 'psettings', 'gang', 'settings', 'bacheca'];
+var SECSCR = ['friend', 'letters', 'psettings', 'gang', 'sfide', 'settings', 'bacheca'];
 function goBack() {
   if (ui.screen === 'settings' || ui.screen === 'bacheca') ui.screen = 'stato';
-  else if (['friend', 'letters', 'psettings', 'gang'].indexOf(ui.screen) >= 0) ui.screen = 'party';
+  else if (['friend', 'letters', 'psettings', 'gang', 'sfide'].indexOf(ui.screen) >= 0) ui.screen = 'party';
   ding('tap'); render();
 }
 function gStart(x, y, target) {
@@ -2144,7 +2102,7 @@ function gStart(x, y, target) {
     return;
   }
   var q = target.closest('.qslot');
-  if (q) { gs = { k: 'q', x: x, y: y, el: q.querySelector('.qitem') }; return; }
+  if (q) { gs = { k: 'q', x: x, y: y, el: q.querySelector('.qitem.on') }; return; }
   if (SECSCR.indexOf(ui.screen) >= 0) gs = { k: 'sc', x: x, y: y, el: root.querySelector('.scroller') };
 }
 function gMove(x, y, ev) {
@@ -2190,6 +2148,128 @@ document.addEventListener('touchcancel', function () { if (gs && gs.on && gs.el)
 document.addEventListener('pointerdown', function (e) { if (e.pointerType !== 'mouse') return; gSwallow = false; gStart(e.clientX, e.clientY, e.target); }, true);
 document.addEventListener('pointermove', function (e) { if (e.pointerType !== 'mouse' || !gs) return; gMove(e.clientX, e.clientY, e); }, true);
 document.addEventListener('pointerup', function (e) { if (e.pointerType !== 'mouse') return; gEnd(); }, true);
+/* ---------- 2.3: obiettivo Gang, punti condivisi, storico, rango Gang ---------- */
+var GANG_RANKS = [['S', 8], ['A', 6], ['B', 4], ['C', 2], ['D', 1], ['E', 0]], GANG_CAP = 3;
+function gangById(id) { return P() ? P().gangs.filter(function (g) { return g.id === id; })[0] : null; }
+function gangNeed(g) { return Math.ceil((g.mem.length + 1) * 2 / 3); }
+function gangDone(c) { return Object.keys(c.mem || {}).length + (c.me ? 1 : 0); }
+function gangToday(gid) { var t = todayKey(); return myCh().filter(function (c) { return c.gang === gid && c.day === t; })[0] || null; }
+function gangPassed(gid, ym) { return myCh().filter(function (c) { return c.gang && (!gid || c.gang === gid) && c.st === 'passed' && (!ym || c.day.indexOf(ym) === 0); }).length; }
+function gangRank(gid, ym) { return rankOf(gangPassed(gid, ym), GANG_RANKS); }
+function chPoints(ym) {
+  var recv = 0, both = 0;
+  myCh().forEach(function (c) { if (c.gang || (ym && c.day.indexOf(ym) !== 0)) return; if (c.to === 'me' && c.me) recv++; else if (c.from === 'me' && c.shared && c.me && c.done) both++; });
+  return { recv: recv, both: both, gang: Math.min(GANG_CAP, gangPassed(null, ym)) };
+}
+function gangTick() {
+  var t = todayKey(), now = Date.now(), dirty = false;
+  myCh().forEach(function (c) {
+    if (!c.gang) return; var g = gangById(c.gang); if (!g) return;
+    if (c.day < t) { if (c.st === 'open') { c.st = 'over'; dirty = true; } return; }
+    if (c.st !== 'open') return;
+    c.mem = c.mem || {};
+    g.mem.forEach(function (fid) { var h = hashN(c.id + fid); if (!c.mem[fid] && h % 3 !== 0 && now - c.t > 20000 + (h % 5) * 9000) { c.mem[fid] = 1; dirty = true; } });
+    if (gangDone(c) >= gangNeed(g)) { c.st = 'passed'; dirty = true; letter('gang', null, g.name + ': obiettivo superato', chLabel(c) + ' · mezzo punto a tutta la Gang'); }
+  });
+  if (dirty) save();
+}
+function gangActive() { var t = todayKey(); return myCh().filter(function (c) { return c.gang && c.day === t && !c.me && ['open', 'passed'].indexOf(c.st) >= 0 && gangById(c.gang); }); }
+function chTag(c) {
+  if (c.gang) { var g = gangById(c.gang); return '<span style="font:600 10px/13px var(--fd);letter-spacing:1px;text-transform:uppercase;color:' + (g ? g.col : '#B98CFF') + ';border:1px solid ' + (g ? g.col : '#B98CFF') + '66;border-radius:5px;padding:2px 6px;white-space:nowrap">Gang' + (g ? ' · ' + esc(g.name) : '') + '</span>'; }
+  return '<span style="font:600 10px/13px var(--fd);letter-spacing:1px;text-transform:uppercase;color:#7CC4FF;border:1px solid #7CC4FF66;border-radius:5px;padding:2px 6px;white-space:nowrap">Amici · ' + friend(c.from === 'me' ? c.to : c.from).n + '</span>';
+}
+function homeGloveItems() {
+  if (!partyOn()) return [];
+  var items = activeGloves().map(function (c) {
+    var f = friend(c.from === 'me' ? c.to : c.from);
+    return gCardHome(c, 'Quest bonus · ' + (c.from === 'me' ? 'condivisa con ' : 'guanto di ') + f.n, (c.shared ? 'Quest condivisa · ' : '') + 'entro mezzanotte', PGOLD);
+  });
+  gangActive().forEach(function (c) { var g = gangById(c.gang); items.push(gCardHome(c, 'Obiettivo Gang · ' + g.name, gangDone(c) + ' su ' + (g.mem.length + 1) + ' fatto · ne servono ' + gangNeed(g), g.col)); });
+  return items;
+}
+function gCardHome(c, kick, sub, col) {
+  return '<button class="card" data-a="gHome" data-v="' + c.id + '" style="border-color:' + col + '8C;background:#14120A;box-shadow:0 0 14px ' + col + '24;padding:12px 16px;display:flex;align-items:center;gap:12px;text-align:left;color:var(--ink);width:100%">' + svg(c.gang ? PI.party : PI.glove, col, 26) + '<span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px"><span class="lbl" style="color:' + col + ';font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(kick) + '</span><span style="font:700 16px/21px var(--fd);letter-spacing:1px;text-transform:uppercase;color:var(--rew)">' + esc(chLabel(c)) + '</span><span class="hint" style="font-size:11.5px">' + esc(sub) + '</span></span>' + svg(IC.right, col, 18) + '</button>';
+}
+function questSlot(items) {
+  var n = items.length; if (!n) return ''; if (n === 1) { ui.hq = 0; return items[0]; }
+  var i = (((ui.hq || 0) % n) + n) % n; ui.hq = i;
+  var dir = ui.hqDir; ui.hqDir = null;
+  return '<div class="qslot" style="position:relative;touch-action:pan-y;display:grid">' + items.map(function (it, j) { return '<div class="qitem' + (j === i ? ' on' + (dir ? ' qin' + dir : '') : '') + '" style="grid-area:1/1;display:flex;flex-direction:column' + (j === i ? '' : ';visibility:hidden;pointer-events:none') + '"' + (j === i ? '' : ' aria-hidden="true"') + '>' + it + '</div>'; }).join('') +
+    '<button data-a="hqNext" aria-label="Quest ' + (i + 1) + ' di ' + n + ', tocca per la prossima" style="position:absolute;top:-9px;right:14px;z-index:2;display:flex;align-items:center;gap:5px;height:20px;padding:0 9px;border-radius:10px;border:1px solid var(--line2);background:var(--ground);color:var(--soft);font:700 11px/1 var(--fd);letter-spacing:1px">' + items.map(function (_, j) { return '<i style="display:block;width:5px;height:5px;border-radius:3px;background:' + (j === i ? 'var(--glow)' : '#3A4866') + '"></i>'; }).join('') + '<span>' + (i + 1) + '/' + n + '</span></button></div>';
+}
+function viewGDone(o, cls) {
+  var c = chById(o.id), g = c.gang ? gangById(c.gang) : null, f = g ? null : friend(c.from === 'me' ? c.to : c.from), extra = S.profile.sports.indexOf(c.sp) < 0;
+  var has = sessions(todayKey()).some(function (s) { return s.sport === c.sp || (extra && s.sport === 'bon'); }), col = g ? g.col : PGOLD;
+  var ctx = g ? 'Obiettivo della Gang ' + esc(g.name) + ': ' + gangDone(c) + ' su ' + (g.mem.length + 1) + ' fatto, ne servono ' + gangNeed(g) + '.' : c.from === 'me' ? 'La quest condivisa con ' + f.n + '.' : 'Il guanto di ' + f.n + (c.shared ? ', quest condivisa.' : '.');
+  return '<div class="' + cls + ' gold" style="border-color:' + col + '">' + '<div class="whead"><span class="mark" style="border-color:' + col + ';color:' + col + '">!</span><span class="wlabel" style="color:' + col + '">' + (g ? 'Obiettivo Gang' : 'Quest bonus') + '</span><span class="rule"></span><button class="x" data-a="close" aria-label="Chiudi">' + svg(IC.close, null, 20) + '</button></div>' +
+    '<p class="wtitle">' + esc(chLabel(c)) + '</p><p class="wtext">' + ctx + '</p>' +
+    (has ? '<p class="wtext" style="color:var(--ink)">Ce l’hai fatta?</p><div class="acts"><button class="btn" data-a="close">Non ancora</button><button class="btn main" data-a="gWin" data-v="' + c.id + '" style="background:' + col + ';border-color:' + col + '">Fatta</button></div>' :
+      '<p class="wtext">Prima segna la sessione di oggi dal calendario' + (extra ? ': ' + SPORTS[c.sp].name.toLowerCase() + ' non è tra i tuoi sport, segnala come Bonus' : ' (' + SPORTS[c.sp].name.toLowerCase() + ')') + ', poi torna qui.</p><div class="acts one"><button class="btn main" data-a="close">Ok</button></div>') + '</div>';
+}
+function viewGWin(o, cls) {
+  var c = chById(o.id), g = c.gang ? gangById(c.gang) : null, f = g ? null : friend(c.from === 'me' ? c.to : c.from), n = new Date(), ms = monthStats(n.getFullYear(), n.getMonth());
+  var col = g ? g.col : PGOLD, pts, note;
+  if (g) { pts = c.st === 'passed' ? '+½' : 'in attesa'; note = c.st === 'passed' ? 'Obiettivo superato: mezzo punto a tutta la Gang' + (gangPassed(null, ymKey(n.getFullYear(), n.getMonth())) > GANG_CAP ? ' (tetto di 3 al mese già raggiunto per i punti).' : '.') : 'Quando lo completano ' + gangNeed(g) + ' su ' + (g.mem.length + 1) + ', mezzo punto a tutti.'; }
+  else if (c.to === 'me') { pts = '+½'; note = ms.plus ? 'Sei in S+ questo mese.' : ms.rank === 'S' ? 'Con questo guanto sei in S+.' : 'Questo mese S+ è alla tua portata, se arrivi in S.'; }
+  else { pts = c.done ? '+½' : 'in attesa'; note = c.done ? f.n + ' l’ha completata anche ' + (f.g === 'f' ? 'lei' : 'lui') + ': mezzo punto a tutti e due.' : 'Se la completa anche ' + f.n + ', mezzo punto a tutti e due.'; }
+  return '<div class="' + cls + ' gold" style="border-color:' + col + '">' + '<div class="whead"><span class="mark" style="border-color:' + col + ';color:' + col + '">!</span><span class="wlabel" style="color:' + col + '">' + (g ? 'Obiettivo Gang' : 'Guanto vinto') + '</span><span class="rule"></span></div>' +
+    '<div style="display:flex;justify-content:center">' + svg(g ? PI.party : PI.glove, col, 64) + '</div><span class="badge" style="text-align:center">' + (g ? 'Fatto per la Gang' : 'Raccolto e vinto') + '</span>' +
+    '<p class="wtext">' + esc(chLabel(c)) + '.</p>' +
+    '<div class="g2"><div class="fld" style="align-items:center"><span style="font:700 22px/26px var(--fd);color:var(--glow)">+' + GXP + ' XP</span><span class="hint">extra</span></div><div class="fld" style="align-items:center"><span style="font:700 22px/26px var(--fd);color:var(--rew)">' + pts + '</span><span class="hint">punto quest</span></div></div>' +
+    '<div class="row" style="padding:0 2px"><span class="hint">' + note + '</span>' + (!g && c.to === 'me' ? rkHex('S', 30, true) : '') + '</div>' +
+    '<div class="acts one"><button class="btn main" data-a="close">Continua</button></div></div>';
+}
+function viewGang() {
+  var g = gangById(ui.gid); if (!g) { ui.screen = 'party'; return viewParty(); }
+  var n = new Date(), ym = ymKey(n.getFullYear(), n.getMonth()), passed = gangPassed(g.id, ym), gr = gangRank(g.id, ym), nx = nextRank(passed, GANG_RANKS);
+  var h = pBack('Party', g.name, 'party'), mem = g.mem.map(friend).filter(Boolean);
+  h += '<div class="card" style="border-color:' + g.col + '8C;box-shadow:0 0 18px ' + g.col + '29;padding:12px 14px;display:flex;align-items:center;gap:12px">' + gangBadge(g, 52) + '<span style="flex:1 1 auto;display:flex;flex-direction:column;gap:2px;min-width:0"><span class="lbl" style="font-size:11px;color:' + g.col + '">Gang · ' + (mem.length + 1) + ' membri</span><span style="font:700 20px/24px var(--fd);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(g.name) + '</span><span class="hint">Codice ' + g.code + '</span></span>' + rkHex(gr, 44) + '</div>';
+  h += '<div class="card" style="padding:10px 14px;display:flex;flex-direction:column;gap:6px"><div class="row"><span class="lbl" style="font-size:11px">Rango Gang di ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span style="font:700 13px/16px var(--fd);color:var(--ink)">' + passed + (passed === 1 ? ' obiettivo' : ' obiettivi') + '</span></div>' + rankBar(passed, GANG_RANKS, g.col) + '<span class="hint" style="font-size:11.5px">Sale solo con gli obiettivi Gang superati' + (nx.next ? ': ' + (nx.next[1] - passed) + ' al rango ' + nx.next[0] + '.' : '. Rango massimo.') + '</span></div>';
+  var c = gangToday(g.id);
+  if (c) {
+    var who = ['me'].concat(g.mem);
+    h += '<button class="card" data-a="' + (c.me || c.st !== 'open' && c.st !== 'passed' ? 'noop' : 'gHome') + '" data-v="' + c.id + '" style="border-color:' + g.col + '8C;padding:10px 14px;display:flex;flex-direction:column;gap:8px;text-align:left;color:var(--ink);width:100%"><span class="row" style="width:100%"><span class="lbl" style="font-size:11px;color:' + g.col + '">Obiettivo di oggi</span><span style="font:600 11px/14px var(--fd);letter-spacing:1px;color:' + (c.st === 'passed' ? '#9BE15D' : 'var(--mut)') + '">' + (c.st === 'passed' ? 'SUPERATO' : gangDone(c) + ' / ' + gangNeed(g)) + '</span></span><span style="display:flex;align-items:center;gap:8px;font:700 16px/21px var(--fd);letter-spacing:1px;text-transform:uppercase;color:var(--rew)">' + sportIc(c.sp, 18, true) + esc(chLabel(c)) + '</span><span style="display:flex;gap:6px;flex-wrap:wrap">' + who.map(function (id) { var ok = id === 'me' ? c.me : c.mem && c.mem[id]; var nm = id === 'me' ? S.profile.name : friend(id).n; return '<span style="font:600 11px/14px var(--fb);padding:3px 8px;border-radius:10px;border:1px solid ' + (ok ? '#9BE15D88' : 'var(--line2)') + ';color:' + (ok ? '#9BE15D' : 'var(--mut)') + '">' + (ok ? '✓ ' : '') + esc(nm) + '</span>'; }).join('') + '</span></button>';
+  }
+  var v = { F: 0, A: 0, R: 0, E: 0 }, mine = traitVals(monthKeys(n.getFullYear(), n.getMonth()));
+  mem.forEach(function (f) { TKEYS.forEach(function (k) { v[k] += f.v[k]; }); }); TKEYS.forEach(function (k) { v[k] += mine[k] || 0; });
+  var r = TKEYS.slice().sort(function (a, b) { return v[b] - v[a]; }), tc = TRAITS[r[0]].c;
+  h += '<div class="card" style="padding:8px 14px;display:flex;align-items:center;gap:10px;border-color:' + tc + '66"><span style="flex:1 1 auto;display:flex;flex-direction:column;gap:1px"><span class="lbl" style="font-size:11px">Tratto della Gang</span><span class="hint" style="font-size:11px">I tratti di tutti i membri, sommati</span></span>' + svg(TRAITS[r[0]].ic, tc, 18) + '<span style="font:700 15px/20px var(--fd);letter-spacing:1.5px;text-transform:uppercase;color:' + tc + '">' + TRAITS[r[0]].name + '</span></div>';
+  var me = { id: 'me', n: S.profile.name };
+  h += pSec('Membri', 'in ordine alfabetico') + '<div style="display:flex;flex-direction:column;gap:8px">' + mem.concat([me]).sort(function (a, b) { return a.n.localeCompare(b.n); }).map(function (f) {
+    if (f.id === 'me') { var ms = monthStats(n.getFullYear(), n.getMonth()); return '<div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 12px">' + rkHex(ms.rank, 36, ms.plus) + '<span style="display:flex;flex-direction:column;gap:2px"><span style="display:flex;align-items:center;gap:8px;font:700 16px/20px var(--fd);letter-spacing:1px;text-transform:uppercase">' + esc(f.n) + (sessions(todayKey()).length ? pDot(SPORTS[sessions(todayKey())[0].sport].c) : '') + '</span><span style="font:600 12px/16px var(--fd);color:var(--rew);text-transform:uppercase">' + esc(ms.title || '') + '</span></span></div>'; }
+    return friendRow(f, ' ');
+  }).join('') + '</div>';
+  h += '<button class="btn main" data-a="launchGang" data-v="' + g.id + '" style="display:flex;align-items:center;justify-content:center;gap:8px"' + (c ? ' disabled' : '') + '>' + svg(PI.party, null, 20) + 'Obiettivo Gang</button>';
+  h += '<span class="hint" style="text-align:center;font-size:11px">' + (c ? 'Un obiettivo al giorno per Gang: oggi c’è già.' : 'Superato se lo completano ' + gangNeed(g) + ' su ' + (mem.length + 1) + ': mezzo punto a tutti, fino a 3 al mese.') + '</span>';
+  return h;
+}
+function viewSfide() {
+  var n = new Date(), ym = ymKey(n.getFullYear(), n.getMonth()), t = todayKey(), h = pBack('Party', 'Sfide di ' + MONTHS[n.getMonth()].toLowerCase(), 'party');
+  var list = myCh().filter(function (c) { return c.day.indexOf(ym) === 0; });
+  var live = list.filter(function (c) { return c.day === t && !c.me && (c.gang ? c.st === 'open' : ['pending', 'accepted', 'countered'].indexOf(c.st) >= 0); });
+  var won = list.filter(function (c) { return c.me || (c.gang && c.st === 'passed'); });
+  var pt = chPoints(ym);
+  h += '<div class="g2"><div class="fld" style="align-items:center"><span style="font:700 24px/28px var(--fd);color:var(--rew)">' + won.length + '</span><span class="hint">vinte</span></div><div class="fld" style="align-items:center"><span style="font:700 24px/28px var(--fd);color:var(--glow)">+' + num((pt.recv + pt.both + pt.gang) * GPTS) + '</span><span class="hint">punti rango</span></div></div>';
+  function row(c) {
+    var res = c.gang ? (c.st === 'passed' ? ['Superato', '#9BE15D'] : c.me ? ['Fatto, in attesa', '#7CC4FF'] : c.st === 'open' ? [gangDone(c) + ' / ' + gangNeed(gangById(c.gang)), PGOLD] : ['Non superato', 'var(--mut)']) :
+      c.me ? [c.done ? 'Vinta da tutti e due' : 'Vinta', '#9BE15D'] : c.st === 'accepted' ? ['In corso', PGOLD] : c.st === 'pending' ? [c.from === 'me' ? 'In attesa' : 'Da rispondere', PGOLD] : c.st === 'countered' ? ['Rimandata', '#7CC4FF'] : ['Non oggi', 'var(--mut)'];
+    return '<div class="card" style="padding:8px 12px;display:flex;flex-direction:column;gap:4px"><span class="row"><span style="display:flex;align-items:center;gap:6px;min-width:0">' + chTag(c) + '<span class="hint" style="font-size:11px">' + niceDate(c.day) + '</span></span><span style="font:600 11px/14px var(--fd);letter-spacing:.5px;color:' + res[1] + ';white-space:nowrap">' + res[0] + '</span></span><span style="display:flex;align-items:center;gap:8px;font:600 14px/19px var(--fb)">' + sportIc(c.sp, 16, true) + esc(chLabel(c)) + '</span></div>';
+  }
+  h += pSec('In corso', String(live.length)) + '<div style="display:flex;flex-direction:column;gap:6px">' + (live.length ? live.map(row).join('') : '<span class="hint">Niente in corso oggi.</span>') + '</div>';
+  h += pSec('Vinte', String(won.length)) + '<div style="display:flex;flex-direction:column;gap:6px">' + (won.length ? won.map(row).join('') : '<span class="hint">Ancora nessuna vittoria questo mese.</span>') + '</div>';
+  return h;
+}
+var PA3 = {
+  noop: function () {},
+  launchGang: function (gid) { if (gangToday(gid)) { toast('Oggi la Gang ha già un obiettivo.'); return; } var sp = S.profile.sports.filter(function (s) { return s !== 'bon'; })[0] || 'run'; ui.ov = { t: 'launch', gid: gid, sp: sp, q: '', sh: true, msg: '' }; ding('open'); render(); },
+  gWin: function (id) {
+    var c = chById(id); c.me = true;
+    if (c.gang) { var g = gangById(c.gang); if (c.st === 'open' && gangDone(c) >= gangNeed(g)) { c.st = 'passed'; letter('gang', null, g.name + ': obiettivo superato', chLabel(c) + ' · mezzo punto a tutta la Gang'); } }
+    else if (c.to === 'me' && (!c.shared || c.done)) c.st = 'won';
+    save(); ui.ov = { t: 'gwin', id: id }; medalSound(); render();
+  }
+};
+for (var pk3 in PA3) A[pk3] = PA3[pk3];
 /* ---------- render ---------- */
 var root = document.getElementById('app');
 function fitTitles() {
@@ -2306,7 +2386,7 @@ window.addEventListener('popstate', function () {
     ui.ov = null;
   } else if (ui.arrange) ui.arrange = false;
   else if (ui.screen === 'settings' || ui.screen === 'bacheca') ui.screen = 'stato';
-  else if (['friend', 'letters', 'psettings', 'gang'].indexOf(ui.screen) >= 0) ui.screen = 'party';
+  else if (['friend', 'letters', 'psettings', 'gang', 'sfide'].indexOf(ui.screen) >= 0) ui.screen = 'party';
   else if (ui.screen !== 'home') ui.screen = 'home';
   render();
 });
@@ -2322,7 +2402,7 @@ function render() {
     if (medalDirty) { noteMid(); checkMedals(); }
     if (!ui.ov && ui.mq && ui.mq.length) { if (!ui.mqTot || ui.mqN >= ui.mqTot) { ui.mqTot = ui.mq.length; ui.mqN = 0; } var q = ui.mq.shift(); ui.mqN++; ui.ov = { t: 'medal', id: q.id, tr: q.t, n: ui.mqN, tot: ui.mqTot }; if (!ui.mq.length) { ui.mqTot = 0; } medalSound(); }
     gloveQueue();
-    var body = ui.screen === 'party' ? viewParty() : ui.screen === 'friend' ? viewFriend() : ui.screen === 'letters' ? viewLetters() : ui.screen === 'psettings' ? viewPSettings() : ui.screen === 'gang' ? viewGang() : ui.screen === 'stato' ? viewStato() : ui.screen === 'settings' ? viewSettings() : ui.screen === 'bacheca' ? viewBacheca() : viewHome();
+    var body = ui.screen === 'party' ? viewParty() : ui.screen === 'friend' ? viewFriend() : ui.screen === 'letters' ? viewLetters() : ui.screen === 'psettings' ? viewPSettings() : ui.screen === 'gang' ? viewGang() : ui.screen === 'sfide' ? viewSfide() : ui.screen === 'stato' ? viewStato() : ui.screen === 'settings' ? viewSettings() : ui.screen === 'bacheca' ? viewBacheca() : viewHome();
     if (!ui.ov) lastAnim.ov = null;
     if (ui.screen !== 'home') lastAnim.card = null;
     var ovKey = ui.ov ? [ui.ov.t, ui.ov.kind, ui.ov.k, ui.ov.id, ui.ov.sport, ui.ov.group].join('|') : null;
