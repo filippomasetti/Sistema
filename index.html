@@ -72,7 +72,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .rlets{position:relative;height:14px;margin-top:-4px}.rlets .rlet{position:absolute;transform:translateX(-50%);font:700 10px/14px var(--fd);color:var(--mut)}.rlets .rlet.on{color:var(--ink)}.rlets .rlet:last-child{transform:translateX(-100%)}
 .tcard{padding:10px 12px 10px 16px;display:flex;align-items:center;gap:12px}
 .bachbtn{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 14px;cursor:pointer;text-align:left;border-color:#7A6430!important;background:#14120A!important;box-shadow:0 0 14px rgba(255,201,77,.12)}
-.mcount{white-space:nowrap;flex:0 0 auto;font:700 14px/18px var(--fd);color:var(--rew);border:1px solid #7A6430;border-radius:6px;padding:2px 10px}
+.mlink{background:none;border:0;padding:2px 0 0;font:600 12px/16px var(--fd);letter-spacing:1px;color:#D9B04A;cursor:pointer;text-align:center}.mcount{white-space:nowrap;flex:0 0 auto;font:700 14px/18px var(--fd);color:var(--rew);border:1px solid #7A6430;border-radius:6px;padding:2px 10px}
 .msec{display:flex;flex-direction:column;gap:10px}
 .mgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px 4px}
 .mcell{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--ink);cursor:pointer;padding:0;min-width:0}
@@ -775,6 +775,7 @@ var A = {
   mdet: function (id) { ding('open'); open({ t: 'mdet', id: id }); },
   bf: function (v) { ui.bf = v; ding('tap'); render(); },
   medalNext: function () { ui.ov = null; ding('tap'); render(); },
+  medalBach: function () { ui.ov = null; ui.arrange = false; ui.screen = 'bacheca'; ding('open'); render(); },
   medalSkip: function () { if ((ui.mq || []).length) { ui.mq = []; ui.ov = null; render(); return; } ui.ov = null; ui.screen = 'bacheca'; render(); },
   bacheca: function () { ui.arrange = false; ui.screen = 'bacheca'; ding('open'); render(); },
   recapOk: function () { var o = ui.ov; if (o.first) { S.seen.recap = ymKey(o.y, o.m); save(); ui.ov = null; startupNotice(); render(); return; } if (o.back) { ui.ov = { t: o.back }; render(); return; } close(); },
@@ -1570,7 +1571,8 @@ function viewMedalWin(o, cls) {
     '<div class="' + cls.replace(' anim', '') + ' mwin">' + whead('Nuova medaglia' + (o.tot > 1 ? ' · ' + o.n + ' di ' + o.tot : ''), false) +
     '<span style="font:700 24px/28px var(--fd);text-transform:uppercase;letter-spacing:1px;text-align:center;color:' + tierCol(d, t) + '">' + esc(d.name) + (d.th.length > 1 ? ' · ' + tierName(d, t) : '') + '</span>' +
     '<p class="wtext">' + esc(line) + (nx ? '<br><span style="color:var(--mut)">Prossima lega: ' + tierName(d, t + 1) + ', a ' + mfmt(d, nx) + (d.unit ? ' ' + d.unit : '') + '.</span>' : '') + '</p>' +
-    '<div class="acts"><button class="btn" data-a="medalSkip">' + (more ? 'Salta le altre' : 'Bacheca') + '</button><button class="btn main" data-a="medalNext">' + (more ? 'Avanti' : 'Continua') + '</button></div></div></div>';
+    '<div class="acts"' + (more ? '' : ' style="grid-template-columns:1fr"') + '>' + (more ? '<button class="btn" data-a="medalSkip">Salta le altre</button>' : '') + '<button class="btn main" data-a="medalNext">' + (more ? 'Avanti' : 'Continua') + '</button></div>' +
+    '<button class="mlink" data-a="medalBach">Tutta la collezione in Bacheca ›</button></div></div>';
 }
 function medalSound() {
   if (!S || !S.settings.sound) return;
