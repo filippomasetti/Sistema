@@ -70,6 +70,50 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .rtick{position:absolute;top:0;bottom:0;width:1px;margin-left:-1px;background:rgba(7,11,20,.55)}
 .rtxt{position:absolute;right:8px;top:0;bottom:0;display:flex;align-items:center;font:700 11px/1 var(--fd);letter-spacing:.5px;color:var(--ink);text-shadow:0 0 4px #000,0 0 2px #000}
 .rlets{position:relative;height:14px;margin-top:-4px}.rlets .rlet{position:absolute;transform:translateX(-50%);font:700 10px/14px var(--fd);color:var(--mut)}.rlets .rlet.on{color:var(--ink)}.rlets .rlet:last-child{transform:translateX(-100%)}
+.tcard{padding:10px 14px;display:flex;align-items:center;gap:12px}
+.bachbtn{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 14px;cursor:pointer;text-align:left;border-color:#7A6430!important;background:#14120A!important;box-shadow:0 0 14px rgba(255,201,77,.12)}
+.mcount{font:700 14px/18px var(--fd);color:var(--rew);border:1px solid #7A6430;border-radius:6px;padding:2px 10px}
+.msec{display:flex;flex-direction:column;gap:10px}
+.mgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px 4px}
+.mcell{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--ink);cursor:pointer;padding:0;min-width:0}
+.mname{font:600 11px/14px var(--fd);text-align:center;min-height:28px;display:flex;align-items:flex-start;justify-content:center;overflow:hidden}.mname.off{color:#5A6B88}
+.mtier{font:700 8px/11px var(--fd);letter-spacing:1.5px;text-transform:uppercase;min-height:11px}
+.mbar{width:56px;height:3px;border-radius:2px;background:var(--line);overflow:hidden;display:block}.mbar i{display:block;height:3px}
+.mlab{font:500 9px/12px var(--fb);color:#5A6B88;min-height:12px}
+.ladder{display:flex;flex-direction:column;gap:4px}
+.lrow{display:flex;align-items:center;gap:10px;padding:5px 10px;border-radius:10px;border:1px solid transparent}
+.lrow.off{opacity:.45}.lrow.now{background:rgba(255,255,255,.03)}
+.lrow .ln{flex:1 1 auto;font:700 13px/18px var(--fd);letter-spacing:2px;text-transform:uppercase}
+.lrow .lv{font:500 12px/16px var(--fb);color:var(--soft)}.lrow .lm{width:28px;text-align:right;font:700 10px/14px var(--fd);color:#9BE15D}
+.lrow.now .lm{color:var(--ink)}
+.medalwin{width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;gap:18px}
+.mspin-wrap{position:relative;width:200px;height:200px;display:flex;align-items:center;justify-content:center;perspective:600px}
+.mspin{animation:mspin 1.5s cubic-bezier(.15,.7,.25,1) both}
+@keyframes mspin{0%{transform:rotateY(90deg) scale(.55);opacity:0}10%{opacity:1}70%{transform:rotateY(-1060deg) scale(1.04)}85%{transform:rotateY(-1085deg) scale(1.07)}100%{transform:rotateY(-1080deg) scale(1)}}
+.mrays{position:absolute;inset:-60px;background:repeating-conic-gradient(from 0deg,rgba(255,201,77,.22) 0 6deg,transparent 6deg 30deg);-webkit-mask:radial-gradient(circle,#000 20%,transparent 70%);mask:radial-gradient(circle,#000 20%,transparent 70%);opacity:0;animation:rays .6s ease 1.3s forwards}
+@keyframes rays{to{opacity:1}}
+.mwin{animation:fade .35s ease 1.45s both}
+.story{position:absolute;inset:0;z-index:30;background:radial-gradient(120% 70% at 50% 30%,rgba(59,167,255,.16),transparent 60%),#070B14;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 12px) 22px calc(env(safe-area-inset-bottom,0px) + 22px);cursor:pointer;-webkit-user-select:none;user-select:none}
+.story.gold{background:radial-gradient(120% 70% at 50% 30%,rgba(255,201,77,.15),transparent 60%),#070B14}
+.ssegs{display:flex;gap:4px}.ssegs i{flex:1 1 0;height:3px;border-radius:2px;background:#1E2A42;display:block}.ssegs i.on{background:#BDEBFF}
+.shead{display:flex;align-items:center;gap:10px;padding-top:6px;font:600 11px/16px var(--fd);letter-spacing:2px;white-space:nowrap;color:var(--mut)}.shead span:first-child{flex:1 1 auto;color:var(--sysl)}.shead .x{margin:-8px -12px -8px 0}
+.sbody{flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;gap:20px;min-height:0}
+.skick{font:600 13px/18px var(--fd);letter-spacing:4px;text-transform:uppercase;color:var(--sysl);text-align:center}
+.sbig{font:700 40px/1.1 var(--fd);letter-spacing:1px;text-transform:uppercase;text-align:center;color:var(--ink);text-shadow:0 0 18px rgba(59,167,255,.7)}
+.sbig.gold{color:var(--rew);text-shadow:0 0 18px rgba(255,201,77,.5)}.t34{font-size:34px}
+.stext{margin:0;font:500 15px/22px var(--fb);color:var(--mut);text-align:center}
+.stap{text-align:center;font:500 12px/16px var(--fb);color:#5A6B88}
+.sbody.anim .stap,.story>.stap{animation:sblink 2.4s ease-in-out infinite}@keyframes sblink{0%,100%{opacity:.55}50%{opacity:1}}.t42{font-size:42px}
+.rkhex{position:relative;align-self:center;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 22px rgba(255,201,77,.55))}.rkhex svg{position:absolute;inset:0}
+.rkhex span{position:relative;font-family:var(--fd);font-weight:700;line-height:1;color:#FFF4D6;text-shadow:0 0 30px rgba(255,201,77,.95)}
+.segs{align-self:center;display:flex;gap:6px}.segs i{width:34px;height:5px;border-radius:3px;background:#2A2614;display:block}.segs i.on{background:var(--rew)}
+.pills{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}.pills span{border-radius:18px;border:1px solid var(--line2);padding:6px 14px;font:600 14px/18px var(--fd);text-transform:uppercase}
+.sgrow{display:flex;justify-content:space-between;align-items:center;border-radius:12px;border:1px solid var(--line);background:var(--surface);padding:10px 14px;font:600 14px/18px var(--fd);letter-spacing:.5px}
+.pcard{border-radius:14px;border:1px solid var(--line2);background:linear-gradient(180deg,#0E1A30,#0B1220);padding:14px 16px;display:flex;align-items:center;gap:14px}
+.pcard .pn{font:700 28px/1 var(--fd);color:#3A4866;width:20px}.pcard .pname{font:700 20px/24px var(--fd);letter-spacing:1px;text-transform:uppercase}
+.pcard .pcat{display:flex;flex-direction:column;align-items:center;gap:4px;width:56px;flex:0 0 auto}.pcard .pcat span{font:600 9px/11px var(--fd);letter-spacing:1px;text-transform:uppercase;color:var(--sysl);text-align:center}
+.scard{align-self:stretch;border-radius:18px;border:1px solid var(--rew);background:radial-gradient(120% 80% at 20% 0%,rgba(255,201,77,.18),transparent 60%),var(--surface);padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:0 0 28px rgba(255,201,77,.22);cursor:default}
+@media (prefers-reduced-motion: reduce){.mspin,.mrays,.mwin{animation:none;opacity:1}}
 .recap-big{font:700 64px/1 var(--fd);text-shadow:0 0 22px rgba(59,167,255,.9)}
 .recap-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .recap-grid .fld{align-items:center;gap:2px;padding:10px 6px}
@@ -352,7 +396,7 @@ function load() {
   try { var raw = localStorage.getItem(KEY); if (raw) { var s = JSON.parse(raw); if (s && s.v === 1) return s; } } catch (e) {}
   return null;
 }
-function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast('Non riesco a salvare: spazio pieno o salvataggio bloccato.'); } }
+function save() { medalDirty = true; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast('Non riesco a salvare: spazio pieno o salvataggio bloccato.'); } }
 function newState(name, sports) { return { v: 1, profile: { name: name, sports: sports, created: todayKey() }, settings: { sound: true }, days: {}, lastBackup: null }; }
 var ANDROID = /Android/i.test(navigator.userAgent || '');
 var CLOUD = ANDROID ? 'Google Drive' : 'iCloud Drive';
@@ -385,7 +429,7 @@ function recapDue() {
 function startupNotice() {
   if (!S || ui.ov) return;
   S.seen = S.seen || {};
-  var rp = recapDue(); if (rp) { ui.ov = { t: 'recap', y: rp.y, m: rp.m, first: true }; return; }
+  var rp = recapDue(); if (rp) { ui.ov = { t: 'story', y: rp.y, m: rp.m, i: 0, first: true, D: storyData(rp.y, rp.m) }; return; }
   if (!S.profile.g) { ui.ov = { t: 'notice', kind: 'gender' }; return; }
   if (S.seen.intro === false) { ui.ov = { t: 'notice', kind: 'intro' }; return; }
   if (!S.seen.edit && editWindow() > 7) { ui.ov = { t: 'notice', kind: 'edit' }; return; }
@@ -620,7 +664,7 @@ function ding(kind) {
 }
 
 /* ---------- azioni ---------- */
-var toastShown = null, toastAt = 0;
+var toastShown = null, toastAt = 0, lastScreen = null;
 var toastSetAt = 0, lastOvKey = null, ovAt = 0;
 function toast(msg) {
   toastSetAt = Date.now() + 0.5; toastMsg = msg; toastShown = null; clearTimeout(toastTimer);
@@ -704,7 +748,35 @@ var A = {
     S.marks[k] = 1; save(); ding('tap'); ui.ov = null; toast(k === todayKey() ? 'Hard Study/Work segnato. Testa sui libri: anche questa è costanza.' : 'Hard Study/Work segnato il ' + niceDate(k) + '.');
   },
   gender: function (g) { S.profile.g = g === 'f' ? 'f' : 'm'; save(); ding('tap'); if (ui.ov && ui.ov.t === 'notice') { ui.ov = null; startupNotice(); } render(); },
-  recap: function (ym) { var y = +ym.slice(0, 4), m = +ym.slice(5) - 1; ding('open'); open({ t: 'recap', y: y, m: m, back: 'archive' }); },
+  recap: function (ym) { var y = +ym.slice(0, 4), m = +ym.slice(5) - 1; ding('open'); open({ t: 'story', y: y, m: m, i: 0, back: 'archive', D: storyData(y, m) }); },
+  storyTap: function () {
+    var o = ui.ov; if (!o || o.t !== 'story') return;
+    if (o.i === 0) { musicStart(); o.i = 1; revealSound(); render(); return; }
+    if (lastTapX < window.innerWidth * 0.28) { if (o.i > 1) { o.i--; ding('tap'); render(); } return; }
+    if (o.i < 5) { o.i++; ding('tap'); if (o.i === 1) revealSound(); render(); }
+  },
+  storyClose: function () {
+    var o = ui.ov; musicStop();
+    if (o && o.first) { S.seen.recap = ymKey(o.y, o.m); save(); ui.ov = null; startupNotice(); render(); return; }
+    if (o && o.back) { ui.ov = { t: o.back }; render(); return; }
+    close();
+  },
+  shareRecap: function () {
+    var D = ui.ov && ui.ov.D; if (!D) return;
+    shareImage(D, function (blob) {
+      if (!blob) return toast('Non riesco a creare l’immagine.');
+      var name = 'sistema-' + ymKey(D.y, D.m) + '.png', file = null;
+      try { file = new File([blob], name, { type: 'image/png' }); } catch (e) {}
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) { navigator.share({ files: [file], title: 'Il mio ' + MONTHS[D.m].toLowerCase() }).catch(function () {}); return; }
+      var url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 1500);
+      toast('Immagine pronta.');
+    });
+  },
+  mdet: function (id) { ding('open'); open({ t: 'mdet', id: id }); },
+  bf: function (v) { ui.bf = v; ding('tap'); render(); },
+  medalNext: function () { ui.ov = null; ding('tap'); render(); },
+  medalSkip: function () { if ((ui.mq || []).length) { ui.mq = []; ui.ov = null; render(); return; } ui.ov = null; ui.screen = 'bacheca'; render(); },
+  bacheca: function () { ui.arrange = false; ui.screen = 'bacheca'; ding('open'); render(); },
   recapOk: function () { var o = ui.ov; if (o.first) { S.seen.recap = ymKey(o.y, o.m); save(); ui.ov = null; startupNotice(); render(); return; } if (o.back) { ui.ov = { t: o.back }; render(); return; } close(); },
   fnote: function (f) { var fm = ui.ov.form; fm.nopen[f] = true; ui.focusNext = 'fn:' + f; ding('tap'); render(); },
   diff: function (d) { ui.ov.diff = d; ding('tap'); render(); },
@@ -938,6 +1010,8 @@ function viewStato() {
     '<div style="width:76px;height:84px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;position:relative"><svg width="76" height="84" viewBox="0 0 76 84" aria-hidden="true" style="position:absolute;inset:0"><path d="M38 3l33 19v40L38 81 5 62V22z" fill="#0E1A30" stroke="#3BA7FF" stroke-width="2" stroke-linejoin="round"/></svg><span style="position:relative;font:700 44px/1 var(--fd);text-shadow:0 0 16px rgba(59,167,255,.9)">' + ms.rank + '</span></div>' +
     '<div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:6px"><span style="font:700 24px/28px var(--fd);letter-spacing:2px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(S.profile.name) + '</span><span style="font:500 14px/18px var(--fb);color:var(--soft)">Rango ' + ms.rank + ' · Livello ' + lv + '</span>' + (pj ? '<span style="font:600 12px/16px var(--fd);letter-spacing:1px;color:' + (pj.early ? 'var(--mut)' : '#D9B04A') + '">' + (pj.early ? 'Proiezione dalla seconda settimana' : pj.rank === ms.rank ? 'Al tuo ritmo resti ' + ms.rank : 'Al tuo ritmo chiudi in ' + pj.rank) + '</span>' : '') + '<div class="track"><div class="fill" style="width:' + Math.round(inLv / li.need * 100) + '%"></div></div><span class="hint">' + inLv + ' / ' + li.need + ' XP al livello ' + (lv + 1) + '</span></div></div>';
   h += '<div style="border-radius:14px;border:1px solid rgba(255,201,77,.55);background:#14120A;box-shadow:0 0 18px rgba(255,201,77,.16);padding:14px 16px;display:flex;flex-direction:column;gap:2px"><span class="lbl" style="color:#D9B04A">Titolo di ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span class="fit1 t28" style="color:var(--rew);text-shadow:0 0 14px rgba(255,201,77,.45);letter-spacing:1px;text-transform:uppercase">' + esc(ms.title) + '</span><div style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px"><span style="font:500 13px/18px var(--fb);color:#C9BFA0;min-width:0">' + titleWhy(ms) + (ms.top ? ' questo mese' : '') + '</span><span style="font:500 13px/18px var(--fb);color:#C9BFA0;white-space:nowrap;flex:0 0 auto">' + ms.weeksOk + '/' + ms.weeksTot + ' settimane</span></div></div>';
+  var mtc = monthTraits(n.getFullYear(), n.getMonth());
+  h += '<div class="card tcard">' + (mtc ? rombo(mtc.v, ms.rank, 92, false) : '') + '<div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span class="lbl" style="font-size:11px">Tratto del mese</span>' + (mtc ? '<span style="font:700 20px/24px var(--fd);letter-spacing:2px;text-transform:uppercase;color:' + TRAITS[mtc.top].c + '">' + TRAITS[mtc.top].name + '</span><span style="font:500 13px/18px var(--fb);color:var(--mut)">' + traitPhrase(mtc) + '</span>' : '<span class="hint">Si accende con il primo allenamento del mese.</span>') + '</div></div>';
   h += '<div style="display:flex;flex-direction:column;gap:10px;padding-top:4px"><div style="padding:0 2px;display:flex;flex-direction:column;gap:2px"><span class="lbl">Parametri · ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span class="hint">' + pfmt(ms.pts) + ' · ' + nextGoal(ms) + '</span></div><div class="g2" id="tiles" style="gap:10px">';
   S.profile.sports.forEach(function (s) {
     var sp = SPORTS[s], p = ms.sportPts[s] || 0, val, pct;
@@ -953,7 +1027,8 @@ function viewStato() {
   if (!last.length) h += '<span class="hint" style="padding:4px 0">Ancora nessuna quest conclusa.</span>';
   last.forEach(function (e) { var s = e.s; h += '<div class="logrow"><span class="dot" style="background:' + SPORTS[s.sport].c + '"></span><span class="d">' + niceDate(e.k) + '</span><span class="t">' + esc(SPORTS[s.sport].name + ' · ' + DIFF[s.quest.diff].label + ' · ' + s.quest.label) + (s.quest.done ? '' : ' · non oggi') + '</span><span class="x2">+' + sessXp(s) + ' XP</span></div>'; });
   h += '</div>';
-  h += '<button class="card" data-a="archive" style="display:flex;align-items:center;gap:10px;min-height:48px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.box, '#BDEBFF', 20) + '<span class="lbl" style="flex:1 1 auto;color:var(--ink)">Archivio</span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
+  var mst = medalState(), mvis = MEDALS.filter(function (d) { return mvisible(d, 'mine'); }), mgot = mvis.filter(function (d) { return mst[d.id].t >= 0; }).length;
+  h += '<div class="g2" style="gap:10px"><button class="card" data-a="archive" style="display:flex;align-items:center;gap:10px;min-height:48px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.box, '#BDEBFF', 20) + '<span class="lbl" style="flex:1 1 auto;color:var(--ink)">Archivio</span></button><button class="card bachbtn" data-a="bacheca">' + '<svg class="i" viewBox="0 0 100 100" aria-hidden="true" style="width:20px;height:20px;stroke:#FFC94D;stroke-width:8"><path d="M50 4l40 23v46L50 96 10 73V27z"/></svg>' + '<span class="lbl" style="flex:1 1 auto;color:#FFC94D">Bacheca</span><span style="font:600 12px/16px var(--fd);color:#FFC94D">' + mgot + ' / ' + mvis.length + '</span></button></div>';
   return h;
 }
 
@@ -966,7 +1041,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">Punti, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + CLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 1.6.4</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 2.0</span>';
   return h;
 }
 
@@ -978,6 +1053,8 @@ function stepper(path, val, step, min, fmt, mini) {
 
 function viewOverlay() {
   var o = ui.ov; if (!o) return '';
+  if (o.t === 'story') return viewStory(o);
+  if (o.t === 'medal') return '<div class="veil' + (animCls('medal' + o.id + o.tr) ? ' fade' : '') + '">' + viewMedalWin(o, 'win') + '</div>';
   var key = o.t + (o.sport || '') + (o.group || '') + (o.k || '') + (o.id || ''), cls = 'win' + animCls(key), h = '';
   if (o.t === 'pick' || o.t === 'past') {
     var past = o.t === 'past' || o.k !== todayKey();
@@ -1038,10 +1115,14 @@ function viewOverlay() {
       '<div class="fld"><span class="lbl" style="font-size:11px">Titolo del mese</span><p>Viene dallo sport che hai fatto di più. Se un secondo sport ci va vicino (almeno il 70%), il titolo diventa doppio.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Badge della settimana</span><p>Uno per ogni giorno di sport da lunedì a domenica. Le frasi cambiano ogni settimana. Oltre i 5 giorni il sistema ti consiglia di riposare.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Hard Study/Work</span><p>Un segno sul calendario per le giornate di testa. Non è sport e non dà punti: è solo un modo per ricordarle.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Tratto del mese</span><p>Ogni sport allena uno o più tratti: <b>Forza</b>, <b>Agilità</b>, <b>Resistenza</b>, <b>Equilibrio</b>. Il tratto del mese è quello che hai allenato di più; il rombo ne mostra la forma, e la sua grandezza segue il rango.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Bacheca</span><p>Medaglie che non si azzerano mai e salgono di lega: Legno, Bronzo, Argento, Oro, Platino, Diamante, Challenger. Molte sono <b>segrete</b>: le scopri facendo.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">XP e livello</span><p>Ogni sessione dà 10 XP, una quest riuscita da 5 a 20 in più, una stella 5. Il livello cresce e non si perde mai.</p></div>' +
       '</div><button class="btn main" data-a="close">Ho capito</button></div>';
   } else if (o.t === 'recap') {
     h = viewRecap(o, cls);
+  } else if (o.t === 'mdet') {
+    h = viewMedalDetail(o, cls);
   } else if (o.t === 'details') {
     h = viewDetails(o, cls);
   } else if (o.t === 'archive') {
@@ -1180,6 +1261,489 @@ function viewOnboarding() {
   return h + '</div>';
 }
 
+/* ---------- v2: tratti del mese ---------- */
+var TRAITS = {
+  F: { name: 'Forza', c: '#FF7A59', ic: '<path d="M6.5 3.5h11M7.5 6h9M8.5 6v12M12 6v12M15.5 6v12M6.5 18h11M5.5 20.5h13"/>' },
+  A: { name: 'Agilità', c: '#F4D35E', ic: '<path d="M7.5 3.5c1 5.5.3 11.5-2.5 17M12.5 3c1 6 .3 12-2.5 18M17.5 3.5c1 5.5.3 11.5-2.5 17"/>' },
+  R: { name: 'Resistenza', c: '#2DD4BF', ic: '<path d="M12 12c-2-2.6-3.6-4-5.5-4a4 4 0 0 0 0 8c1.9 0 3.5-1.4 5.5-4s3.6-4 5.5-4a4 4 0 0 1 0 8c-1.9 0-3.5-1.4-5.5-4z"/>' },
+  E: { name: 'Equilibrio', c: '#E79BFF', ic: '<path d="M18.8 8.2A7.8 7.8 0 1 1 13.2 4.3"/><circle cx="12" cy="12" r="1.3"/>' }
+};
+var TKEYS = ['F', 'A', 'R', 'E'];
+// Quanto vale ogni sessione per i tratti (dal documento di progetto)
+var TW = {
+  gym: { F: 1 }, cal: { F: 0.5, A: 0.25, E: 0.5 }, cfx: { F: 0.5, R: 0.5 }, run: { R: 1 }, swm: { R: 1 }, bik: { R: 1 },
+  row: { F: 0.5, R: 0.5 }, bch: { A: 0.5, R: 0.5, E: 0.25 }, soc: { A: 0.5, R: 0.5, E: 0.25 }, pad: { A: 0.25, R: 0.5, E: 0.25 },
+  ten: { F: 0.25, A: 0.25, R: 0.5, E: 0.25 }, yog: { A: 0.25, R: 0.25, E: 0.5 }, pil: { A: 0.25, R: 0.25, E: 0.5 },
+  wsf: { A: 0.5, E: 0.5 }, ski: { R: 0.5, E: 0.5 }, bld: { F: 0.5, A: 0.5, E: 0.25 }, bon: { F: 0.25, A: 0.25, R: 0.25, E: 0.25 }
+};
+function traitVals(keys) {
+  var v = { F: 0, A: 0, R: 0, E: 0 };
+  keys.forEach(function (k) { sessions(k).forEach(function (s) { var w = TW[s.sport] || {}; Object.keys(w).forEach(function (t) { v[t] += w[t]; }); }); });
+  return v;
+}
+function monthTraits(y, m) {
+  var v = traitVals(monthKeys(y, m)); if (!(v.F + v.A + v.R + v.E)) return null;
+  var p = prevMonth(y, m), pv = traitVals(monthKeys(p.y, p.m));
+  var ord = TKEYS.slice().sort(function (a, b) { return v[b] - v[a] || pv[b] - pv[a] || TKEYS.indexOf(a) - TKEYS.indexOf(b); });
+  var t1 = ord[0], t2 = ord[1], t3 = ord[2], r = v[t2] / v[t1], r3 = v[t3] / v[t1], kind;
+  if (r < 1 / 3) kind = 'pura';
+  else if (r < 0.8 && r3 >= 1 / 3 && v[t3] / v[t2] >= 0.85) kind = 'tocco2';
+  else if (r < 0.5) kind = 'tocco';
+  else if (r < 0.8) kind = 'tanta';
+  else kind = 'spalla';
+  var grow = null, best = 0;
+  if (pv.F + pv.A + pv.R + pv.E) TKEYS.forEach(function (t) { var d = v[t] - pv[t]; if (d > best + 0.001) { best = d; grow = t; } });
+  return { v: v, top: t1, sec: t2, third: t3, kind: kind, grow: grow };
+}
+function tw(t) { return '<span style="color:' + TRAITS[t].c + '">' + TRAITS[t].name + '</span>'; }
+function traitPhrase(mt) {
+  if (!mt) return '';
+  if (mt.kind === 'pura') return 'pura';
+  if (mt.kind === 'tocco') return 'con un tocco di ' + tw(mt.sec);
+  if (mt.kind === 'tocco2') return 'con un tocco di ' + tw(mt.sec) + ' e ' + tw(mt.third);
+  if (mt.kind === 'tanta') return 'con tanta ' + tw(mt.sec);
+  return 'spalla a spalla con ' + tw(mt.sec);
+}
+function traitPlain(mt) { return traitPhrase(mt).replace(/<[^>]+>/g, ''); }
+// Rombo a 4 anelli (D, C, B, A); il tratto principale arriva all'anello del rango, con la S l'esterno diventa oro
+var RSCALE = { E: 0.17, D: 0.25, C: 0.5, B: 0.75, A: 1, S: 1 };
+function rombo(v, rank, size, labels) {
+  var c = size / 2, R = size / 2 - (labels ? 34 : 8), pos = { F: [0, -1], A: [1, 0], R: [0, 1], E: [-1, 0] };
+  function P(k, x) { return (c + pos[k][0] * R * x).toFixed(1) + ',' + (c + pos[k][1] * R * x).toFixed(1); }
+  var h = '', gold = rank === 'S';
+  [0.25, 0.5, 0.75, 1].forEach(function (g, i) {
+    var reached = RSCALE[rank] >= g - 1e-9, isG = gold && i === 3;
+    h += '<polygon points="' + TKEYS.map(function (k) { return P(k, g); }).join(' ') + '" fill="none" stroke="' + (isG ? '#FFC94D' : reached ? '#3A4E74' : '#1A2438') + '" stroke-width="' + (isG ? 1.6 : 1) + '" stroke-linejoin="round"/>';
+  });
+  var m = Math.max(v.F, v.A, v.R, v.E) || 1, sc = RSCALE[rank] || 0.17;
+  h += '<polygon points="' + TKEYS.map(function (k) { return P(k, v[k] / m * sc); }).join(' ') + '" fill="' + (gold ? 'rgba(255,201,77,.22)' : 'rgba(59,167,255,.22)') + '" stroke="' + (gold ? '#FFC94D' : '#7CC4FF') + '" stroke-width="2" stroke-linejoin="round"/>';
+  TKEYS.forEach(function (k) { var p = P(k, v[k] / m * sc).split(','); h += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="' + (size > 150 ? 4.5 : 3) + '" fill="' + TRAITS[k].c + '"/>'; });
+  if (labels) {
+    var L = { F: [c, 16, 'middle'], A: [size - 2, c + 5, 'end'], R: [c, size - 6, 'middle'], E: [2, c + 5, 'start'] };
+    TKEYS.forEach(function (k) { h += '<text x="' + L[k][0] + '" y="' + L[k][1] + '" text-anchor="' + L[k][2] + '" font-family="Exo 2, sans-serif" font-weight="600" font-size="12" letter-spacing="2" fill="' + TRAITS[k].c + '">' + TRAITS[k].name.toUpperCase() + '</text>'; });
+  }
+  return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 ' + size + ' ' + size + '" role="img" aria-label="Tratto del mese" style="flex:0 0 auto;display:block">' + h + '</svg>';
+}
+
+/* ---------- v2: medaglie ---------- */
+var TIERS = [['Legno', '#A0754B'], ['Bronzo', '#D08A55'], ['Argento', '#C9D3E3'], ['Oro', '#FFC94D'], ['Platino', '#7FE3D6'], ['Diamante', '#8FB8FF'], ['Challenger', '#FF8FE0']];
+var MIC = {
+  cal: '<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M8 14h2M14 14h2M8 17h2"/>',
+  quest: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v5"/><path d="M12 16.2h.01" stroke-width="2.4"/>',
+  star: '<path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z"/>',
+  book: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15.5H5.5A1.5 1.5 0 0 1 4 18zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v15.5h5.5a1.5 1.5 0 0 0 1.5-1.5z"/>',
+  bolt: '<path d="M13.5 3L5.5 13.5H12L10.5 21l8-10.5H12z"/>',
+  moon: '<path d="M19 14.5A7.5 7.5 0 1 1 9.5 5a6 6 0 0 0 9.5 9.5z"/>',
+  pen: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+  up: '<path d="M4 17l5-5 4 4 7-8"/><path d="M15 8h5v5"/>',
+  loop: '<path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3"/><path d="M18 3v4h-4M6 21v-4h4"/>',
+  gift: '<rect x="4" y="9" width="16" height="11" rx="2"/><path d="M12 9v11M4 13h16M12 9c-2-4-6-3-5 0M12 9c2-4 6-3 5 0"/>',
+  snow: '<path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9M9.5 4.5 12 7l2.5-2.5M9.5 19.5 12 17l2.5 2.5"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>',
+  two: '<rect x="3.5" y="6" width="7.5" height="12" rx="2"/><rect x="13" y="6" width="7.5" height="12" rx="2"/>',
+  crown: '<path d="M3.5 17.5h17l1-10.5-5.2 4.2L12 4.5l-4.3 6.7L2.5 7z"/><path d="M4 20.5h16"/>'
+};
+var WK = [1, 3, 8, 15, 25, 40, 52], N100 = [1, 5, 15, 30, 50, 75, 100], N60 = [1, 3, 7, 15, 25, 40, 60];
+function bySport(c, sp) { return c.all.filter(function (e) { return e.s.sport === sp; }); }
+function sumDist(c, sp) { var f = DIST[sp].f, t = 0; bySport(c, sp).forEach(function (e) { if (e.s.d && e.s.d[f]) t += e.s.d[f]; }); return f === 'm' ? t / 1000 : t; }
+function maxDist(c, sp) { var f = DIST[sp].f, t = 0; bySport(c, sp).forEach(function (e) { if (e.s.d && e.s.d[f] > t) t = e.s.d[f]; }); return t; }
+function weeksWith(c, fn) { return Object.keys(c.weeks).filter(function (w) { return fn(c.weeks[w]); }).length; }
+function daysWith(c, fn) { return c.keys.filter(function (k) { return fn(sessions(k), k); }).length; }
+function exAny(c, sp, fn) { return bySport(c, sp).some(function (e) { var d = e.s.d; return d && d.ex && Object.keys(d.ex).some(function (x) { return fn(x, d.ex[x]); }); }) ? 1 : 0; }
+function games(c, sp) { return bySport(c, sp).filter(function (e) { return e.s.d && (e.s.d.type === 'partita' || e.s.d.type === 'partitella' || e.s.d.type === 'torneo'); }).length; }
+function noteCount(c, sp) { return bySport(c, sp).filter(function (e) { var d = e.s.d; return d && ((d.note && d.note.trim()) || (d.n && Object.keys(d.n).length)); }).length; }
+var MEDALS = [];
+function M(d) { MEDALS.push(d); }
+// costanza
+M({ id: 'c_weeks', grp: 'cost', name: 'Settimane di fila', ic: MIC.cal, col: '#BDEBFF', th: [1, 2, 4, 8, 12, 26, 52], unit: 'settimane', desc: 'Settimane consecutive con almeno 2 giorni di sport.', val: function (c) { return c.bestWeekStreak; } });
+M({ id: 'c_months', grp: 'cost', name: 'Mesi in B o più', ic: MIC.cal, col: '#BDEBFF', th: [1, 2, 3, 6, 9, 12, 24], unit: 'mesi', desc: 'Mesi consecutivi chiusi in rango B o meglio.', val: function (c) { return c.bestMonthStreak; } });
+M({ id: 'c_hard', grp: 'cost', name: 'Quest difficili', ic: MIC.quest, col: '#BDEBFF', th: N100, unit: 'quest', desc: 'Quest difficili completate.', val: function (c) { return c.all.filter(function (e) { return e.s.quest && e.s.quest.done === true && e.s.quest.diff === 'hard'; }).length; } });
+M({ id: 'c_stars', grp: 'cost', name: 'Stelle', ic: MIC.star, col: '#FFC94D', th: [1, 3, 7, 15, 25, 40, 60], unit: 'stelle', desc: 'Sessioni top, segnate con la stella.', val: function (c) { return c.all.filter(function (e) { return e.s.star; }).length; } });
+// tratti
+TKEYS.forEach(function (t) { M({ id: 't_' + t, grp: 'trait', name: TRAITS[t].name, ic: TRAITS[t].ic, col: TRAITS[t].c, th: [1, 10, 25, 50, 100, 150, 250], unit: 'punti', desc: 'Punti accumulati dalle sessioni che allenano ' + TRAITS[t].name.toLowerCase() + '.', val: function (c) { return c.tv[t]; } }); });
+// sport
+ORDER.forEach(function (sp) { M({ id: 's_' + sp, grp: 'sport', sp: [sp], name: SPORTS[sp].name, ic: SPORTS[sp].ic, col: SPORTS[sp].c, th: N100, unit: 'sessioni', desc: 'Sessioni di ' + SPORTS[sp].name.toLowerCase() + ' segnate.', val: function (c) { return bySport(c, sp).length; } }); });
+// ranghi
+[['B', '#7CC4FF'], ['A', '#7CC4FF'], ['S', '#FFC94D']].forEach(function (r) { M({ id: 'r_' + r[0], grp: 'rank', name: 'Prim' + (r[0] === 'S' ? 'a ' : 'o ') + r[0], letter: r[0], col: r[1], th: [1], desc: 'Un mese chiuso in rango ' + r[0] + ' o meglio.', val: function (c) { return c.ranksHit[r[0]] ? 1 : 0; } }); });
+// segrete
+function SX(id, name, sp, ic, col, desc, th, val, unit) { M({ id: 'x_' + id, grp: 'secret', sp: sp, name: name, ic: ic, col: col, th: th || [1], unit: unit || '', desc: desc, val: val }); }
+var GC = '#BDEBFF', SPI = function (s) { return SPORTS[s].ic; }, SPC = function (s) { return SPORTS[s].c; };
+SX('testagambe', 'Testa e gambe', [], MIC.book, GC, 'Sport e Hard Study/Work nello stesso giorno.', N100, function (c) { return c.keys.filter(function (k) { return hasMark(k); }).length; }, 'giorni');
+SX('ritorno', 'Il ritorno', [], MIC.loop, GC, 'Torni ad allenarti dopo 3 settimane ferme. Bentornato.', [1, 2, 3, 5, 8, 12, 20], function (c) { var n = 0; for (var i = 1; i < c.keys.length; i++) if (diffDays(c.keys[i], c.keys[i - 1]) >= 21) n++; return n; }, 'ritorni');
+SX('firmamento', 'Firmamento', [], MIC.star, '#FFC94D', 'Tre stelle nello stesso mese.', [1], function (c) { return c.months.some(function (x) { return x.ms.stars >= 3; }) ? 1 : 0; });
+SX('puntuale', 'Puntuale', [], MIC.bolt, GC, 'Sessioni segnate il giorno stesso.', [10, 30, 60, 100, 200, 350, 500], function (c) { return c.all.filter(function (e) { return e.s.t && keyOf(new Date(e.s.t)) === e.k; }).length; }, 'sessioni');
+SX('doppietta', 'Doppietta', [], MIC.two, GC, 'Due sport diversi nello stesso giorno.', N100, function (c) { return daysWith(c, function (l) { var u = {}; l.forEach(function (s) { u[s.sport] = 1; }); return Object.keys(u).length >= 2; }); }, 'giorni');
+SX('weekend', 'Weekend warrior', [], MIC.sun, GC, 'Sabato e domenica entrambi attivi.', WK, function (c) { var n = 0; c.keys.forEach(function (k) { if (parseKey(k).getDay() === 6 && sessions(addDays(k, 1)).length) n++; }); return n; }, 'weekend');
+SX('lunedi', 'Il lunedì non mi fa paura', [], MIC.cal, GC, 'Allenamenti di lunedì.', N100, function (c) { return c.keys.filter(function (k) { return parseKey(k).getDay() === 1; }).length; }, 'lunedì');
+SX('perfetta', 'Settimana perfetta', [], MIC.crown, '#FFC94D', 'Settimane da 5 giorni su 7: il perfect score.', [1, 2, 4, 8, 12, 20, 30], function (c) { return weeksWith(c, function (w) { return w.days === 5; }); }, 'settimane');
+SX('riposo', 'Il riposo del guerriero', [], MIC.moon, GC, 'Dopo una settimana da 6 o 7 giorni, una più leggera da 2 o 3.', [1], function (c) { return Object.keys(c.weeks).some(function (w) { var nx = c.weeks[addDays(w, 7)]; return c.weeks[w].days >= 6 && nx && nx.days >= 2 && nx.days <= 3; }) ? 1 : 0; });
+SX('diario', 'Diario di bordo', [], MIC.pen, GC, 'Sessioni con una nota scritta.', N100, function (c) { return c.all.filter(function (e) { var d = e.s.d; return d && ((d.note && d.note.trim()) || (d.n && Object.keys(d.n).length)); }).length; }, 'note');
+SX('rimonta', 'Rimonta', [], MIC.up, GC, 'Chiudi il mese un rango sopra la proiezione di metà mese.', [1], function (c) { var mid = S.mid || {}, o = 'SABCDE'; return c.months.some(function (x) { return x.done && mid[x.ym] && o.indexOf(x.ms.rank) < o.indexOf(mid[x.ym]); }) ? 1 : 0; });
+SX('poliedrico', 'Poliedrico', [], MIC.crown, GC, 'Quattro tratti diversi come tratto del mese nello stesso anno.', [1], function (c) { var y = {}; c.months.forEach(function (x) { if (x.mt) { (y[x.y] = y[x.y] || {})[x.mt.top] = 1; } }); return Object.keys(y).some(function (k) { return Object.keys(y[k]).length >= 4; }) ? 1 : 0; });
+SX('spalla', 'Spalla a spalla', [], MIC.two, GC, 'Un mese con due tratti quasi pari.', [1], function (c) { return c.months.some(function (x) { return x.mt && x.mt.kind === 'spalla'; }) ? 1 : 0; });
+SX('testardo', 'Testardo', [], MIC.loop, GC, 'Quest non riuscita, poi riuscita la volta dopo nello stesso sport.', N60, function (c) { var n = 0, last = {}; c.all.forEach(function (e) { var q = e.s.quest; if (!q || q.done === null || q.done === undefined) return; if (q.done === true && last[e.s.sport] === false) n++; last[e.s.sport] = q.done; }); return n; }, 'volte');
+SX('catena', 'Quest a catena', [], MIC.quest, GC, 'Cinque quest riuscite di fila.', [1], function (c) { var run = 0, ok = 0; c.all.forEach(function (e) { var q = e.s.quest; if (!q || q.done === null || q.done === undefined) return; run = q.done ? run + 1 : 0; if (run >= 5) ok = 1; }); return ok; });
+SX('natale', 'Natale in movimento', [], MIC.gift, GC, 'Sport il 25 dicembre.', [1], function (c) { return c.keys.some(function (k) { return k.slice(5) === '12-25'; }) ? 1 : 0; });
+SX('capodanno', 'Buon anno', [], MIC.gift, GC, 'Sport il 1° gennaio.', [1], function (c) { return c.keys.some(function (k) { return k.slice(5) === '01-01'; }) ? 1 : 0; });
+SX('ferragosto', 'Ferragosto', [], MIC.sun, GC, 'Sport il 15 agosto.', [1], function (c) { return c.keys.some(function (k) { return k.slice(5) === '08-15'; }) ? 1 : 0; });
+SX('inverno', 'Inverno di ferro', [], MIC.snow, GC, 'Almeno 2 giorni ogni settimana di gennaio e febbraio.', [1], function (c) {
+  var yrs = {}; c.keys.forEach(function (k) { yrs[k.slice(0, 4)] = 1; }); var cur = mondayOf(todayKey());
+  return Object.keys(yrs).some(function (y) { var w = mondayOf(y + '-01-07'), ok = true, any = false; while (w.slice(0, 7) <= y + '-02') { if (w >= cur) return false; any = true; if (!c.weeks[w] || c.weeks[w].days < 2) ok = false; w = addDays(w, 7); } return any && ok; }) ? 1 : 0; });
+SX('anno', 'Un anno di Sistema', [], MIC.cal, GC, 'Dodici mesi di fila con almeno un giorno di sport.', [1], function (c) { var run = 0, ok = 0; c.months.forEach(function (x) { run = x.ms.days ? run + 1 : 0; if (run >= 12) ok = 1; }); return ok; });
+SX('studente', 'Studente modello', [], MIC.book, GC, 'Giornate di Hard Study/Work.', N100, function () { return Object.keys(S.marks || {}).length; }, 'giornate');
+SX('triatleta', 'Triatleta', ['run', 'swm', 'bik'], MIC.crown, '#7EE3F7', 'Corsa, nuoto e bici nella stessa settimana.', WK, function (c) { return weeksWith(c, function (w) { return w.sp.run && w.sp.swm && w.sp.bik; }); }, 'settimane');
+SX('duathlon', 'Duathlon', ['run', 'bik'], MIC.two, '#9BE15D', 'Corsa e bici nello stesso giorno.', N60, function (c) { return daysWith(c, function (l) { return l.some(function (s) { return s.sport === 'run'; }) && l.some(function (s) { return s.sport === 'bik'; }); }); }, 'giorni');
+SX('stagioni', 'Tutte le stagioni', ['wsf', 'ski'], MIC.sun, '#6FA8FF', 'Windsurf e sci nello stesso anno.', [1], function (c) { var y = {}; c.all.forEach(function (e) { if (e.s.sport === 'wsf' || e.s.sport === 'ski') (y[e.k.slice(0, 4)] = y[e.k.slice(0, 4)] || {})[e.s.sport] = 1; }); return Object.keys(y).some(function (k) { return y[k].wsf && y[k].ski; }) ? 1 : 0; });
+SX('racchette', 'Racchette', ['pad', 'ten'], MIC.two, '#FFC9A8', 'Padel e tennis nella stessa settimana.', WK, function (c) { return weeksWith(c, function (w) { return w.sp.pad && w.sp.ten; }); }, 'settimane');
+SX('grazia', 'Forza e grazia', ['gym', 'yog', 'pil'], MIC.two, '#E79BFF', 'Palestra e yoga o pilates nella stessa settimana.', WK, function (c) { return weeksWith(c, function (w) { return w.sp.gym && (w.sp.yog || w.sp.pil); }); }, 'settimane');
+SX('legday', 'Non saltare il leg day', ['gym'], SPI('gym'), SPC('gym'), 'Sessioni di palestra dedicate alle gambe.', N100, function (c) { return bySport(c, 'gym').filter(function (e) { return (e.s.d && e.s.d.group === 'gambe') || e.s.group === 'gambe'; }).length; }, 'sessioni');
+SX('completa', 'Settimana completa', ['gym'], SPI('gym'), SPC('gym'), 'Petto, spalle, schiena, gambe e braccia nella stessa settimana.', WK, function (c) { return weeksWith(c, function (w) { return ['petto', 'spalle', 'schiena', 'gambe', 'braccia'].every(function (g) { return w.groups[g]; }); }); }, 'settimane');
+SX('quintale', 'Quintale', ['gym'], SPI('gym'), SPC('gym'), 'Leg press a 100 kg.', [1], function (c) { return exAny(c, 'gym', function (x, v) { return x === 'Leg press' && v.w >= 100; }); });
+SX('panca100', 'Panca 100', ['gym'], SPI('gym'), SPC('gym'), 'Panca piana a 100 kg.', [1], function (c) { return exAny(c, 'gym', function (x, v) { return x === 'Panca piana' && v.w >= 100; }); });
+SX('core', 'Core di pietra', ['gym'], SPI('gym'), SPC('gym'), 'Plank 3×60 secondi.', [1], function (c) { return exAny(c, 'gym', function (x, v) { return x === 'Plank' && v.sec >= 60; }); });
+SX('ferro', 'Collezionista di ferro', ['gym'], SPI('gym'), SPC('gym'), 'Quindici esercizi diversi usati in palestra.', [1], function (c) { var u = {}; bySport(c, 'gym').forEach(function (e) { if (e.s.d && e.s.d.ex) Object.keys(e.s.d.ex).forEach(function (x) { u[x] = 1; }); }); return Object.keys(u).length >= 15 ? 1 : 0; });
+SX('flash', 'Flash', ['bld'], SPI('bld'), SPC('bld'), 'Blocchi chiusi al primo tentativo, bianchi esclusi.', N100, function (c) { var n = 0; bySport(c, 'bld').forEach(function (e) { var d = e.s.d; if (d && d.colors) Object.keys(d.colors).forEach(function (k) { if (k !== 'bianco') n += d.colors[k].f || 0; }); }); return n; }, 'flash');
+SX('colore', 'Nuovo colore', ['bld'], SPI('bld'), SPC('bld'), 'Il colore più alto che hai chiuso: sale dal bianco fino al nero.', [1, 2, 3, 4, 5, 6], function (c) { var b = 0; bySport(c, 'bld').forEach(function (e) { var d = e.s.d; if (d && d.colors) COLORS.forEach(function (col, i) { var v = d.colors[col.k]; if (v && v.c + v.f > 0) b = Math.max(b, i + 1); }); }); return b; }, '', COLORS.map(function (x) { return [x.name, x.c]; }));
+SX('arcobaleno', 'Arcobaleno', ['bld'], SPI('bld'), SPC('bld'), 'Blocchi di 4 colori diversi nella stessa sessione.', [1], function (c) { return bySport(c, 'bld').some(function (e) { var d = e.s.d; return d && d.colors && Object.keys(d.colors).filter(function (k) { return d.colors[k].c + d.colors[k].f > 0; }).length >= 4; }) ? 1 : 0; });
+SX('testadura', 'Testa dura', ['bld'], SPI('bld'), SPC('bld'), 'Un WIP chiuso nella sessione successiva.', N60, function (c) { var l = bySport(c, 'bld'), n = 0; for (var i = 1; i < l.length; i++) { var a = l[i - 1].s.d, b = l[i].s.d; if (a && b && a.colors && b.colors) Object.keys(a.colors).forEach(function (k) { if (a.colors[k].w > 0 && b.colors[k] && b.colors[k].c + b.colors[k].f > 0) n++; }); } return n; }, 'volte');
+SX('ragnocasa', 'Ragno di casa', ['bld'], SPI('bld'), SPC('bld'), 'Boulder 3 volte nella stessa settimana.', WK, function (c) { return weeksWith(c, function (w) { return (w.sd.bld || 0) >= 3; }); }, 'settimane');
+['bch', 'soc', 'pad', 'ten'].forEach(function (sp) { SX('felice_' + sp, 'Giornata felice · ' + SPORTS[sp].name, [sp], SPI(sp), SPC(sp), 'Giornate verdi di ' + SPORTS[sp].name.toLowerCase() + '.', N100, function (c) { return bySport(c, sp).filter(function (e) { return e.s.d && e.s.d.face === 'g'; }).length; }, 'giornate'); });
+SX('torneo', 'Torneo', ['bch'], SPI('bch'), SPC('bch'), 'Tornei di beach giocati.', [1, 2, 4, 8, 12, 20, 30], function (c) { return bySport(c, 'bch').filter(function (e) { return e.s.d && e.s.d.type === 'torneo'; }).length; }, 'tornei');
+SX('coach', 'Appunti da coach', ['bch'], SPI('bch'), SPC('bch'), 'Sessioni di beach con appunti sui fondamentali.', N100, function (c) { return bySport(c, 'bch').filter(function (e) { return e.s.d && e.s.d.n && Object.keys(e.s.d.n).length; }).length; }, 'sessioni');
+SX('sabbia', 'Sabbia ovunque', ['bch'], SPI('bch'), SPC('bch'), 'Beach 3 volte nella stessa settimana.', WK, function (c) { return weeksWith(c, function (w) { return (w.sd.bch || 0) >= 3; }); }, 'settimane');
+SX('km1', 'Il chilometro', ['swm'], SPI('swm'), SPC('swm'), 'Una sessione di nuoto da almeno 1 km.', [1], function (c) { return maxDist(c, 'swm') >= 1000 ? 1 : 0; });
+SX('manica', 'La traversata della Manica', ['swm'], SPI('swm'), SPC('swm'), '34 km nuotati in tutto, come attraversare la Manica.', [1], function (c) { return sumDist(c, 'swm') >= 34 ? 1 : 0; });
+SX('vasca', 'Chilometri in vasca', ['swm'], SPI('swm'), SPC('swm'), 'Chilometri nuotati in tutto.', [1, 5, 15, 34, 60, 100, 200], function (c) { return sumDist(c, 'swm'); }, 'km');
+SX('squalo', 'Squalo instancabile', ['swm'], SPI('swm'), SPC('swm'), '3 km in una sola sessione di nuoto.', [1], function (c) { return maxDist(c, 'swm') >= 3000 ? 1 : 0; });
+SX('maratoneta', 'Maratoneta a rate', ['run'], SPI('run'), SPC('run'), 'Chilometri corsi in tutto.', [5, 15, 42, 100, 200, 500, 1000], function (c) { return sumDist(c, 'run'); }, 'km');
+SX('dieci', 'La prima 10', ['run'], SPI('run'), SPC('run'), 'Una corsa da 10 km.', [1], function (c) { return maxDist(c, 'run') >= 10 ? 1 : 0; });
+SX('mezza', 'Mezza', ['run'], SPI('run'), SPC('run'), '21 km in una corsa.', [1], function (c) { return maxDist(c, 'run') >= 21 ? 1 : 0; });
+SX('sotto5', 'Sotto i 5', ['run'], SPI('run'), SPC('run'), 'Passo sotto i 5 minuti al km su almeno 5 km.', [1], function (c) { return bySport(c, 'run').some(function (e) { var d = e.s.d; return d && d.km >= 5 && d.min && d.min / d.km < 5; }) ? 1 : 0; });
+SX('esploratore', 'Esploratore', ['bon'], SPI('bon'), SPC('bon'), 'Attività bonus diverse provate.', [1, 3, 5, 8, 12, 16, 20], function (c) { var u = {}; bySport(c, 'bon').forEach(function (e) { if (e.s.d && e.s.d.name) u[e.s.d.name.trim().toLowerCase()] = 1; }); return Object.keys(u).length; }, 'attività');
+SX('curiosone', 'Curiosone', ['bon'], SPI('bon'), SPC('bon'), 'Tre attività bonus mai fatte prima, nello stesso mese.', [1], function (c) { var seen = {}, mon = {}, ok = 0; bySport(c, 'bon').forEach(function (e) { var n = e.s.d && e.s.d.name ? e.s.d.name.trim().toLowerCase() : ''; if (!n || seen[n]) return; seen[n] = 1; var ym = e.k.slice(0, 7); mon[ym] = (mon[ym] || 0) + 1; if (mon[ym] >= 3) ok = 1; }); return ok; });
+SX('giro', 'Giro d’Italia a rate', ['bik'], SPI('bik'), SPC('bik'), 'Chilometri pedalati in tutto.', [30, 100, 300, 800, 1500, 2500, 3400], function (c) { return sumDist(c, 'bik'); }, 'km');
+SX('centone', 'Centone', ['bik'], SPI('bik'), SPC('bik'), '100 km in un’uscita.', [1], function (c) { return maxDist(c, 'bik') >= 100 ? 1 : 0; });
+SX('calcetto', 'Calcetto del giovedì', ['soc'], SPI('soc'), SPC('soc'), 'Partite di calcio giocate.', N100, function (c) { return games(c, 'soc'); }, 'partite');
+SX('vetro', 'Re del vetro', ['pad'], SPI('pad'), SPC('pad'), 'Partite di padel giocate.', N100, function (c) { return games(c, 'pad'); }, 'partite');
+SX('pallettaro', 'Pallettaro onorario', ['ten'], SPI('ten'), SPC('ten'), 'Partite di tennis giocate.', N100, function (c) { return games(c, 'ten'); }, 'partite');
+SX('namaste', 'Namasté', ['yog', 'pil'], SPI('yog'), SPC('yog'), 'Lezioni di yoga o pilates votate Top.', N100, function (c) { return c.all.filter(function (e) { return (e.s.sport === 'yog' || e.s.sport === 'pil') && e.s.d && e.s.d.sat === 3; }).length; }, 'lezioni');
+SX('pace', 'Un’ora di pace', ['yog', 'pil'], SPI('pil'), SPC('pil'), 'Una lezione di yoga o pilates da almeno 60 minuti.', [1], function (c) { return c.all.some(function (e) { return (e.s.sport === 'yog' || e.s.sport === 'pil') && e.s.d && e.s.d.min >= 60; }) ? 1 : 0; });
+SX('trazioni', 'Dieci trazioni', ['cal'], SPI('cal'), SPC('cal'), '10 trazioni in una serie.', [1], function (c) { return exAny(c, 'cal', function (x, v) { return x === 'Trazioni' && v.reps >= 10; }); });
+SX('muscleup', 'Il primo muscle-up', ['cal'], SPI('cal'), SPC('cal'), 'Il primo muscle-up segnato.', [1], function (c) { return exAny(c, 'cal', function (x) { return x === 'Muscle-up'; }); });
+SX('wod', 'Il WOD racconta', ['cfx'], SPI('cfx'), SPC('cfx'), 'Note sull’allenamento del giorno di crossfit.', N100, function (c) { return noteCount(c, 'cfx'); }, 'note');
+SX('galeotto', 'Galeotto a rate', ['row'], SPI('row'), SPC('row'), 'Chilometri remati in tutto.', [5, 20, 50, 100, 250, 500, 1000], function (c) { return sumDist(c, 'row'); }, 'km');
+SX('neve', 'Prima neve', ['ski'], SPI('ski'), SPC('ski'), 'Un’uscita sugli sci d’inverno.', [1], function (c) { return bySport(c, 'ski').some(function (e) { var m = +e.k.slice(5, 7); return m >= 11 || m <= 3; }) ? 1 : 0; });
+SX('vento', 'Vento in poppa', ['wsf'], SPI('wsf'), SPC('wsf'), 'Tre uscite di windsurf nello stesso mese.', [1], function (c) { var mo = {}; bySport(c, 'wsf').forEach(function (e) { mo[e.k.slice(0, 7)] = (mo[e.k.slice(0, 7)] || 0) + 1; }); return Object.keys(mo).some(function (k) { return mo[k] >= 3; }) ? 1 : 0; });
+// la medaglia "Nuovo colore" usa i colori dei blocchi come leghe
+MEDALS.forEach(function (d) { if (d.id === 'x_colore') { d.labels = COLORS.map(function (x) { return x.name; }); d.tcol = COLORS.map(function (x) { return x.c === '#3A3F4A' ? '#8A93A6' : x.c; }); } });
+var MBYID = {}; MEDALS.forEach(function (d) { MBYID[d.id] = d; });
+function mctx() {
+  var keys = allKeysSorted(), all = [], weeks = {};
+  keys.forEach(function (k) {
+    var w = mondayOf(k), W = weeks[w] = weeks[w] || { days: 0, sp: {}, sd: {}, groups: {} }, seen = {};
+    W.days++;
+    sessions(k).forEach(function (s) {
+      all.push({ k: k, s: s }); W.sp[s.sport] = 1;
+      if (!seen[s.sport]) { seen[s.sport] = 1; W.sd[s.sport] = (W.sd[s.sport] || 0) + 1; }
+      var g = (s.d && s.d.group) || s.group; if (s.sport === 'gym' && g) W.groups[g] = 1;
+    });
+  });
+  var c = { keys: keys, all: all, weeks: weeks, tv: traitVals(keys), months: [], ranksHit: {} };
+  // settimane di fila con 2+ giorni
+  var best = 0, run = 0, cur = mondayOf(todayKey());
+  if (keys.length) { for (var w = mondayOf(keys[0]); w <= cur; w = addDays(w, 7)) { var ok = weeks[w] && weeks[w].days >= 2; if (ok) { run++; best = Math.max(best, run); } else if (w !== cur) run = 0; } }
+  c.bestWeekStreak = best;
+  // mesi
+  if (keys.length) {
+    var n = new Date(), y = +keys[0].slice(0, 4), m = +keys[0].slice(5, 7) - 1, rs = 0, rb = 0;
+    while (y < n.getFullYear() || (y === n.getFullYear() && m <= n.getMonth())) {
+      var ms = monthStats(y, m), done = !(y === n.getFullYear() && m === n.getMonth()), good = 'SAB'.indexOf(ms.rank) >= 0;
+      c.months.push({ y: y, m: m, ym: ymKey(y, m), ms: ms, done: done, mt: ms.days ? monthTraits(y, m) : null });
+      if (good) { c.ranksHit[ms.rank] = 1; if (ms.rank === 'S') c.ranksHit.A = c.ranksHit.B = 1; if (ms.rank === 'A') c.ranksHit.B = 1; rs++; rb = Math.max(rb, rs); } else if (done) rs = 0;
+      m++; if (m > 11) { m = 0; y++; }
+    }
+    c.bestMonthStreak = rb;
+  } else c.bestMonthStreak = 0;
+  return c;
+}
+function tierOf(d, v) { var t = -1; for (var i = 0; i < d.th.length; i++) if (v >= d.th[i] - 1e-9) t = i; return t; }
+function tierName(d, t) { if (t < 0) return ''; if (d.labels) return d.labels[t]; if (d.th.length === 1) return 'Ottenuta'; return TIERS[t][0]; }
+function tierCol(d, t) { if (t < 0) return '#2C3D5E'; if (d.tcol) return d.tcol[t]; if (d.th.length === 1) return d.col === '#FFC94D' ? '#FFC94D' : (d.grp === 'rank' ? d.col : '#FFC94D'); return TIERS[t][1]; }
+var medalDirty = true, medalCache = null;
+function medalState() {
+  if (!medalDirty && medalCache) return medalCache;
+  var c = mctx(), out = {};
+  MEDALS.forEach(function (d) { var v = 0; try { v = d.val(c) || 0; } catch (e) { v = 0; } out[d.id] = { v: v, t: tierOf(d, v) }; });
+  medalCache = out; medalDirty = false; return out;
+}
+function noteMid() {
+  if (!S) return; var n = new Date(); if (n.getDate() < 15) return; S.mid = S.mid || {}; var ym = ymKey(n.getFullYear(), n.getMonth());
+  if (S.mid[ym]) return; var ms = monthStats(n.getFullYear(), n.getMonth()), pj = projection(n.getFullYear(), n.getMonth(), ms);
+  if (pj && pj.rank) { S.mid[ym] = pj.rank; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+}
+function checkMedals() {
+  if (!S) return;
+  var st = medalState(); S.medals = S.medals || {}; var changed = false;
+  MEDALS.forEach(function (d) {
+    var t = st[d.id].t, old = S.medals[d.id] === undefined ? -1 : S.medals[d.id];
+    if (t > old) { S.medals[d.id] = t; changed = true; ui.mq = ui.mq || []; ui.mq.push({ id: d.id, t: t }); }
+  });
+  if (changed) save();
+}
+function mvisible(d, filter) {
+  var mine = S.profile.sports, st = medalState()[d.id];
+  if (filter === 'all') return true;
+  if (st.t >= 0) return true;
+  if (d.grp === 'sport') return mine.indexOf(d.sp[0]) >= 0;
+  if (d.grp === 'secret') return !d.sp.length || d.sp.some(function (s) { return mine.indexOf(s) >= 0; });
+  return true;
+}
+
+/* ---------- v2: medaglie a schermo ---------- */
+function medalHex(d, t, size, locked) {
+  var ring = locked ? '#2C3D5E' : tierCol(d, t), inner;
+  if (locked && d.grp === 'secret') inner = '<text x="50" y="62" text-anchor="middle" font-family="Exo 2, sans-serif" font-weight="700" font-size="30" fill="#3A4866">?</text>';
+  else if (d.letter) inner = '<text x="50" y="63" text-anchor="middle" font-family="Exo 2, sans-serif" font-weight="700" font-size="34" fill="' + (locked ? '#3A4866' : d.col) + '">' + d.letter + '</text>';
+  else inner = '<g transform="translate(26 26) scale(2)" fill="none" stroke="' + (locked ? '#3A4866' : d.col) + '" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + d.ic + '</g>';
+  var dash = locked && d.grp === 'secret' ? ' stroke-dasharray="6 5"' : '';
+  return '<svg class="mhex" width="' + size + '" height="' + size + '" viewBox="0 0 100 100" aria-hidden="true"' + (locked ? '' : ' style="filter:drop-shadow(0 0 ' + Math.round(size / 10) + 'px ' + ring + '77)"') + '><path d="M50 4l40 23v46L50 96 10 73V27z" fill="' + (locked ? '#0A0F1A' : '#0E1A30') + '" stroke="' + ring + '" stroke-width="3.2" stroke-linejoin="round"' + dash + '/><path d="M50 13l32 18.5v37L50 87 18 68.5v-37z" fill="none" stroke="' + ring + '" stroke-opacity=".3" stroke-width="1.2"/>' + inner + '</svg>';
+}
+function mfmt(d, v) { var x = Math.round(v * 10) / 10; return num(x); }
+function mnext(d, st) { var nt = st.t + 1; if (nt >= d.th.length) return null; return { t: nt, need: d.th[nt] }; }
+function medalCell(d, st) {
+  var locked = st.t < 0, nx = mnext(d, st), secretL = locked && d.grp === 'secret';
+  var pct = nx ? Math.max(0, Math.min(100, Math.round(st.v / nx.need * 100))) : 100;
+  var lab = secretL ? '' : (nx && d.th.length > 1 ? mfmt(d, st.v) + ' di ' + mfmt(d, nx.need) : (locked ? '' : ''));
+  return '<button class="mcell" data-a="mdet" data-v="' + d.id + '">' + medalHex(d, st.t, 58, locked) +
+    '<span class="mname' + (locked ? ' off' : '') + '">' + esc(secretL ? 'Segreta' : d.name) + '</span>' +
+    '<span class="mtier" style="color:' + (locked ? '#3A4866' : tierCol(d, st.t)) + '">' + (locked ? (secretL ? '' : '—') : tierName(d, st.t)) + '</span>' +
+    (secretL || d.th.length === 1 ? '' : '<span class="mbar"><i style="width:' + pct + '%;background:' + (nx ? tierCol(d, nx.t) : tierCol(d, st.t)) + '"></i></span><span class="mlab">' + lab + '</span>') + '</button>';
+}
+function viewBacheca() {
+  var st = medalState(), f = ui.bf || 'mine', mine = S.profile.sports;
+  var vis = MEDALS.filter(function (d) { return mvisible(d, f); }), got = vis.filter(function (d) { return st[d.id].t >= 0; }).length;
+  var h = header('Bacheca', '<button class="icon-btn" data-a="go" data-v="stato" aria-label="Torna a Stato">' + svg(IC.close) + '</button>');
+  h += '<div class="row"><div class="chips"><button class="chip' + (f === 'mine' ? ' on' : '') + '" data-a="bf" data-v="mine">I miei sport</button><button class="chip' + (f === 'all' ? ' on' : '') + '" data-a="bf" data-v="all">Tutte</button></div><span class="mcount">' + got + ' / ' + vis.length + '</span></div>';
+  function sec(title, sub, list) {
+    list = list.filter(function (d) { return mvisible(d, f); }); if (!list.length) return '';
+    return '<div class="msec"><div class="row" style="align-items:baseline"><span class="lbl kick">' + title + '</span><span class="hint" style="font-size:11px">' + sub + '</span></div><div class="mgrid">' + list.map(function (d) { return medalCell(d, st[d.id]); }).join('') + '</div></div>';
+  }
+  var sportsSorted = mine.concat(ORDER.filter(function (s) { return mine.indexOf(s) < 0; }));
+  h += sec('Costanza', 'la parte più importante', MEDALS.filter(function (d) { return d.grp === 'cost'; }));
+  h += sec('Tratti', 'punti delle sessioni', MEDALS.filter(function (d) { return d.grp === 'trait'; }));
+  h += sec('Sport', f === 'mine' ? 'i tuoi' : 'prima i tuoi, poi gli altri', sportsSorted.map(function (s) { return MBYID['s_' + s]; }));
+  h += sec('Ranghi', '', MEDALS.filter(function (d) { return d.grp === 'rank'; }));
+  var secs = MEDALS.filter(function (d) { return d.grp === 'secret'; });
+  secs.sort(function (a, b) { return (st[b.id].t >= 0) - (st[a.id].t >= 0); });
+  h += sec('Segrete', 'le scopri facendo', secs);
+  h += '<p class="hint" style="text-align:center;padding:4px 0 8px">Ogni medaglia sale di lega: Legno, Bronzo, Argento, Oro, Platino, Diamante, Challenger.</p>';
+  return h;
+}
+function medalLadder(d, st) {
+  if (d.th.length === 1) return '';
+  return '<div class="ladder">' + d.th.map(function (th, i) {
+    var done = st.t >= i, now = st.t === i, c = tierCol(d, i);
+    return '<div class="lrow' + (now ? ' now' : '') + (done ? '' : ' off') + '" style="' + (now ? 'border-color:' + c : '') + '"><svg width="22" height="22" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 4l40 23v46L50 96 10 73V27z" fill="#0E1A30" stroke="' + c + '" stroke-width="8" stroke-linejoin="round"/></svg><span class="ln" style="color:' + c + '">' + tierName(d, i) + '</span><span class="lv">' + (d.labels ? '' : mfmt(d, th) + ' ' + (d.unit || '')) + '</span><span class="lm">' + (now ? 'ORA' : done ? '✓' : '') + '</span></div>';
+  }).join('') + '</div>';
+}
+function viewMedalDetail(o, cls) {
+  var d = MBYID[o.id], st = medalState()[d.id], locked = st.t < 0, secretL = locked && d.grp === 'secret', nx = mnext(d, st);
+  var sub = secretL ? 'Si scopre facendo.' : esc(d.desc);
+  var prog = secretL ? '' : (nx && d.th.length > 1 ? mfmt(d, st.v) + ' ' + (d.unit || '') + ' · ' + mfmt(d, nx.need - st.v) + ' a ' + tierName(d, nx.t) : (locked ? 'Ancora da ottenere' : (d.th.length > 1 ? 'Lega massima raggiunta' : 'Ottenuta')));
+  return '<div class="' + cls + '" style="gap:12px">' + whead('Medaglia', true) +
+    '<div style="display:flex;align-items:center;gap:14px">' + medalHex(d, st.t, 88, locked) + '<div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font:700 22px/26px var(--fd);text-transform:uppercase;letter-spacing:.5px">' + esc(secretL ? 'Segreta' : d.name) + '</span><span style="font:700 12px/16px var(--fd);letter-spacing:2px;text-transform:uppercase;color:' + (locked ? 'var(--mut)' : tierCol(d, st.t)) + '">' + (locked ? 'Da scoprire' : tierName(d, st.t)) + '</span><span class="hint">' + prog + '</span></div></div>' +
+    '<p class="wtext" style="text-align:left">' + sub + '</p>' + (secretL ? '' : medalLadder(d, st)) + '</div>';
+}
+var LEAGUE_TXT = ['Ci hai provato.', 'Ci torni, ed è già tanto.', 'È un’abitudine.', 'Fa parte di te.', 'Ormai sei di casa.', 'I nuovi ti chiedono consigli.', 'Iscriviti a un torneino.'];
+function viewMedalWin(o, cls) {
+  var d = MBYID[o.id], t = o.tr, nx = d.th[t + 1], more = (ui.mq || []).length;
+  var line = d.th.length === 1 ? d.desc : (d.labels ? d.desc : LEAGUE_TXT[t] + ' ' + d.desc);
+  return '<div class="medalwin">' +
+    '<div class="mspin-wrap"><div class="mrays"></div><div class="mspin">' + medalHex(d, t, 150, false) + '</div></div>' +
+    '<div class="' + cls.replace(' anim', '') + ' mwin">' + whead('Nuova medaglia' + (o.tot > 1 ? ' · ' + o.n + ' di ' + o.tot : ''), false) +
+    '<span style="font:700 24px/28px var(--fd);text-transform:uppercase;letter-spacing:1px;text-align:center;color:' + tierCol(d, t) + '">' + esc(d.name) + (d.th.length > 1 ? ' · ' + tierName(d, t) : '') + '</span>' +
+    '<p class="wtext">' + esc(line) + (nx ? ' Prossima lega: ' + tierName(d, t + 1) + ', a ' + mfmt(d, nx) + (d.unit ? ' ' + d.unit : '') + '.' : '') + '</p>' +
+    '<div class="acts"><button class="btn" data-a="medalSkip">' + (more ? 'Salta le altre' : 'Bacheca') + '</button><button class="btn main" data-a="medalNext">' + (more ? 'Avanti' : 'Continua') + '</button></div></div></div>';
+}
+function medalSound() {
+  if (!S || !S.settings.sound) return;
+  try {
+    var a = audio(); if (!a) return; if (a.state !== 'running') { try { a.resume(); } catch (e) {} }
+    var t = a.currentTime + 0.03, d = 0, gap = 0.035;
+    for (var i = 0; i < 12; i++) { synth(a, t + d, i % 2 ? 88 : 93, 0.018, 'square', 0.04, 7000, 0.002); d += gap; gap *= 1.13; }
+    kickAt(a, t + d, 0.28); synth(a, t + d, 81, 0.05, 'square', 0.05, 6000, 0.002); synth(a, t + d + 0.07, 86, 0.04, 'square', 0.035, 6000, 0.002);
+    [69, 73, 76, 81].forEach(function (n) { synth(a, t + d + 0.1, n, 0.9, 'triangle', 0.04, 5000, 0.01); });
+    [96, 100, 103, 108].forEach(function (n, k) { synth(a, t + d + 0.16 + k * 0.07, n, 0.12, 'square', 0.018, 0, 0.002); });
+  } catch (e) {}
+}
+function mf(n) { return 440 * Math.pow(2, (n - 69) / 12); }
+function synth(a, t, n, dur, type, gain, cut, att, dest) {
+  var o = a.createOscillator(), g = a.createGain(); o.type = type; o.frequency.value = mf(n);
+  if (cut) { var f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = cut; o.connect(f); f.connect(g); } else o.connect(g);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + (att || 0.004)); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  g.connect(dest || a.destination); o.start(t); o.stop(t + dur + 0.05);
+}
+var NBUF = null;
+function noiseAt(a, t, dur, gain, hp, dest) {
+  if (!NBUF) { NBUF = a.createBuffer(1, a.sampleRate * 0.5, a.sampleRate); var x = NBUF.getChannelData(0); for (var i = 0; i < x.length; i++) x[i] = Math.random() * 2 - 1; }
+  var s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain(); s.buffer = NBUF; f.type = 'highpass'; f.frequency.value = hp || 6000; s.connect(f); f.connect(g);
+  g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); g.connect(dest || a.destination); s.start(t); s.stop(t + dur + 0.02);
+}
+function kickAt(a, t, gain) {
+  var o = a.createOscillator(), g = a.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.16);
+  g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.28); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + 0.3);
+}
+function revealSound() {
+  if (!S || !S.settings.sound) return;
+  try {
+    var a = audio(); if (!a) return;
+    var t = a.currentTime + 0.03, d = 0, gap = 0.05;
+    for (var i = 0; i < 9; i++) { synth(a, t + d, 69 + [0, 3, 7, 12, 15, 19, 24, 27, 31][i], 0.05, 'square', 0.05, 6000, 0.002); d += gap; gap *= 0.88; }
+    [57, 61, 64, 69, 73].forEach(function (n) { synth(a, t + d, n, 1.6, 'sawtooth', 0.03, 2600, 0.01); synth(a, t + d, n + 0.1, 1.6, 'sawtooth', 0.03, 2600, 0.01); });
+    kickAt(a, t + d, 0.5); noiseAt(a, t + d, 0.5, 0.08, 4000);
+    [2637, 3136, 3520, 4186].forEach(function (fr, k) { synth(a, t + d + 0.12 + k * 0.05, 69 + 12 * Math.log(fr / 440) / Math.LN2, k === 3 ? 0.35 : 0.06, 'square', 0.045, 0, 0.002); });
+  } catch (e) {}
+}
+/* musica del recap: Battito lento */
+var MUS = { timer: null, step: 0, next: 0, bus: null };
+var MCH = [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]];
+function musicStart() {
+  if (!S || !S.settings.sound || MUS.timer) return;
+  var a = audio(); if (!a) return; if (a.state !== 'running') { try { a.resume(); } catch (e) {} }
+  MUS.bus = a.createGain(); MUS.bus.gain.value = 0.85; MUS.bus.connect(a.destination);
+  MUS.step = 0; MUS.next = a.currentTime + 0.08;
+  var sd = 60 / 84 / 2;
+  MUS.timer = setInterval(function () {
+    while (MUS.next < a.currentTime + 0.15) {
+      var s = MUS.step, bar = Math.floor(s / 8), c = MCH[Math.floor(bar / 4) % 4], i = s % 8, up = bar >= 8 ? 12 : 0, t = MUS.next;
+      if (i % 2 === 0) synth(a, t, c[0] - 24, sd * 1.8, 'square', 0.05, 380, 0.006, MUS.bus);
+      var arp = [c[0], c[1], c[2], c[0] + 12, c[2], c[1], c[0] + 12, c[2]];
+      if (bar >= 2) synth(a, t, arp[i] + up, sd * 0.9, 'square', bar >= 8 ? 0.032 : 0.024, 2600, 0.003, MUS.bus);
+      if (bar >= 4 && i % 2 === 1) noiseAt(a, t, 0.03, 0.05, 7000, MUS.bus);
+      MUS.next += sd; MUS.step = (s + 1) % 128;
+    }
+  }, 25);
+}
+function musicStop() {
+  if (MUS.timer) { clearInterval(MUS.timer); MUS.timer = null; }
+  if (MUS.bus) { try { var a = audio(), g = MUS.bus; g.gain.setTargetAtTime(0.0001, a.currentTime, 0.15); setTimeout(function () { try { g.disconnect(); } catch (e) {} }, 800); } catch (e) {} MUS.bus = null; }
+}
+document.addEventListener('visibilitychange', function () { if (document.hidden) musicStop(); });
+
+/* ---------- v2: recap a storie ---------- */
+var PERS = {
+  F: [[['Bud Spencer', 'sport', 'Ex nuotatore olimpico, poi gli schiaffoni.'], ['Sansone', 'mito', 'La forza c’è, i capelli pure.'], ['Obelix', 'pop', 'Ci sei caduto da piccolo, ora allenati.']],
+      [['Arnold Schwarzenegger', 'sport', 'I’ll be back. In palestra, domani.'], ['Ercole', 'mito', 'Dodici fatiche. Tu ne hai fatte di più.'], ['Hulk', 'pop', 'Più verde di rabbia che di stanchezza.']],
+      [['Mike Tyson', 'sport', 'Tutti hanno un piano, poi arrivi tu.'], ['Atlante', 'mito', 'Regge il mondo. Tu il bilanciere.'], ['Terminator', 'pop', 'Non si ferma, non si stanca.']]],
+  R: [[['Dorando Pietri', 'sport', 'Stremato, ma arrivato.'], ['Fidippide', 'mito', 'La maratona l’ha corsa una volta sola.'], ['Fantozzi', 'pop', 'La Coppa Cobram ti aspetta.']],
+      [['Eliud Kipchoge', 'sport', 'Nessun limite umano, solo chilometri.'], ['Ulisse', 'mito', 'Dieci anni per tornare a casa: questione di fondo.'], ['Il coniglietto Duracell', 'pop', 'Dura, dura, dura.']],
+      [['Federica Pellegrini', 'sport', 'Vasche su vasche, per anni.'], ['Prometeo', 'mito', 'Incatenato e mai domo.'], ['Forrest Gump', 'pop', 'Ha corso per tre anni. Ci stai arrivando.']]],
+  A: [[['Usain Bolt al riscaldamento', 'sport', 'Il talento c’è, scaldati.'], ['Icaro', 'mito', 'Hai preso il volo. Occhio al sole.'], ['Bambi sul ghiaccio', 'pop', 'Le gambe ci sono.']],
+      [['Bruce Lee', 'sport', 'Potenza e velocità, senza sprecare un gesto.'], ['Ermes', 'mito', 'Ali ai piedi, consegne in giornata.'], ['Spider-Man', 'pop', 'Tela a parte, ci siamo.']],
+      [['Lionel Messi', 'sport', 'Dribbla anche il calendario.'], ['Atalanta', 'mito', 'Nessuno la batteva in corsa.'], ['Lara Croft', 'pop', 'Salta, si arrampica, non si siede mai.']]],
+  E: [[['Dino Zoff', 'sport', 'Calma e posizione.'], ['Dedalo', 'mito', 'Ingegno prima dei muscoli.'], ['Kung Fu Panda', 'pop', 'Pace interiore, dopo il raviolo.']],
+      [['Jury Chechi', 'sport', 'Il signore degli anelli, quelli veri.'], ['Atena', 'mito', 'Saggezza e strategia.'], ['Mr. Miyagi', 'pop', 'Metti la cera, togli la cera.']],
+      [['Nadia Comăneci', 'sport', 'Il primo 10 della storia.'], ['Chirone', 'mito', 'Il centauro maestro di eroi.'], ['Yoda', 'pop', 'Fare o non fare. Tu fai.']]]
+};
+var PCAT = { sport: ['Leggenda dello sport', '<circle cx="12" cy="9" r="5"/><path d="M8.5 13.2 7 21l5-2.5 5 2.5-1.5-7.8"/>'], mito: ['Dal mito', '<path d="M12 21V9M12 9c-3-1-5-3.5-5.5-6.5M12 9c3-1 5-3.5 5.5-6.5M12 13c-2.5-.5-4.5-2-5.5-4M12 13c2.5-.5 4.5-2 5.5-4M12 17c-2-.3-3.5-1.3-4.5-3M12 17c2-.3 3.5-1.3 4.5-3"/>'], pop: ['Dalla cultura pop', '<rect x="3.5" y="6" width="17" height="13" rx="2"/><path d="M3.5 10h17M7 6l2-3M12 6l2-3M17 6l2-3"/>'] };
+function persFor(mt, rank) { if (!mt) return null; var band = 'ED'.indexOf(rank) >= 0 ? 0 : 'CB'.indexOf(rank) >= 0 ? 1 : 2; return PERS[mt.top][band]; }
+function storyData(y, m) {
+  var ms = monthStats(y, m), mt = monthTraits(y, m), p = prevMonth(y, m), pv = monthStats(p.y, p.m);
+  return { y: y, m: m, ms: ms, mt: mt, pv: pv, pers: persFor(mt, ms.rank), len: new Date(y, m + 1, 0).getDate() };
+}
+function constellation(D, size) {
+  var c = size / 2, R = size / 2 - 22, h = '', pts = [], act = [];
+  for (var d = 1; d <= D.len; d++) {
+    var a = -Math.PI / 2 + 2 * Math.PI * (d - 1) / D.len; pts.push([c + R * Math.cos(a), c + R * Math.sin(a)]);
+    var k = ymKey(D.y, D.m) + '-' + pad(d); if (sessions(k).length) act.push(d);
+  }
+  if (act.length > 1) h += '<polyline points="' + act.map(function (d) { return pts[d - 1][0].toFixed(1) + ',' + pts[d - 1][1].toFixed(1); }).join(' ') + '" fill="none" stroke="#7CC4FF" stroke-opacity=".45" stroke-width="1.2" stroke-linejoin="round"/>';
+  for (var i = 1; i <= D.len; i++) {
+    var x = pts[i - 1][0].toFixed(1), yy = pts[i - 1][1].toFixed(1), ss = sessions(ymKey(D.y, D.m) + '-' + pad(i));
+    if (ss.length) {
+      var col = SPORTS[ss[0].sport].c, star = ss.some(function (s) { return s.star; });
+      h += '<circle cx="' + x + '" cy="' + yy + '" r="' + (star ? 6 : 4.5) + '" fill="' + col + '" style="filter:drop-shadow(0 0 6px ' + col + ')"/>' + (star ? '<circle cx="' + x + '" cy="' + yy + '" r="10" fill="none" stroke="#FFFFFF" stroke-opacity=".7" stroke-width="1"/>' : '');
+    } else h += '<circle cx="' + x + '" cy="' + yy + '" r="2" fill="#2C3D5E"/>';
+  }
+  h += '<text x="' + c + '" y="' + (c + 6) + '" text-anchor="middle" font-family="Exo 2, sans-serif" font-weight="700" font-size="64" fill="#EAF3FF">' + D.ms.days + '</text><text x="' + c + '" y="' + (c + 30) + '" text-anchor="middle" font-family="Exo 2, sans-serif" font-weight="600" font-size="12" letter-spacing="3" fill="#8FA3C2">GIORNI SU ' + D.len + '</text>';
+  return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 ' + size + ' ' + size + '" role="img" aria-label="' + D.ms.days + ' giorni di sport su ' + D.len + '" style="align-self:center">' + h + '</svg>';
+}
+function rankHex(r, size) {
+  return '<div class="rkhex" style="width:' + size + 'px;height:' + Math.round(size * 1.1) + 'px"><svg width="' + size + '" height="' + Math.round(size * 1.1) + '" viewBox="0 0 76 84" aria-hidden="true"><path d="M38 3l33 19v40L38 81 5 62V22z" fill="#14120A" stroke="#FFC94D" stroke-width="2" stroke-linejoin="round"/><path d="M38 9l27.5 16v34L38 75 10.5 59V25z" fill="none" stroke="#FFC94D" stroke-opacity=".35" stroke-width=".8"/></svg><span style="font-size:' + Math.round(size * 0.58) + 'px">' + r + '</span></div>';
+}
+function viewStory(o) {
+  var D = o.D, ms = D.ms, i = o.i, total = 5, body = '', gold = false, mname = MONTHS[D.m].toLowerCase();
+  if (i === 0) {
+    body = '<span class="skick">[ Sistema ] · Recap</span><span class="sbig" style="font-size:40px">' + MONTHS[D.m] + '</span><p class="stext">Il tuo mese è pronto.</p><span class="stap">Tocca per iniziare</span>';
+  } else if (i === 1) {
+    gold = true; var ri = 'EDCBAS'.indexOf(ms.rank);
+    body = '<span class="skick" style="color:#D9B04A">' + MONTHS[D.m] + ' si chiude in</span>' + rankHex(ms.rank, 200) + '<span class="sbig gold fit1 t34">' + esc(ms.title) + '</span><div class="segs">' + [0, 1, 2, 3, 4, 5].map(function (r) { return '<i class="' + (r <= ri ? 'on' : '') + '"></i>'; }).join('') + '</div><p class="stext" style="color:#8A7A50;font-size:13px">' + (ms.rank === 'S' ? 'Rango massimo. Leggendario.' : nextGoal(ms).replace(/^(.)/, function (x) { return x.toUpperCase(); }) + '.') + '</p>';
+  } else if (i === 2) {
+    var dd = ms.days - D.pv.days;
+    body = '<span class="skick">Il tuo ' + mname + ' in numeri</span>' + constellation(D, 290) + '<div class="pills"><span style="color:#7CC4FF;border-color:#2C3D5E">' + ms.qd + ' quest</span><span style="color:#FFC94D;border-color:#7A6430">' + ms.stars + (ms.stars === 1 ? ' stella' : ' stelle') + '</span>' + (D.pv.days && dd > 0 ? '<span style="color:#9BE15D;border-color:#2C3D5E">+' + dd + ' giorni</span>' : '') + '</div><p class="stext" style="font-size:13px;color:#5A6B88">Ogni punto è un giorno: acceso se ti sei allenato, cerchiato se è stato da stella.</p>';
+  } else if (i === 3) {
+    var mt = D.mt;
+    body = mt ? '<span class="skick">Il tratto di ' + mname + '</span><div style="display:flex;align-items:center;justify-content:center;gap:12px;max-width:100%">' + svg(TRAITS[mt.top].ic, TRAITS[mt.top].c, 40) + '<span class="sbig fit1 t42" style="min-width:0;color:' + TRAITS[mt.top].c + ';text-shadow:0 0 18px ' + TRAITS[mt.top].c + '99">' + TRAITS[mt.top].name + '</span></div><p class="stext" style="font-size:18px;color:var(--soft)">' + traitPhrase(mt) + '</p><div style="align-self:center">' + rombo(mt.v, ms.rank, 250, true) + '</div>' + (mt.grow ? '<div class="sgrow"><span style="display:flex;align-items:center;gap:10px">' + svg(TRAITS[mt.grow].ic, TRAITS[mt.grow].c, 20) + 'In crescita: ' + TRAITS[mt.grow].name + '</span><span style="color:#9BE15D">↑ da ' + MONTHS[prevMonth(D.y, D.m).m].toLowerCase() + '</span></div>' : '')
+      : '<span class="skick">Il tratto di ' + mname + '</span><p class="stext">Si accende con il primo allenamento.</p>';
+  } else if (i === 4) {
+    body = '<span class="skick">Questo mese assomigli a</span>' + (D.pers ? D.pers.map(function (p, k) { var ct = PCAT[p[1]]; return '<div class="pcard"><span class="pn">' + (k + 1) + '</span><div style="flex:1 1 auto;display:flex;flex-direction:column;gap:3px;min-width:0"><span class="pname">' + esc(p[0]) + '</span><span class="hint" style="font-size:13px">' + esc(p[2]) + '</span></div><span class="pcat">' + svg(ct[1], '#7CC4FF', 22) + '<span>' + ct[0] + '</span></span></div>'; }).join('') : '') + '<p class="stext" style="font-size:12px;color:#5A6B88">Scelti da: ' + (D.mt ? 'mese di ' + TRAITS[D.mt.top].name : '—') + ' · rango ' + ms.rank + '</p>';
+  } else {
+    body = '<span class="skick">Da condividere</span>' + shareCardHTML(D) + '<div class="acts"><button class="btn" data-a="storyClose">Chiudi</button><button class="btn main" data-a="shareRecap">Condividi</button></div>';
+  }
+  var segs = '<div class="ssegs">' + [0, 1, 2, 3, 4].map(function (k) { return '<i class="' + (k < i ? 'on' : '') + '"></i>'; }).join('') + '</div>';
+  return '<div class="story' + (gold ? ' gold' : '') + '" data-a="storyTap">' + (i ? segs : '') + '<div class="shead"><span>[ SISTEMA ] · RECAP</span><span>' + MONTHS[D.m].toUpperCase() + ' ' + D.y + '</span><button class="x" data-a="storyClose" aria-label="Chiudi il recap">' + svg(IC.close, null, 20) + '</button></div><div class="sbody' + animCls('story' + i + D.y + D.m, 'story') + '">' + body + '</div>' + (i > 0 && i < 5 ? '<span class="stap">Tocca per continuare</span>' : '') + '</div>';
+}
+function shareCardHTML(D) {
+  var ms = D.ms, mt = D.mt;
+  return '<div class="scard"><div class="row"><span class="skick" style="font-size:11px;letter-spacing:3px">[ Sistema ]</span><span class="hint" style="letter-spacing:2px;font-size:11px">' + MONTHS[D.m].toUpperCase() + ' ' + D.y + '</span></div>' +
+    '<div style="display:flex;align-items:center;gap:8px"><div style="flex:1 1 auto;display:flex;flex-direction:column;gap:4px;min-width:0"><span style="font:700 44px/44px var(--fd);color:#FFF4D6;text-shadow:0 0 16px rgba(255,201,77,.8)">' + ms.rank + '</span><span style="font:700 16px/20px var(--fd);color:var(--rew);text-transform:uppercase;letter-spacing:1px">' + esc(ms.title) + '</span>' + (mt ? '<span style="font:600 12px/16px var(--fd);letter-spacing:2px;color:' + TRAITS[mt.top].c + '">' + TRAITS[mt.top].name.toUpperCase() + ' <span style="color:var(--mut);letter-spacing:0;font-family:var(--fb);font-weight:500">' + traitPhrase(mt) + '</span></span>' : '') + '</div>' + (mt ? rombo(mt.v, ms.rank, 104, false) : '') + '</div>' +
+    '<div style="border-top:1px solid var(--line);padding-top:10px;font:500 13px/18px var(--fb);color:var(--soft)">' + ms.days + ' giorni · ' + ms.qd + ' quest' + (D.pers ? ' · assomiglia ' + persList(D.pers, function (b) { return '<b style="color:var(--ink)">' + esc(b) + '</b>'; }) : '') + '</div></div>';
+}
+/* immagine da condividere (canvas 1080x1350) */
+function persList(ps, wrap) {
+  var AP = { il: 'al', lo: 'allo', la: 'alla', i: 'ai', gli: 'agli', le: 'alle' };
+  var out = ps.map(function (p, i) {
+    var n = p[0], m = n.match(/^(Il|Lo|La|I|Gli|Le) (.*)$/), ap = n.match(/^L['’](.*)$/), pre = '', body = n;
+    if (m) { pre = i === 0 ? AP[m[1].toLowerCase()] + ' ' : m[1].toLowerCase() + ' '; body = m[2]; }
+    else if (ap) { pre = i === 0 ? 'all’' : 'l’'; body = ap[1]; }
+    else if (i === 0) pre = 'a ';
+    return pre + (wrap ? wrap(body) : body);
+  });
+  return out.slice(0, -1).join(', ') + ' e ' + out[out.length - 1];
+}
+function shareImage(D, cb) {
+  var W = 1080, H = 1350, cv = document.createElement('canvas'); cv.width = W; cv.height = H; var g = cv.getContext('2d'), ms = D.ms, mt = D.mt;
+  var bg = g.createRadialGradient(W * 0.3, 0, 50, W * 0.3, 0, H); bg.addColorStop(0, '#1B1A10'); bg.addColorStop(0.45, '#0B1220'); bg.addColorStop(1, '#070B14'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  g.strokeStyle = '#FFC94D'; g.lineWidth = 3; roundRect(g, 40, 40, W - 80, H - 80, 40); g.stroke();
+  var FD = '"Exo 2", "Segoe UI", sans-serif', FB = 'Manrope, "Segoe UI", sans-serif';
+  g.fillStyle = '#7CC4FF'; g.font = '600 30px ' + FD; g.fillText('[ SISTEMA ]', 100, 130);
+  g.fillStyle = '#8FA3C2'; g.textAlign = 'right'; g.fillText(MONTHS[D.m].toUpperCase() + ' ' + D.y, W - 100, 130); g.textAlign = 'left';
+  g.save(); g.shadowColor = 'rgba(255,201,77,.85)'; g.shadowBlur = 50; g.fillStyle = '#FFF4D6'; g.font = '700 300px ' + FD; g.fillText(ms.rank, 90, 450); g.restore();
+  g.fillStyle = '#FFC94D'; g.font = '700 64px ' + FD; wrapText(g, ms.title.toUpperCase(), 100, 560, W - 200, 72);
+  if (mt) {
+    g.fillStyle = TRAITS[mt.top].c; g.font = '700 44px ' + FD; g.fillText(TRAITS[mt.top].name.toUpperCase(), 100, 720);
+    var tw0 = g.measureText(TRAITS[mt.top].name.toUpperCase() + '  ').width; g.fillStyle = '#C6D6EA'; g.font = '500 36px ' + FB; g.fillText(traitPlain(mt), 100 + tw0, 720);
+    drawRombo(g, mt.v, ms.rank, W - 290, 330, 190);
+  }
+  g.strokeStyle = '#1E2A42'; g.lineWidth = 2; g.beginPath(); g.moveTo(100, 800); g.lineTo(W - 100, 800); g.stroke();
+  g.fillStyle = '#EAF3FF'; g.font = '700 120px ' + FD; g.fillText(String(ms.days), 100, 960); g.fillStyle = '#8FA3C2'; g.font = '600 30px ' + FD; g.fillText('GIORNI', 100, 1005);
+  g.fillStyle = '#7CC4FF'; g.font = '700 120px ' + FD; g.fillText(String(ms.qd), 420, 960); g.fillStyle = '#8FA3C2'; g.font = '600 30px ' + FD; g.fillText('QUEST', 420, 1005);
+  g.fillStyle = '#FFC94D'; g.font = '700 120px ' + FD; g.fillText(String(ms.stars), 700, 960); g.fillStyle = '#8FA3C2'; g.font = '600 30px ' + FD; g.fillText('STELLE', 700, 1005);
+  if (D.pers) { g.fillStyle = '#C6D6EA'; g.font = '500 36px ' + FB; wrapText(g, 'Assomiglia ' + persList(D.pers) + '.', 100, 1120, W - 200, 48); }
+  g.fillStyle = '#5A6B88'; g.font = '600 26px ' + FD; g.fillText('SISTEMA · IL GIOCO DELLA COSTANZA', 100, H - 100);
+  cv.toBlob(function (b) { cb(b); }, 'image/png');
+}
+function roundRect(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+function wrapText(g, t, x, y, mw, lh) { var w = t.split(' '), line = ''; for (var i = 0; i < w.length; i++) { var test = line ? line + ' ' + w[i] : w[i]; if (g.measureText(test).width > mw && line) { g.fillText(line, x, y); line = w[i]; y += lh; } else line = test; } g.fillText(line, x, y); }
+function drawRombo(g, v, rank, cx, cy, R) {
+  var pos = { F: [0, -1], A: [1, 0], R: [0, 1], E: [-1, 0] }, gold = rank === 'S';
+  [0.25, 0.5, 0.75, 1].forEach(function (s, i) { g.beginPath(); TKEYS.forEach(function (k, j) { var x = cx + pos[k][0] * R * s, y = cy + pos[k][1] * R * s; if (j) g.lineTo(x, y); else g.moveTo(x, y); }); g.closePath(); g.strokeStyle = gold && i === 3 ? '#FFC94D' : (RSCALE[rank] >= s - 1e-9 ? '#3A4E74' : '#1A2438'); g.lineWidth = 2; g.stroke(); });
+  var m = Math.max(v.F, v.A, v.R, v.E) || 1, sc = RSCALE[rank] || 0.17;
+  g.beginPath(); TKEYS.forEach(function (k, j) { var x = cx + pos[k][0] * R * v[k] / m * sc, y = cy + pos[k][1] * R * v[k] / m * sc; if (j) g.lineTo(x, y); else g.moveTo(x, y); }); g.closePath();
+  g.fillStyle = gold ? 'rgba(255,201,77,.25)' : 'rgba(59,167,255,.25)'; g.fill(); g.strokeStyle = gold ? '#FFC94D' : '#7CC4FF'; g.lineWidth = 4; g.stroke();
+  TKEYS.forEach(function (k) { g.beginPath(); g.arc(cx + pos[k][0] * R * v[k] / m * sc, cy + pos[k][1] * R * v[k] / m * sc, 9, 0, Math.PI * 2); g.fillStyle = TRAITS[k].c; g.fill(); });
+}
+
 /* ---------- render ---------- */
 var root = document.getElementById('app');
 function fitTitles() {
@@ -1289,23 +1853,27 @@ window.addEventListener('popstate', function () {
   if (o) {
     if (o.t === 'notice' && o.kind === 'gender') { render(); return; }
     if (o.t === 'recap') { A.recapOk(); return; }
+    if (o.t === 'story') { A.storyClose(); return; }
+    if (o.t === 'medal') { A.medalNext(); return; }
     if (o.t === 'notice') { if (o.kind === 'backup') A.noticeLater(); else if (o.kind === 'intro') A.introOk(); else A.noticeOk(); return; }
     if (o.t === 'details' && o.form && o.form.adding) { o.form.adding = null; render(); return; }
     ui.ov = null;
   } else if (ui.arrange) ui.arrange = false;
-  else if (ui.screen === 'settings') ui.screen = 'stato';
+  else if (ui.screen === 'settings' || ui.screen === 'bacheca') ui.screen = 'stato';
   else if (ui.screen !== 'home') ui.screen = 'home';
   render();
 });
 function render() {
   if (drag) { setTimeout(render, 120); return; }
   var keep = root.querySelector('[data-keep]'), keepTop = keep ? keep.scrollTop : 0;
-  var main = root.querySelector('.scroller'), mainTop = main ? main.scrollTop : 0;
+  var main = root.querySelector('.scroller'), mainTop = main && lastScreen === ui.screen ? main.scrollTop : 0; lastScreen = ui.screen;
   var focus = document.activeElement && document.activeElement.getAttribute && document.activeElement.getAttribute('data-f');
   var h;
   if (!S) { lastAnim = {}; h = viewOnboarding(); }
   else {
-    var body = ui.screen === 'stato' ? viewStato() : ui.screen === 'settings' ? viewSettings() : viewHome();
+    if (medalDirty) { noteMid(); checkMedals(); }
+    if (!ui.ov && ui.mq && ui.mq.length) { if (!ui.mqTot || ui.mqN >= ui.mqTot) { ui.mqTot = ui.mq.length; ui.mqN = 0; } var q = ui.mq.shift(); ui.mqN++; ui.ov = { t: 'medal', id: q.id, tr: q.t, n: ui.mqN, tot: ui.mqTot }; if (!ui.mq.length) { ui.mqTot = 0; } medalSound(); }
+    var body = ui.screen === 'stato' ? viewStato() : ui.screen === 'settings' ? viewSettings() : ui.screen === 'bacheca' ? viewBacheca() : viewHome();
     if (!ui.ov) lastAnim.ov = null;
     if (ui.screen !== 'home') lastAnim.card = null;
     var ovKey = ui.ov ? [ui.ov.t, ui.ov.kind, ui.ov.k, ui.ov.id, ui.ov.sport, ui.ov.group].join('|') : null;
@@ -1322,6 +1890,8 @@ function render() {
   if (focus) { var el = root.querySelector('[data-f="' + focus + '"]'); if (el) { el.focus(); try { var l = el.value.length; el.setSelectionRange(l, l); } catch (e) {} } }
   var imp = document.getElementById('imp'); if (imp) imp.onchange = function () { if (imp.files && imp.files[0]) importBackup(imp.files[0]); };
 }
+var lastTapX = 999;
+document.addEventListener('pointerdown', function (e) { lastTapX = e.clientX; }, true);
 root.addEventListener('click', function (e) {
   if (swallowClick) { swallowClick = false; if (tileOf(e)) return; }
   var b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
