@@ -440,7 +440,7 @@ function allKeysSorted() { return Object.keys(S.days).filter(function (k) { retu
 function sessXp(s) { return 10 + (s.quest && s.quest.done === true ? DIFF[s.quest.diff].bonus : 0) + (s.star ? 5 : 0); }
 function sessPts(s) { return s.quest && s.quest.done === true ? DIFF[s.quest.diff].pts : 1; }
 function dayPts(k) { var m = 0; sessions(k).forEach(function (s) { m = Math.max(m, sessPts(s)); }); return m; }
-function totalXp() { var x = 0; Object.keys(S.days).forEach(function (k) { S.days[k].forEach(function (s) { x += sessXp(s); }); }); return x; }
+function totalXp() { var x = 0; Object.keys(S.days).forEach(function (k) { S.days[k].forEach(function (s) { x += sessXp(s); }); }); return x + (S.party ? gloveXp() : 0); }
 function levelInfo(xp) { var lv = 1, need = 100; while (xp >= need) { xp -= need; lv++; need = 100 + 50 * (lv - 1); } return { lv: lv, inLv: xp, need: need }; }
 function levelOf(xp) { return levelInfo(xp).lv; }
 function rankOf(p, table, stars) { table = table || RANKS; for (var i = 0; i < table.length; i++) if (p >= table[i][1] && (stars === undefined || (stars || 0) >= (table[i][2] || 0))) return table[i][0]; return 'E'; }
@@ -457,6 +457,7 @@ function monthStats(y, m) {
     });
     if (dq) { qDays++; qSum += best; }
   });
+  var gw = S.party ? gloveWonCount(ymKey(y, m)) : 0; qSum += gw * GPTS;
   var pts = monthPts(keys.length, qSum), sportPts = {};
   Object.keys(counts).forEach(function (sp) { sportPts[sp] = Math.min(counts[sp], SPORT_CAP) * 2 + (sportQ[sp] || 0); });
   var rk = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a] || ORDER.indexOf(a) - ORDER.indexOf(b); });
@@ -468,7 +469,7 @@ function monthStats(y, m) {
   Object.keys(seen).forEach(function (w) { if (seen[w] >= 2) weeksOk++; });
   var first = new Date(y, m, 1), last = new Date(y, m + 1, 0), wTot = {};
   for (var d = new Date(first); d <= last; d.setDate(d.getDate() + 1)) wTot[mondayOf(keyOf(d))] = 1;
-  return { keys: keys, days: keys.length, qDays: qDays, qSum: qSum, stars: stars, pts: pts, rank: rankOf(pts, RANKS, stars), counts: counts, sportPts: sportPts, sessions: n, top: top, second: second, title: title, qd: qd, qt: qt, weeksOk: weeksOk, weeksTot: Object.keys(wTot).length, hw: hw };
+  return { keys: keys, days: keys.length, qDays: qDays, qSum: qSum, stars: stars, pts: pts, rank: rankOf(pts, RANKS, stars), plus: gw > 0 && rankOf(pts, RANKS, stars) === 'S', gloves: gw, counts: counts, sportPts: sportPts, sessions: n, top: top, second: second, title: title, qd: qd, qt: qt, weeksOk: weeksOk, weeksTot: Object.keys(wTot).length, hw: hw };
 }
 function monthPts(days, qSum) { return Math.min(days, DAY_CAP) * 2 + Math.min(qSum, DAY_CAP); }
 function nextGoal(ms) {
@@ -776,7 +777,7 @@ var A = {
   bf: function (v) { ui.bf = v; ding('tap'); render(); },
   medalNext: function () { ui.ov = null; ding('tap'); render(); },
   medalBach: function () { ui.ov = null; ui.arrange = false; ui.screen = 'bacheca'; ding('open'); render(); },
-  medalSkip: function () { if ((ui.mq || []).length) { ui.mq = []; ui.ov = null; render(); return; } ui.ov = null; ui.screen = 'bacheca'; render(); },
+  medalSkip: function () { ui.mqTot = 0; if ((ui.mq || []).length) { ui.mq = []; ui.ov = null; render(); return; } ui.ov = null; ui.screen = 'bacheca'; render(); },
   bacheca: function () { ui.arrange = false; ui.screen = 'bacheca'; ding('open'); render(); },
   recapOk: function () { var o = ui.ov; if (o.first) { S.seen.recap = ymKey(o.y, o.m); save(); ui.ov = null; startupNotice(); render(); return; } if (o.back) { ui.ov = { t: o.back }; render(); return; } close(); },
   fnote: function (f) { var fm = ui.ov.form; fm.nopen[f] = true; ui.focusNext = 'fn:' + f; ding('tap'); render(); },
@@ -973,6 +974,7 @@ function viewHome() {
   } else {
     h += '<div class="' + (animCls('none', 'card') ? 'fade' : '') + '" style="border:1px dashed var(--line2);border-radius:14px;background:#0A101C;padding:14px 16px;display:flex;flex-direction:column;gap:4px"><span class="lbl">Nessuna quest attiva</span><span style="font:500 14px/20px var(--fb);color:var(--soft)">Tocca oggi sul calendario per ricevere la quest del giorno.</span></div>';
   }
+  h += homeGloves();
   // calendario
   var first = new Date(y, m, 1), lead = (first.getDay() + 6) % 7, nd = new Date(y, m + 1, 0).getDate(), n = new Date();
   var isCur = y === n.getFullYear() && m === n.getMonth();
@@ -1008,8 +1010,8 @@ function viewStato() {
   var n = new Date(), ms = monthStats(n.getFullYear(), n.getMonth()), li = levelInfo(totalXp()), lv = li.lv, inLv = li.inLv, pj = projection(n.getFullYear(), n.getMonth(), ms);
   var h = header('Stato', '<button class="icon-btn" data-a="go" data-v="settings" aria-label="Impostazioni" style="position:relative">' + svg(IC.gear) + (backupDue() ? '<i style="position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:4px;background:#FFC94D;box-shadow:0 0 6px #FFC94D"></i>' : '') + '</button>');
   h += '<div style="border-radius:14px;border:1px solid rgba(59,167,255,.6);background:#0B1424;box-shadow:0 0 22px rgba(59,167,255,.22),inset 0 0 22px rgba(59,167,255,.08);padding:16px;display:flex;gap:16px;align-items:center">' +
-    '<div style="width:76px;height:84px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;position:relative"><svg width="76" height="84" viewBox="0 0 76 84" aria-hidden="true" style="position:absolute;inset:0"><path d="M38 3l33 19v40L38 81 5 62V22z" fill="#0E1A30" stroke="#3BA7FF" stroke-width="2" stroke-linejoin="round"/></svg><span style="position:relative;font:700 44px/1 var(--fd);text-shadow:0 0 16px rgba(59,167,255,.9)">' + ms.rank + '</span></div>' +
-    '<div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:6px"><span style="font:700 24px/28px var(--fd);letter-spacing:2px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(S.profile.name) + '</span><span style="font:500 14px/18px var(--fb);color:var(--soft)">Rango ' + ms.rank + ' · Livello ' + lv + '</span>' + (pj ? '<span style="font:600 12px/16px var(--fd);letter-spacing:1px;color:' + (pj.early ? 'var(--mut)' : '#D9B04A') + '">' + (pj.early ? 'Proiezione dalla seconda settimana' : pj.rank === ms.rank ? 'Al tuo ritmo resti ' + ms.rank : 'Al tuo ritmo chiudi in ' + pj.rank) + '</span>' : '') + '<div class="track"><div class="fill" style="width:' + Math.round(inLv / li.need * 100) + '%"></div></div><span class="hint">' + inLv + ' / ' + li.need + ' XP al livello ' + (lv + 1) + '</span></div></div>';
+    '<div style="width:76px;height:84px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;position:relative"><svg width="76" height="84" viewBox="0 0 76 84" aria-hidden="true" style="position:absolute;inset:0"><path d="M38 3l33 19v40L38 81 5 62V22z" fill="' + (ms.plus ? '#14120A' : '#0E1A30') + '" stroke="' + (ms.plus ? '#F4F1E6' : '#3BA7FF') + '" stroke-width="2" stroke-linejoin="round"/>' + (ms.plus ? '<path d="M38 12l25 14.5v31L38 72 13 57.5v-31z" fill="none" stroke="#FFC94D" stroke-width="1.6" stroke-linejoin="round"/>' : '') + '</svg><span style="position:relative;font:700 ' + (ms.plus ? 32 : 44) + 'px/1 var(--fd);text-shadow:0 0 16px ' + (ms.plus ? 'rgba(255,201,77,.9)' : 'rgba(59,167,255,.9)') + '">' + ms.rank + (ms.plus ? '+' : '') + '</span></div>' +
+    '<div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:6px"><span style="font:700 24px/28px var(--fd);letter-spacing:2px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(S.profile.name) + '</span><span style="font:500 14px/18px var(--fb);color:var(--soft)">Rango ' + ms.rank + (ms.plus ? '+' : '') + ' · Livello ' + lv + '</span>' + (pj ? '<span style="font:600 12px/16px var(--fd);letter-spacing:1px;color:' + (pj.early ? 'var(--mut)' : '#D9B04A') + '">' + (pj.early ? 'Proiezione dalla seconda settimana' : pj.rank === ms.rank ? 'Al tuo ritmo resti ' + ms.rank : 'Al tuo ritmo chiudi in ' + pj.rank) + '</span>' : '') + '<div class="track"><div class="fill" style="width:' + Math.round(inLv / li.need * 100) + '%"></div></div><span class="hint">' + inLv + ' / ' + li.need + ' XP al livello ' + (lv + 1) + '</span></div></div>';
   h += '<div style="border-radius:14px;border:1px solid rgba(255,201,77,.55);background:#14120A;box-shadow:0 0 18px rgba(255,201,77,.16);padding:14px 16px;display:flex;flex-direction:column;gap:2px"><span class="lbl" style="color:#D9B04A">Titolo di ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span class="fit1 t28" style="color:var(--rew);text-shadow:0 0 14px rgba(255,201,77,.45);letter-spacing:1px;text-transform:uppercase">' + esc(ms.title) + '</span><div style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px"><span style="font:500 13px/18px var(--fb);color:#C9BFA0;min-width:0;text-wrap:balance">' + titleWhy(ms) + '</span><span style="font:500 13px/18px var(--fb);color:#C9BFA0;white-space:nowrap;flex:0 0 auto">' + ms.weeksOk + '/' + ms.weeksTot + ' settimane</span></div></div>';
   var mtc = monthTraits(n.getFullYear(), n.getMonth());
   if (mtc) {
@@ -1049,7 +1051,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">Punti, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + CLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 2.0</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 2.1</span>';
   return h;
 }
 
@@ -1062,6 +1064,7 @@ function stepper(path, val, step, min, fmt, mini) {
 function viewOverlay() {
   var o = ui.ov; if (!o) return '';
   if (o.t === 'story') return viewStory(o);
+  if (o.t === 'glove') return viewGloveWin(o);
   if (o.t === 'medal') return '<div class="veil' + (animCls('medal' + o.id + o.tr) ? ' fade' : '') + '">' + viewMedalWin(o, 'win') + '</div>';
   var key = o.t + (o.sport || '') + (o.group || '') + (o.k || '') + (o.id || ''), cls = 'win' + animCls(key), h = '';
   if (o.t === 'pick' || o.t === 'past') {
@@ -1125,8 +1128,16 @@ function viewOverlay() {
       '<div class="fld"><span class="lbl" style="font-size:11px">Hard Study/Work</span><p>Un segno sul calendario per le giornate di testa. Non è sport e non dà punti: è solo un modo per ricordarle.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Tratto del mese</span><p>Ogni sport allena uno o più tratti: <b>Forza</b>, <b>Agilità</b>, <b>Resistenza</b>, <b>Equilibrio</b>. Il tratto del mese è quello che hai allenato di più; il rombo ne mostra la forma, e la sua grandezza segue il rango.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Bacheca</span><p>Medaglie che non si azzerano mai e salgono di lega: Legno, Bronzo, Argento, Oro, Platino, Diamante, Challenger. Molte sono <b>segrete</b>: le scopri facendo.</p></div>' +
-      '<div class="fld"><span class="lbl" style="font-size:11px">XP e livello</span><p>Ogni sessione dà 10 XP, una quest riuscita da 5 a 20 in più, una stella 5. Il livello cresce e non si perde mai.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Party e guanto di sfida</span><p>Un amico ti lancia il <b>guanto</b>: uno sport e una quest precisa. Puoi accettare, dire non oggi o modificarla e rimandarla. Scade a mezzanotte. Se lo completi vale <b>+15 XP</b> e <b>mezzo punto</b> per il rango del mese. Se chi lancia sceglie “la faccio anch’io”, diventa una <b>quest condivisa</b>.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Rango S+</span><p>Il gradino sopra S: tutti i requisiti di S più almeno un guanto di un amico completato nel mese.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Cinque</span><p>Un applauso a un amico, uno a settimana per amico. Non dà punti: fa solo piacere.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">XP e livello</span><p>Ogni sessione dà 10 XP, una quest riuscita da 5 a 20 in più, una stella 5, un guanto completato 15. Il livello cresce e non si perde mai.</p></div>' +
       '</div><button class="btn main" data-a="close">Ho capito</button></div>';
+  } else if (o.t === 'launch') { h = viewLaunch(o, cls);
+  } else if (o.t === 'gcounter') { h = viewGCounter(o, cls);
+  } else if (o.t === 'gdone') { h = viewGDone(o, cls);
+  } else if (o.t === 'gwin') { h = viewGWin(o, cls);
+  } else if (o.t === 'gangNew') { h = viewGangNew(o, cls);
   } else if (o.t === 'recap') {
     h = viewRecap(o, cls);
   } else if (o.t === 'mdet') {
@@ -1445,6 +1456,10 @@ SX('neve', 'Prima neve', ['ski'], SPI('ski'), SPC('ski'), 'Un’uscita sugli sci
 SX('vento', 'Vento in poppa', ['wsf'], SPI('wsf'), SPC('wsf'), 'Tre uscite di windsurf nello stesso mese.', [1], function (c) { var mo = {}; bySport(c, 'wsf').forEach(function (e) { mo[e.k.slice(0, 7)] = (mo[e.k.slice(0, 7)] || 0) + 1; }); return Object.keys(mo).some(function (k) { return mo[k] >= 3; }) ? 1 : 0; });
 // la medaglia "Nuovo colore" usa i colori dei blocchi come leghe
 MEDALS.forEach(function (d) { if (d.id === 'x_colore') { d.labels = COLORS.map(function (x) { return x.name; }); d.tcol = COLORS.map(function (x) { return x.c === '#3A3F4A' ? '#8A93A6' : x.c; }); } });
+M({ id: 'r_Sp', grp: 'rank', name: 'Primo S+', letter: 'S+', col: '#F4F1E6', th: [1], desc: 'Un mese chiuso in S+: rango S e almeno un guanto di un amico completato.', val: function (c) { return c.ranksHit.Sp ? 1 : 0; } });
+SX('guanto', 'Raccogli il guanto', [], '<path d="M8 20.5v-4.2L4.8 12.6c-.9-1.1.5-2.6 1.6-1.7L8.6 13V5.6a1.3 1.3 0 0 1 2.6 0v5.6V4.3a1.3 1.3 0 0 1 2.6 0v6.9V5.3a1.3 1.3 0 0 1 2.6 0v6.4V8a1.3 1.3 0 0 1 2.6 0v7.2c0 2.6-1.4 4.2-3.4 5.3"/><path d="M7.6 20.5h9.2"/>', '#FFC94D', 'Guanti degli amici completati.', [1, 3, 7, 15, 25, 40, 60], function () { return S.party ? gloveWonCount() : 0; }, 'guanti');
+SX('sfidante', 'Sfidante', [], '<path d="M8 20.5v-4.2L4.8 12.6c-.9-1.1.5-2.6 1.6-1.7L8.6 13V5.6a1.3 1.3 0 0 1 2.6 0v5.6V4.3a1.3 1.3 0 0 1 2.6 0v6.9V5.3a1.3 1.3 0 0 1 2.6 0v6.4V8a1.3 1.3 0 0 1 2.6 0v7.2c0 2.6-1.4 4.2-3.4 5.3"/><path d="M7.6 20.5h9.2"/>', '#FF9F6B', 'Guanti lanciati agli amici.', [1, 5, 10, 25, 50, 75, 100], function () { return S.party ? S.party.ch.filter(function (x) { return x.from === 'me'; }).length : 0; }, 'guanti');
+SX('cinque', 'Batti cinque', [], '<path d="M8.6 13V5.6a1.3 1.3 0 0 1 2.6 0v5.6V4.3a1.3 1.3 0 0 1 2.6 0v6.9V5.3a1.3 1.3 0 0 1 2.6 0v6.4V8a1.3 1.3 0 0 1 2.6 0v7.2c0 3.4-2.4 5.8-5.8 5.8-2.2 0-3.6-.9-4.8-2.4l-3.4-4.6c-.9-1.1.5-2.6 1.6-1.7z"/>', '#7CC4FF', 'Cinque dati agli amici.', [1, 5, 15, 30, 50, 75, 100], function () { return S.party ? (S.party.nfive || 0) : 0; }, 'cinque');
 var MBYID = {}; MEDALS.forEach(function (d) { MBYID[d.id] = d; });
 function mctx() {
   var keys = allKeysSorted(), all = [], weeks = {};
@@ -1468,6 +1483,7 @@ function mctx() {
     while (y < n.getFullYear() || (y === n.getFullYear() && m <= n.getMonth())) {
       var ms = monthStats(y, m), done = !(y === n.getFullYear() && m === n.getMonth()), good = 'SAB'.indexOf(ms.rank) >= 0;
       c.months.push({ y: y, m: m, ym: ymKey(y, m), ms: ms, done: done, mt: ms.days ? monthTraits(y, m) : null });
+      if (ms.plus) c.ranksHit.Sp = 1;
       if (good) { c.ranksHit[ms.rank] = 1; if (ms.rank === 'S') c.ranksHit.A = c.ranksHit.B = 1; if (ms.rank === 'A') c.ranksHit.B = 1; rs++; rb = Math.max(rb, rs); } else if (done) rs = 0;
       m++; if (m > 11) { m = 0; y++; }
     }
@@ -1753,6 +1769,305 @@ function drawRombo(g, v, rank, cx, cy, R) {
   TKEYS.forEach(function (k) { g.beginPath(); g.arc(cx + pos[k][0] * R * v[k] / m * sc, cy + pos[k][1] * R * v[k] / m * sc, 9, 0, Math.PI * 2); g.fillStyle = TRAITS[k].c; g.fill(); });
 }
 
+/* ---------- Party (2.1, modalità prova sul telefono) ---------- */
+var PI = {
+  party: '<circle cx="9" cy="8.2" r="3.2"/><path d="M3.5 19c.6-3.4 2.8-5.2 5.5-5.2s4.9 1.8 5.5 5.2"/><circle cx="16.6" cy="9.2" r="2.6"/><path d="M15.6 13.9c2.6-.2 4.4 1.5 4.9 4.6"/>',
+  glove: '<path d="M8 20.5v-4.2L4.8 12.6c-.9-1.1.5-2.6 1.6-1.7L8.6 13V5.6a1.3 1.3 0 0 1 2.6 0v5.6V4.3a1.3 1.3 0 0 1 2.6 0v6.9V5.3a1.3 1.3 0 0 1 2.6 0v6.4V8a1.3 1.3 0 0 1 2.6 0v7.2c0 2.6-1.4 4.2-3.4 5.3"/><path d="M7.6 20.5h9.2"/>',
+  letter: '<rect x="3.5" y="6" width="17" height="12.5" rx="2"/><path d="M4.2 7.2 12 13l7.8-5.8"/>',
+  five: '<path d="M8.6 13V5.6a1.3 1.3 0 0 1 2.6 0v5.6V4.3a1.3 1.3 0 0 1 2.6 0v6.9V5.3a1.3 1.3 0 0 1 2.6 0v6.4V8a1.3 1.3 0 0 1 2.6 0v7.2c0 3.4-2.4 5.8-5.8 5.8-2.2 0-3.6-.9-4.8-2.4l-3.4-4.6c-.9-1.1.5-2.6 1.6-1.7z"/>',
+  link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+  medal: '<path d="M12 3.5l7 4v8l-7 4-7-4v-8z"/>'
+};
+var PSCR = ['party', 'friend', 'letters', 'psettings', 'gang'];
+var PGOLD = '#FFC94D', GXP = 15, GPTS = 0.5;
+var PRESETS = {
+  gym: ['Panca 60 kg × 5', '3 serie di trazioni', 'Squat 80 kg × 5'], cal: ['10 trazioni di fila', '20 dip', 'Plank 2 minuti'], cfx: ['Un WOD sotto i 15 minuti', '50 burpees'],
+  run: ['10 km', '5 km sotto i 30 minuti', '8 km'], swm: ['2 km', '40 vasche', '1 km a stile'], bik: ['40 km', '1 ora in salita'], row: ['5 km', '2 km sotto gli 8 minuti'],
+  bch: ['Una partita', '2 ore in spiaggia'], soc: ['Una partita', 'Un gol'], pad: ['Una partita', '2 set'], ten: ['Un set', 'Una partita'],
+  yog: ['Una sessione da 45 minuti', 'Saluto al sole × 10'], pil: ['Una sessione da 45 minuti'], wsf: ['Un’uscita'], ski: ['5 discese'],
+  bld: ['3 verdi chiusi', '2 blu', '5 blocchi nuovi'], bon: ['Qualcosa di nuovo']
+};
+var GANG_COLS = ['#B98CFF', '#FF7A59', '#2DD4BF', '#F4D35E', '#7CC4FF', '#FF4F7B'];
+var DEMO = [
+  { id: 'giulia', n: 'Giulia', g: 'f', r: 'A', lv: 8, top: 'run', v: { F: 2, A: 4, R: 9, E: 3 }, sports: ['run', 'bik', 'yog'], med: 38, wk: 11, fr: 7, mode: 'acc', rep: 'Ci sto!' },
+  { id: 'luca', n: 'Luca', g: 'm', r: 'C', lv: 4, top: 'pad', v: { F: 3, A: 8, R: 4, E: 5 }, sports: ['pad', 'ten', 'gym'], med: 14, wk: 2, fr: 3, mode: 'none' },
+  { id: 'marco', n: 'Marco', g: 'm', r: 'B', lv: 7, top: 'bld', v: { F: 3, A: 9, R: 4, E: 6 }, sports: ['bld', 'cal', 'run'], med: 31, wk: 8, fr: 6, mode: 'counter', rep: 'Facciamo così?' },
+  { id: 'sara', n: 'Sara', g: 'f', r: 'S', lv: 11, top: 'swm', v: { F: 4, A: 3, R: 10, E: 5 }, sports: ['swm', 'run', 'pil'], med: 52, wk: 19, fr: 8, mode: 'acc', rep: 'Andata, a stasera' }
+];
+function hashN(s) { var h = 7; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 1000003; return h; }
+function P() { return S.party; }
+function partyOn() { return !!(S && S.party && S.party.demo); }
+function partyInit() {
+  if (S.party) return;
+  var t = todayKey(), now = Date.now(), mine = S.profile.sports.filter(function (s) { return s !== 'bon'; }), sp = mine.indexOf('bld') >= 0 ? 'bld' : (mine[0] || 'run');
+  S.party = {
+    demo: true, code: 'SIS-' + uid().slice(-4).toUpperCase(), friends: DEMO.map(function (f) { return f.id; }),
+    ch: [{ id: uid(), from: 'marco', to: 'me', sp: sp, q: (PRESETS[sp] || ['Una sessione'])[0], shared: true, msg: 'Stasera, vediamo chi chiude prima', st: 'pending', day: t, t: now, seen: false }],
+    letters: [
+      { id: uid(), k: 'five', f: 'giulia', tx: 'Giulia ti ha dato il cinque', sub: 'Per il tuo ' + MONTHS[new Date().getMonth()].toLowerCase(), t: now - 36e5, rd: false },
+      { id: uid(), k: 'medal', f: 'sara', tx: 'Sara ha preso una medaglia d’oro', sub: 'Nuoto · Oro, 30 sessioni', t: now - 864e5, rd: false }
+    ],
+    fives: {}, gangs: [], set: { q: true, det: false, rec: false, nG: true, nW: true, nF: false }
+  };
+  save();
+}
+function friend(id) { for (var i = 0; i < DEMO.length; i++) if (DEMO[i].id === id) return DEMO[i]; return null; }
+function fTitle(f) { var T = TITLES[f.top]; return f.g === 'f' ? T[1] : T[0]; }
+function trainedOn(f, k) { if (k > todayKey()) return false; return hashN(k + f.id) % 10 < f.fr; }
+function fSportOn(f, k) { return f.sports[hashN(f.id + k) % f.sports.length]; }
+function myCh() { return P() ? P().ch : []; }
+function chWith(fid) { return myCh().filter(function (c) { return c.from === fid || c.to === fid; }).sort(function (a, b) { return b.t - a.t; }); }
+function chOpenToday(fid) { var t = todayKey(); return myCh().filter(function (c) { return c.day === t && (c.from === fid || c.to === fid) && ['pending', 'accepted', 'countered'].indexOf(c.st) >= 0; })[0] || null; }
+function incomingPending() { var t = todayKey(); return myCh().filter(function (c) { return c.to === 'me' && c.day === t && c.st === 'pending'; }); }
+function activeGloves() { var t = todayKey(); return myCh().filter(function (c) { return c.day === t && c.st === 'accepted' && !c.me && (c.to === 'me' || c.shared); }); }
+function gloveWonCount(ym) { return myCh().filter(function (c) { return c.to === 'me' && c.me && (!ym || c.day.indexOf(ym) === 0); }).length; }
+function gloveXp() { return myCh().filter(function (c) { return c.me; }).length * GXP; }
+function unreadLetters() { return P() ? P().letters.filter(function (l) { return !l.rd; }).length : 0; }
+function letter(k, f, tx, sub) { P().letters.unshift({ id: uid(), k: k, f: f, tx: tx, sub: sub, t: Date.now(), rd: false }); }
+function chLabel(c) { return SPORTS[c.sp].name + ' · ' + c.q; }
+function partyTick() {
+  if (!partyOn()) return;
+  var p = P(), t = todayKey(), now = Date.now(), dirty = false;
+  p.ch.slice().forEach(function (c) {
+    var f = friend(c.from === 'me' ? c.to : c.from); if (!f) return;
+    if (c.day < t) {
+      if (c.st === 'pending' || c.st === 'countered') { c.st = 'expired'; dirty = true; if (c.from === 'me') letter('none', f.id, f.n + ': nessuna risposta', chLabel(c) + ' · è scaduta a mezzanotte'); }
+      else if (c.st === 'accepted' && !c.done && !c.me) { c.st = 'over'; dirty = true; }
+      return;
+    }
+    if (c.from === 'me' && c.st === 'pending' && now - c.t > 8000) {
+      if (f.mode === 'acc') { c.st = 'accepted'; c.ta = now; c.reply = f.rep; dirty = true; letter('acc', f.id, f.n + ' ha accettato', chLabel(c) + (c.shared ? ' · quest condivisa' : '') + ' · “' + f.rep + '”'); }
+      else if (f.mode === 'counter') {
+        c.st = 'countered'; dirty = true;
+        var q2 = (PRESETS[c.sp] || [c.q]).filter(function (x) { return x !== c.q; })[0] || c.q;
+        p.ch.unshift({ id: uid(), from: f.id, to: 'me', sp: c.sp, q: q2, shared: c.shared, msg: f.rep + ' ' + q2 + ' invece di ' + c.q.toLowerCase() + '.', st: 'pending', day: t, t: now, seen: false, counter: true });
+      }
+    }
+    if (c.from === 'me' && c.st === 'accepted' && !c.done && now - (c.ta || c.t) > 45000) { c.done = true; dirty = true; letter('won', f.id, f.n + ' ha vinto la tua sfida', chLabel(c)); if (!c.shared || c.me) c.st = 'won'; }
+    if (c.to === 'me' && c.st === 'countered' && now - (c.tc || c.t) > 8000) { c.st = 'accepted'; c.sp = c.sp2 || c.sp; c.q = c.q2 || c.q; c.ta = now; dirty = true; letter('acc', f.id, f.n + ' accetta la tua modifica', chLabel(c)); }
+    if (c.to === 'me' && c.shared && c.st === 'accepted' && !c.done && now - (c.ta || c.t) > 60000) { c.done = true; dirty = true; }
+  });
+  if (dirty) save();
+}
+function gloveQueue() {
+  if (S && !S.party && PSCR.indexOf(ui.screen) >= 0) partyInit();
+  if (!partyOn() || ui.ov || activeGloves().some(function (c) { return c.to === 'me'; })) return;
+  var c = incomingPending().filter(function (x) { return !x.seen; })[0];
+  if (c) { c.seen = true; save(); ui.ov = { t: 'glove', id: c.id }; setTimeout(medalSound, 30); }
+}
+function chById(id) { var l = myCh(); for (var i = 0; i < l.length; i++) if (l[i].id === id) return l[i]; return null; }
+/* esagono rango piccolo */
+function rkHex(r, s, plus) {
+  s = s || 36; var h = Math.round(s * 1.1), gold = r === 'S', st = plus ? '#F4F1E6' : gold ? PGOLD : '#3BA7FF', label = plus ? 'S+' : r;
+  return '<span style="width:' + s + 'px;height:' + h + 'px;flex:0 0 auto;position:relative;display:flex;align-items:center;justify-content:center"><svg width="' + s + '" height="' + h + '" viewBox="0 0 76 84" aria-hidden="true" style="position:absolute;inset:0' + (plus ? ';filter:drop-shadow(0 0 6px rgba(255,201,77,.7))' : '') + '"><path d="M38 3l33 19v40L38 81 5 62V22z" fill="' + (gold ? '#14120A' : '#0E1A30') + '" stroke="' + st + '" stroke-width="' + (plus ? 3 : 2) + '" stroke-linejoin="round"/>' + (plus ? '<path d="M38 12l25 14.5v31L38 72 13 57.5v-31z" fill="none" stroke="' + PGOLD + '" stroke-width="1.6" stroke-linejoin="round"/>' : '') + '</svg><span style="position:relative;font:700 ' + Math.round(s * (plus ? 0.42 : 0.5)) + 'px/1 var(--fd);color:' + (gold ? '#FFF4D6' : 'var(--ink)') + ';text-shadow:0 0 10px ' + (gold ? 'rgba(255,201,77,.8)' : 'rgba(59,167,255,.9)') + '">' + label + '</span></span>';
+}
+function pDot(c) { return '<i style="display:block;width:8px;height:8px;border-radius:4px;background:' + c + ';box-shadow:0 0 6px ' + c + ';flex:0 0 auto"></i>'; }
+function pPill(t, c) { return '<span style="font:600 11px/14px var(--fd);letter-spacing:1px;text-transform:uppercase;color:' + c + ';border:1px solid ' + c + '66;border-radius:6px;padding:3px 7px;white-space:nowrap">' + t + '</span>'; }
+function pSec(t, r) { return '<div class="row" style="align-items:baseline;padding:4px 2px 0"><span class="lbl kick">' + t + '</span>' + (r ? '<span class="hint" style="font-size:11px">' + r + '</span>' : '') + '</div>'; }
+function pBack(kick, title, to) { return '<div class="top"><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="lbl kick">[ ' + kick + ' ]</span><h1>' + esc(title) + '</h1></div><button class="icon-btn" data-a="go" data-v="' + to + '" aria-label="Indietro">' + svg(IC.left) + '</button></div>'; }
+function friendRow(f, extra) {
+  var t = todayKey(), inc = myCh().filter(function (c) { return c.from === f.id && c.to === 'me' && c.day === t && c.st === 'pending'; })[0];
+  var unread = P().letters.filter(function (l) { return !l.rd && l.f === f.id; })[0];
+  var lit = inc ? ';border-color:' + PGOLD + '8C;box-shadow:0 0 14px rgba(255,201,77,.18);background:#14120A' : '';
+  var sub = extra || (unread ? unread.tx : '');
+  return '<button class="card" data-a="fOpen" data-v="' + f.id + '" style="display:flex;align-items:center;gap:12px;padding:10px 12px;text-align:left;color:var(--ink);width:100%' + lit + '">' + rkHex(f.r, 36) +
+    '<span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="display:flex;align-items:center;gap:8px;font:700 16px/20px var(--fd);letter-spacing:1px;text-transform:uppercase">' + f.n + (trainedOn(f, t) ? pDot(SPORTS[fSportOn(f, t)].c) : '') + '</span>' +
+    '<span style="font:600 12px/16px var(--fd);letter-spacing:.5px;color:var(--rew);text-transform:uppercase">' + fTitle(f) + '</span>' + (sub ? '<span class="hint" style="font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(sub) + '</span>' : '') + '</span>' +
+    (inc ? '<span style="display:flex;flex-direction:column;align-items:center;gap:2px">' + svg(PI.glove, PGOLD, 22) + '<span style="font:600 9px/11px var(--fd);letter-spacing:1px;color:#D9B04A">SFIDA</span></span>' : '') +
+    (!inc && unread ? '<span style="position:relative">' + svg(PI.letter, '#7CC4FF', 22) + '<i style="position:absolute;top:-2px;right:-3px;width:8px;height:8px;border-radius:4px;background:#7CC4FF"></i></span>' : '') + '</button>';
+}
+function gloveCard(c, action) {
+  var f = friend(c.from === 'me' ? c.to : c.from), mine = c.from === 'me';
+  var kick = mine ? 'Il tuo guanto a ' + f.n : 'Guanto di ' + f.n;
+  var sub = c.st === 'pending' ? (mine ? 'In attesa di risposta' : 'Tocca per rispondere') : c.st === 'countered' ? 'Modifica inviata, aspetta ' + f.n : (c.shared ? 'Quest condivisa · ' : '') + 'entro mezzanotte';
+  return '<button class="card" data-a="' + action + '" data-v="' + c.id + '" style="border-color:' + PGOLD + '8C;background:#14120A;box-shadow:0 0 18px rgba(255,201,77,.16);padding:10px 14px;display:flex;align-items:center;gap:12px;text-align:left;color:var(--ink);width:100%">' + svg(PI.glove, PGOLD, 26) +
+    '<span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:1px"><span class="lbl" style="color:#D9B04A;font-size:11px">' + kick + '</span><span style="font:700 16px/20px var(--fd);letter-spacing:1px;text-transform:uppercase;color:var(--rew);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(chLabel(c)) + '</span><span class="hint" style="font-size:11.5px">' + sub + '</span></span>' + svg(IC.right, '#D9B04A', 18) + '</button>';
+}
+function viewParty() {
+  partyInit();
+  var p = P(), n = unreadLetters();
+  var top = '<button class="icon-btn" data-a="go" data-v="letters" aria-label="Letterine' + (n ? ', ' + n + ' nuove' : '') + '" style="position:relative">' + svg(PI.letter) + (n ? '<i style="position:absolute;top:6px;right:6px;min-width:16px;height:16px;border-radius:8px;background:#FFC94D;color:#14120A;font:700 10px/16px var(--fd);font-style:normal;text-align:center">' + n + '</i>' : '') + '</button><button class="icon-btn" data-a="go" data-v="psettings" aria-label="Impostazioni del Party">' + svg(IC.gear) + '</button>';
+  var h = header('Party', top);
+  if (!p.demo) return h + '<div class="card" style="padding:16px;display:flex;flex-direction:column;gap:8px"><span class="lbl kick">Party in arrivo</span><p style="margin:0;font:500 14px/21px var(--fb);color:var(--soft)">Gli amici veri arrivano con il cloud. Intanto puoi riaccendere la modalità prova dalle impostazioni.</p><button class="btn" data-a="go" data-v="psettings">Impostazioni</button></div>';
+  var t = todayKey();
+  myCh().filter(function (c) { return c.day === t && (c.to === 'me' && ['pending', 'accepted', 'countered'].indexOf(c.st) >= 0 && !c.me); }).forEach(function (c) { h += gloveCard(c, c.st === 'pending' ? 'gOpen' : 'gHome'); });
+  h += pSec('Amici', DEMO.length + ' · in ordine alfabetico') + '<div style="display:flex;flex-direction:column;gap:8px">' + DEMO.slice().sort(function (a, b) { return a.n.localeCompare(b.n); }).map(function (f) { return friendRow(f); }).join('') + '</div>';
+  h += pSec('Gang', '') + p.gangs.map(function (g) {
+    var on = g.mem.filter(function (id) { return weekTrained(friend(id)); }).length + (weekCount(t) ? 1 : 0);
+    return '<button class="card" data-a="gangOpen" data-v="' + g.id + '" style="display:flex;align-items:center;gap:12px;padding:10px 12px;color:var(--ink);text-align:left;border-color:' + g.col + '66">' + gangBadge(g, 36) + '<span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font:700 15px/20px var(--fd);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(g.name) + '</span><span class="hint">' + (g.mem.length + 1) + ' membri · ' + on + ' allenati questa settimana</span></span>' + svg(IC.right, 'var(--mut)', 20) + '</button>';
+  }).join('') + '<button class="hwbtn" style="min-height:44px" data-a="gangNew">' + svg(PI.plus, null, 18) + 'Crea una Gang</button>';
+  h += '<div class="card" style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px"><span style="display:flex;flex-direction:column;gap:2px"><span class="lbl" style="font-size:11px">Il tuo codice amico</span><span style="font:700 17px/22px var(--fd);letter-spacing:2px">' + p.code + '</span></span><button class="btn sm" data-a="pInvite">Invita</button></div>';
+  h += '<span class="hint" style="text-align:center;padding:0 10px 6px;font-size:11px">Modalità prova: amici finti che rispondono da soli, tutto resta sul telefono.</span>';
+  return h;
+}
+function weekTrained(f) { var mon = mondayOf(todayKey()); for (var i = 0; i < 7; i++) { var k = addDays(mon, i); if (trainedOn(f, k)) return true; } return false; }
+function gangBadge(g, s) { var ini = g.name.split(/\s+/).map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase(); return '<span style="width:' + s + 'px;height:' + s + 'px;flex:0 0 auto;border-radius:' + Math.round(s / 3.6) + 'px;background:' + g.col + '22;border:1px solid ' + g.col + ';display:flex;align-items:center;justify-content:center;font:700 ' + Math.round(s * 0.4) + 'px/1 var(--fd);color:' + g.col + '">' + esc(ini) + '</span>'; }
+function viewFriend() {
+  var f = friend(ui.fid); if (!f) { ui.screen = 'party'; return viewParty(); }
+  var t = todayKey(), n = new Date(), mt = { v: f.v }, ranked = Object.keys(f.v).sort(function (a, b) { return f.v[b] - f.v[a]; });
+  var top = ranked[0], sec = ranked[1], tc = TRAITS[top].c;
+  var h = pBack('Party', f.n, 'party');
+  h += '<div style="border-radius:14px;border:1px solid rgba(59,167,255,.6);background:#0B1424;box-shadow:0 0 22px rgba(59,167,255,.22);padding:14px 16px;display:flex;gap:14px;align-items:center">' + rkHex(f.r, 60) + '<div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:3px"><span style="font:700 22px/26px var(--fd);letter-spacing:2px;text-transform:uppercase">' + f.n + '</span><span style="font:500 13px/18px var(--fb);color:var(--soft)">Rango ' + f.r + ' · Livello ' + f.lv + '</span><span style="font:700 15px/20px var(--fd);letter-spacing:1px;color:var(--rew);text-transform:uppercase">' + fTitle(f) + '</span></div></div>';
+  h += '<div class="card tcard" style="border-color:' + tc + '8C;box-shadow:0 0 18px ' + tc + '29;background:#0C1320;background:color-mix(in srgb, ' + tc + ' 6%, #0A0F1A)"><div style="display:flex;flex-direction:column;gap:3px;flex:1 1 auto;min-width:0"><span class="lbl" style="font-size:11px;color:' + tc + '">Tratto di ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span style="display:flex;align-items:center;gap:8px">' + svg(TRAITS[top].ic, tc, 20) + '<span style="font:700 22px/28px var(--fd);letter-spacing:1.5px;text-transform:uppercase;color:' + tc + '">' + TRAITS[top].name + '</span></span><span style="font:500 13px/18px var(--fb);color:var(--soft)">Con un tocco di <b style="color:' + TRAITS[sec].c + '">' + TRAITS[sec].name + '</b></span></div>' + rombo(f.v, f.r, 74, false) + '</div>';
+  var nd = new Date(n.getFullYear(), n.getMonth() + 1, 0).getDate(), cnt = 0, dots = '';
+  for (var d = 1; d <= nd; d++) { var k = n.getFullYear() + '-' + pad(n.getMonth() + 1) + '-' + pad(d), on = trainedOn(f, k), c = on ? SPORTS[fSportOn(f, k)].c : '#1E2A42'; if (on) cnt++; dots += '<i style="display:block;width:8px;height:8px;border-radius:4px;background:' + c + (on ? ';box-shadow:0 0 5px ' + c : '') + '"></i>'; }
+  h += '<div class="card" style="padding:10px 14px;display:flex;flex-direction:column;gap:8px"><div class="row"><span class="lbl" style="font-size:11px">' + MONTHS[n.getMonth()] + ' · ' + cnt + ' giorni</span><span class="hint" style="font-size:11px">' + f.wk + ' settimane di fila</span></div><div style="display:flex;gap:3px;flex-wrap:wrap">' + dots + '</div></div>';
+  var ids = ['c_weeks', 't_' + top, 's_' + f.top, 'c_stars'], tiers = [3, 2, 3, 1];
+  h += '<div class="card" style="padding:10px 12px;display:flex;flex-direction:column;gap:8px"><div class="row"><span class="lbl" style="font-size:11px">Bacheca · ' + f.med + ' medaglie</span></div><div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px">' + ids.map(function (id, i) { var dm = MBYID[id]; return dm ? '<span style="display:flex;flex-direction:column;align-items:center;gap:2px">' + medalHex(dm, tiers[i], 46, false) + '<span style="font:600 9px/12px var(--fd);color:var(--mut);text-align:center">' + dm.name + '</span></span>' : ''; }).join('') + '</div></div>';
+  var hist = chWith(f.id), won = hist.filter(function (c) { return (c.to === 'me' && c.me) || (c.from === 'me' && c.done); }).length;
+  h += '<div class="card" style="padding:10px 14px;display:flex;flex-direction:column;gap:2px"><span class="lbl" style="font-size:11px">Sfide tra voi · ' + hist.length + '</span>' + (hist.length ? hist.slice(0, 5).map(function (c) {
+    var res = c.to === 'me' ? (c.me ? ['Vinta', '#9BE15D'] : c.st === 'declined' || c.st === 'expired' || c.st === 'over' ? ['Non oggi', 'var(--mut)'] : c.st === 'countered' ? ['Rimandata', '#7CC4FF'] : ['Aperta', PGOLD]) : (c.done ? ['Vinta da ' + f.n, '#9BE15D'] : c.st === 'declined' ? ['Non oggi', 'var(--mut)'] : c.st === 'expired' ? ['Nessuna risposta', 'var(--mut)'] : c.st === 'countered' ? ['Rimandata', '#7CC4FF'] : ['Aperta', PGOLD]);
+    return '<div class="logrow"><span class="d">' + niceDate(c.day) + '</span><span class="t">' + (c.to === 'me' ? 'Da ' + (f.g === 'f' ? 'lei' : 'lui') : 'Da te') + ' · ' + esc(chLabel(c)) + '</span><span class="x2" style="color:' + res[1] + '">' + res[0] + '</span></div>';
+  }).join('') : '<span class="hint" style="padding:4px 0">Ancora nessuna sfida tra voi.</span>') + '</div>';
+  var open = chOpenToday(f.id), five = P().fives[f.id] === mondayOf(t);
+  h += '<div class="g2"><button class="btn" data-a="five" data-v="' + f.id + '" style="display:flex;align-items:center;justify-content:center;gap:8px' + (five ? ';opacity:.5' : '') + '">' + svg(PI.five, null, 20) + 'Cinque</button><button class="btn main" data-a="launch" data-v="' + f.id + '" style="display:flex;align-items:center;justify-content:center;gap:8px"' + (open ? ' disabled' : '') + '>' + svg(PI.glove, null, 20) + 'Guanto</button></div>';
+  h += '<span class="hint" style="text-align:center;font-size:11px">' + (open ? 'Oggi tra voi c’è già un guanto aperto.' : five ? 'Cinque già dato questa settimana.' : 'Cinque: uno a settimana per amico.') + '</span>';
+  return h;
+}
+function viewLetters() {
+  var p = P(), h = pBack('Party', 'Letterine', 'party');
+  var l = p.letters.slice(0, 30), nw = l.filter(function (x) { return !x.rd; }).length;
+  var col = { acc: '#9BE15D', won: PGOLD, none: '#8FA3C2', dec: '#8FA3C2', five: '#7CC4FF', medal: PGOLD };
+  h += pSec(nw ? 'Nuove' : 'Letterine', nw ? String(nw) : '') + '<div style="display:flex;flex-direction:column;gap:8px">' + (l.length ? l.map(function (x) {
+    var c = col[x.k] || '#7CC4FF', ic = x.k === 'five' ? PI.five : x.k === 'medal' ? PI.medal : PI.letter;
+    var when = diffDays(todayKey(), keyOf(new Date(x.t))), w = when === 0 ? 'oggi' : when === 1 ? 'ieri' : niceDate(keyOf(new Date(x.t)));
+    return '<div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 12px;' + (x.rd ? '' : 'border-color:' + c + '66') + '"><span style="width:38px;height:38px;border-radius:10px;border:1px solid ' + c + '88;display:flex;align-items:center;justify-content:center;flex:0 0 auto">' + svg(ic, c, 20) + '</span><span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font:600 14px/19px var(--fb)">' + esc(x.tx) + '</span><span class="hint" style="font-size:11.5px">' + esc(x.sub || '') + '</span></span><span class="hint" style="font-size:11px;white-space:nowrap">' + w + '</span></div>';
+  }).join('') : '<span class="hint">Nessuna letterina, per ora.</span>') + '</div>';
+  h += '<span class="hint" style="text-align:center;padding:4px 10px">Accetto, rifiuto e silenzio arrivano qui, senza notifiche. La notifica parte solo quando un amico vince la tua sfida.</span>';
+  if (nw) { p.letters.forEach(function (x) { x.rd = true; }); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  return h;
+}
+function pToggle(key, t, s, on, lock) { return '<button class="toggle"' + (lock ? ' disabled style="opacity:.55"' : ' data-a="pTg" data-v="' + key + '"') + '><span style="display:flex;flex-direction:column;gap:2px"><span style="font:600 15px/20px var(--fb)">' + t + '</span>' + (s ? '<span class="hint" style="font-size:11.5px">' + s + '</span>' : '') + '</span><span class="sw' + (on ? ' on' : '') + '"></span></button>'; }
+function viewPSettings() {
+  var p = P(), st = p.set, h = pBack('Party', 'Impostazioni', 'party');
+  h += '<p class="hint" style="margin:0;padding:0 2px">Gli amici vedono sempre il tuo mese in positivo. I giorni senza sport non esistono, per nessuno.</p>';
+  h += '<div class="card" style="padding:4px 12px">' + pSec('Sempre', '') + pToggle('', 'Rango, livello, titolo e tratto', '', true, true) + pToggle('', 'Bacheca e medaglie prese', '', true, true) + pToggle('', 'Giorni allenati, come puntini', 'Solo il colore dello sport', true, true) + '</div>';
+  h += '<div class="card" style="padding:4px 12px">' + pSec('A scelta', '') + pToggle('q', 'Quest del giorno', 'E se l’hai completata', st.q) + pToggle('det', 'Dettagli delle sessioni', 'Pesi, km, tempi', st.det) + pToggle('rec', 'Card del recap', 'La condividi tu quando vuoi', st.rec) + '</div>';
+  h += '<div class="card" style="padding:4px 12px">' + pSec('Notifiche', 'arrivano con il cloud') + pToggle('nG', 'Guanti ricevuti', 'Solo se non ne hai già uno attivo', st.nG) + pToggle('nW', 'Sfide vinte dagli amici', '', st.nW) + pToggle('nF', 'Cinque ricevuti', '', st.nF) + '</div>';
+  h += '<div class="card" style="padding:4px 12px">' + pSec('Modalità prova', '') + pToggle('demo', 'Amici finti', 'Per provare il Party prima del cloud', p.demo) + '<button class="btn sm" data-a="pReset" style="width:100%;margin:6px 0 10px">Ricomincia la prova</button></div>';
+  return h;
+}
+function viewGang() {
+  var g = P().gangs.filter(function (x) { return x.id === ui.gid; })[0]; if (!g) { ui.screen = 'party'; return viewParty(); }
+  var h = pBack('Party', g.name, 'party'), mem = g.mem.map(friend).filter(Boolean);
+  h += '<div class="card" style="border-color:' + g.col + '8C;box-shadow:0 0 18px ' + g.col + '29;padding:12px 14px;display:flex;align-items:center;gap:12px">' + gangBadge(g, 56) + '<span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="lbl" style="font-size:11px;color:' + g.col + '">Gang · ' + (mem.length + 1) + ' membri</span><span style="font:700 20px/24px var(--fd);letter-spacing:1px;text-transform:uppercase">' + esc(g.name) + '</span><span class="hint">Creata da ' + esc(S.profile.name) + ' · codice ' + g.code + '</span></span></div>';
+  var v = { F: 0, A: 0, R: 0, E: 0 }, mine = traitVals(monthKeys(new Date().getFullYear(), new Date().getMonth()));
+  mem.forEach(function (f) { TKEYS.forEach(function (k) { v[k] += f.v[k]; }); }); TKEYS.forEach(function (k) { v[k] += mine[k] || 0; });
+  var r = TKEYS.slice().sort(function (a, b) { return v[b] - v[a]; }), tc = TRAITS[r[0]].c;
+  h += '<div class="card tcard" style="border-color:' + tc + '8C;box-shadow:0 0 18px ' + tc + '29"><div style="display:flex;flex-direction:column;gap:3px;flex:1 1 auto"><span class="lbl" style="font-size:11px;color:' + tc + '">Tratto della Gang</span><span style="font:700 22px/28px var(--fd);letter-spacing:1.5px;text-transform:uppercase;color:' + tc + '">' + TRAITS[r[0]].name + '</span><span style="font:500 13px/18px var(--fb);color:var(--soft)">Con un tocco di <b style="color:' + TRAITS[r[1]].c + '">' + TRAITS[r[1]].name + '</b></span></div>' + rombo(v, 'B', 74, false) + '</div>';
+  var me = { id: 'me', n: S.profile.name, r: monthStats(new Date().getFullYear(), new Date().getMonth()).rank };
+  h += pSec('Membri', 'in ordine alfabetico') + '<div style="display:flex;flex-direction:column;gap:8px">' + mem.concat([me]).sort(function (a, b) { return a.n.localeCompare(b.n); }).map(function (f) {
+    if (f.id === 'me') { var ms = monthStats(new Date().getFullYear(), new Date().getMonth()); return '<div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 12px">' + rkHex(ms.rank, 36, ms.plus) + '<span style="display:flex;flex-direction:column;gap:2px"><span style="display:flex;align-items:center;gap:8px;font:700 16px/20px var(--fd);letter-spacing:1px;text-transform:uppercase">' + esc(f.n) + (sessions(todayKey()).length ? pDot(SPORTS[sessions(todayKey())[0].sport].c) : '') + '</span><span style="font:600 12px/16px var(--fd);color:var(--rew);text-transform:uppercase">' + esc(ms.title || '') + '</span></span></div>'; }
+    return friendRow(f, ' ');
+  }).join('') + '</div>';
+  h += '<button class="btn main" data-a="launchGang" data-v="' + g.id + '" style="display:flex;align-items:center;justify-content:center;gap:8px">' + svg(PI.glove, null, 20) + 'Guanto alla Gang</button>';
+  h += '<span class="hint" style="text-align:center;font-size:11px">Obiettivo di gruppo: ci stiamo ragionando.</span>';
+  return h;
+}
+/* finestre */
+function viewGloveWin(o) {
+  var c = chById(o.id); if (!c) return '';
+  var f = friend(c.from);
+  var win = '<div class="win gold mwin" style="gap:12px">' + '<div class="whead"><span class="mark" style="border-color:' + PGOLD + ';color:' + PGOLD + '">!</span><span class="wlabel" style="color:' + PGOLD + '">' + (c.counter ? 'Guanto rimandato' : 'Guanto di sfida') + '</span><span class="rule"></span><button class="x" data-a="close" aria-label="Chiudi">' + svg(IC.close, null, 20) + '</button></div>' +
+    '<div style="display:flex;align-items:center;gap:12px">' + rkHex(f.r, 36) + '<span style="display:flex;flex-direction:column;gap:2px"><span style="font:700 17px/22px var(--fd);letter-spacing:1px;text-transform:uppercase">' + f.n + '</span><span class="hint">' + (c.counter ? 'ti propone una modifica' : 'ti lancia il guanto') + ' · scade a mezzanotte</span></span></div>' +
+    '<div style="border-radius:12px;border:1px solid ' + PGOLD + '8C;background:#14120A;padding:10px 14px;display:flex;align-items:center;gap:12px">' + sportIc(c.sp, 28, true) + '<span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="lbl" style="color:#D9B04A;font-size:11px">' + SPORTS[c.sp].name + '</span><span style="font:700 20px/24px var(--fd);letter-spacing:1px;text-transform:uppercase;color:var(--rew)">' + esc(c.q) + '</span></span></div>' +
+    '<div class="row" style="padding:0 2px">' + (c.shared ? pPill('Quest condivisa', '#7CC4FF') : '<span></span>') + '<span class="hint">+' + GXP + ' XP · ½ punto</span></div>' +
+    (c.msg ? '<div style="border-radius:12px 12px 12px 4px;background:#13203A;padding:8px 12px;font:500 14px/20px var(--fb);color:var(--soft);align-self:flex-start;max-width:92%">“' + esc(c.msg) + '”</div>' : '') +
+    '<textarea class="inp" data-f="greply" style="height:48px" placeholder="Rispondi a ' + f.n + ' (facoltativo)">' + esc(o.reply || '') + '</textarea>' +
+    '<div class="acts"><button class="btn" data-a="gNo" data-v="' + c.id + '">Non oggi</button><button class="btn main" data-a="gYes" data-v="' + c.id + '" style="background:' + PGOLD + ';border-color:' + PGOLD + ';box-shadow:0 0 14px rgba(255,201,77,.4)">Accetto</button></div>' +
+    (c.counter ? '' : '<button class="mlink" data-a="gEdit" data-v="' + c.id + '" style="display:flex;align-items:center;justify-content:center;gap:6px">' + svg(PI.edit, '#D9B04A', 14) + 'Modifica la quest e rimandala</button>') + '</div>';
+  var hex = '<svg width="120" height="132" viewBox="0 0 76 84" aria-hidden="true" style="filter:drop-shadow(0 0 10px rgba(255,201,77,.7))"><path d="M38 3l33 19v40L38 81 5 62V22z" fill="#14120A" stroke="#FFC94D" stroke-width="2.4" stroke-linejoin="round"/><g transform="translate(17 21) scale(1.75)" fill="none" stroke="#FFC94D" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + PI.glove + '</g></svg>';
+  var first = animCls('glove' + c.id) ? true : false;
+  return '<div class="veil' + (first ? ' fade' : '') + '"><div class="medalwin" style="gap:8px"><div class="mspin-wrap" style="width:150px;height:150px' + (first ? '' : ';display:none') + '"><div class="mrays"></div><div class="mspin">' + hex + '</div></div>' + (first ? win : win.replace('mwin', '')) + '</div></div>';
+}
+function viewLaunch(o, cls) {
+  var f = o.fid ? friend(o.fid) : null, g = o.gid ? P().gangs.filter(function (x) { return x.id === o.gid; })[0] : null;
+  var mine = S.profile.sports.filter(function (s) { return s !== 'bon'; });
+  var sps = f ? f.sports : mine; sps = sps.slice(0, 5);
+  var pre = PRESETS[o.sp] || [];
+  return '<div class="' + cls + '">' + whead(f ? 'Guanto a ' + f.n : 'Guanto alla Gang', true) + '<div class="wbody" data-keep>' +
+    '<div class="fld"><span class="lbl" style="font-size:11px">Sport</span><div class="chips">' + sps.map(function (s) { return '<button class="chip' + (o.sp === s ? ' on' : '') + '" data-a="lSp" data-v="' + s + '" style="display:flex;align-items:center;gap:6px">' + sportIc(s, 16, true) + SPORTS[s].name + '</button>'; }).join('') + '</div><span class="hint" style="font-size:11px">' + (f ? 'Gli sport di ' + f.n : g ? esc(g.name) : '') + '</span></div>' +
+    '<div class="fld"><span class="lbl" style="font-size:11px">La quest</span><input class="inp" data-f="lq" maxlength="40" value="' + esc(o.q) + '" placeholder="Es. 3 verdi chiusi"><div class="chips">' + pre.map(function (t) { return '<button class="chip" data-a="lPre" data-v="' + esc(t) + '" style="height:30px;font-size:12px">' + esc(t) + '</button>'; }).join('') + '</div></div>' +
+    '<button class="toggle" data-a="lSh" style="min-height:44px"><span style="display:flex;flex-direction:column;gap:2px"><span style="font:600 15px/20px var(--fb)">La faccio anch’io</span><span class="hint" style="font-size:11.5px">Diventa una quest condivisa</span></span><span class="sw' + (o.sh ? ' on' : '') + '"></span></button>' +
+    '<div class="fld"><span class="lbl" style="font-size:11px">Messaggio</span><textarea class="inp" data-f="lmsg" maxlength="120" style="height:56px" placeholder="Facoltativo">' + esc(o.msg) + '</textarea></div>' +
+    '<span class="hint" style="padding:0 2px">Premio per chi la completa: +' + GXP + ' XP e mezzo punto quest. Vale per S+.</span></div>' +
+    '<div class="acts one"><button class="btn main" data-a="lGo" style="display:flex;align-items:center;justify-content:center;gap:8px"' + (o.q.trim() ? '' : ' disabled') + '>' + svg(PI.glove, null, 20) + 'Lancia</button></div></div>';
+}
+function viewGCounter(o, cls) {
+  var c = chById(o.id), f = friend(c.from);
+  return '<div class="' + cls + '">' + whead('Rimanda a ' + f.n, true) + '<p class="wtext" style="text-align:left">Cambia la quest e ' + f.n + ' la riceve indietro: decide ' + (f.g === 'f' ? 'lei' : 'lui') + ' se accettarla.</p>' +
+    '<div class="fld"><span class="lbl" style="font-size:11px">Prima</span><span style="font:600 15px/20px var(--fb);color:var(--mut);text-decoration:line-through">' + esc(chLabel(c)) + '</span></div>' +
+    '<div class="fld" style="border-color:var(--sysl)"><span class="lbl" style="font-size:11px">Proposta</span><div class="chips">' + S.profile.sports.filter(function (s) { return s !== 'bon'; }).slice(0, 5).map(function (s) { return '<button class="chip' + (o.sp === s ? ' on' : '') + '" data-a="cSp" data-v="' + s + '" style="display:flex;align-items:center;gap:6px">' + sportIc(s, 16, true) + SPORTS[s].name + '</button>'; }).join('') + '</div><input class="inp" data-f="cq" maxlength="40" value="' + esc(o.q) + '"></div>' +
+    '<textarea class="inp" data-f="cmsg" maxlength="120" style="height:52px" placeholder="Un messaggio (facoltativo)">' + esc(o.msg) + '</textarea>' +
+    '<div class="acts"><button class="btn" data-a="gOpen" data-v="' + c.id + '">Annulla</button><button class="btn main" data-a="cGo"' + (o.q.trim() ? '' : ' disabled') + '>Rimanda</button></div></div>';
+}
+function viewGDone(o, cls) {
+  var c = chById(o.id), f = friend(c.from === 'me' ? c.to : c.from), has = sessions(todayKey()).some(function (s) { return s.sport === c.sp; });
+  return '<div class="' + cls + ' gold">' + '<div class="whead"><span class="mark" style="border-color:' + PGOLD + ';color:' + PGOLD + '">!</span><span class="wlabel" style="color:' + PGOLD + '">Quest bonus</span><span class="rule"></span><button class="x" data-a="close" aria-label="Chiudi">' + svg(IC.close, null, 20) + '</button></div>' +
+    '<p class="wtitle">' + esc(chLabel(c)) + '</p><p class="wtext">' + (c.from === 'me' ? 'La quest condivisa con ' + f.n + '.' : 'Il guanto di ' + f.n + (c.shared ? ', quest condivisa.' : '.')) + '</p>' +
+    (has ? '<p class="wtext" style="color:var(--ink)">Ce l’hai fatta?</p><div class="acts"><button class="btn" data-a="close">Non ancora</button><button class="btn main" data-a="gWin" data-v="' + c.id + '" style="background:' + PGOLD + ';border-color:' + PGOLD + '">Fatta</button></div>' :
+      '<p class="wtext">Prima segna la sessione di ' + SPORTS[c.sp].name.toLowerCase() + ' di oggi dal calendario, poi torna qui.</p><div class="acts one"><button class="btn main" data-a="close">Ok</button></div>') + '</div>';
+}
+function viewGWin(o, cls) {
+  var c = chById(o.id), f = friend(c.from === 'me' ? c.to : c.from), n = new Date(), ms = monthStats(n.getFullYear(), n.getMonth());
+  var counts = c.to === 'me';
+  return '<div class="' + cls + ' gold">' + '<div class="whead"><span class="mark" style="border-color:' + PGOLD + ';color:' + PGOLD + '">!</span><span class="wlabel" style="color:' + PGOLD + '">Guanto vinto</span><span class="rule"></span></div>' +
+    '<div style="display:flex;justify-content:center">' + svg(PI.glove, PGOLD, 64) + '</div><span class="badge" style="text-align:center">Raccolto e vinto</span>' +
+    '<p class="wtext">' + esc(chLabel(c)) + '. ' + (counts ? f.n + ' lo sa già.' : 'Quest condivisa con ' + f.n + '.') + '</p>' +
+    '<div class="g2"><div class="fld" style="align-items:center"><span style="font:700 22px/26px var(--fd);color:var(--glow)">+' + GXP + ' XP</span><span class="hint">extra</span></div><div class="fld" style="align-items:center"><span style="font:700 22px/26px var(--fd);color:var(--rew)">' + (counts ? '+½' : '—') + '</span><span class="hint">' + (counts ? 'punto quest' : 'solo XP') + '</span></div></div>' +
+    (counts ? '<div class="row" style="padding:0 2px"><span class="hint">' + (ms.plus ? 'Sei in S+ questo mese.' : ms.rank === 'S' ? 'Con questo guanto sei in S+.' : 'Questo mese S+ è alla tua portata, se arrivi in S.') + '</span>' + rkHex('S', 30, true) + '</div>' : '') +
+    '<div class="acts one"><button class="btn main" data-a="close">Continua</button></div></div>';
+}
+function viewGangNew(o, cls) {
+  return '<div class="' + cls + '">' + whead('Crea una Gang', true) + '<div class="wbody" data-keep>' +
+    '<div class="fld"><span class="lbl" style="font-size:11px">Nome</span><input class="inp" data-f="gname" maxlength="24" value="' + esc(o.name) + '" placeholder="Es. Lunedì Padel"></div>' +
+    '<div class="fld"><span class="lbl" style="font-size:11px">Colore</span><div style="display:flex;gap:10px;flex-wrap:wrap">' + GANG_COLS.map(function (c, i) { return '<button data-a="gCol" data-v="' + i + '" aria-label="Colore ' + (i + 1) + '" style="width:34px;height:34px;border-radius:17px;border:none;background:' + c + ';' + (o.col === i ? 'outline:2px solid var(--ink);outline-offset:3px' : '') + '"></button>'; }).join('') + '</div></div>' +
+    '<div class="fld"><span class="lbl" style="font-size:11px">Chi entra · da 2 a 7 amici</span>' + DEMO.map(function (f) { return '<button class="toggle" data-a="gMem" data-v="' + f.id + '" style="min-height:42px"><span style="display:flex;align-items:center;gap:10px">' + rkHex(f.r, 26) + '<span style="font:600 15px/20px var(--fb)">' + f.n + '</span></span><span class="sw' + (o.mem[f.id] ? ' on' : '') + '"></span></button>'; }).join('') + '</div>' +
+    '</div><div class="acts one"><button class="btn main" data-a="gangCreate"' + (o.name.trim() && Object.keys(o.mem).filter(function (k) { return o.mem[k]; }).length >= 2 ? '' : ' disabled') + '>Crea</button></div></div>';
+}
+/* azioni */
+var PA = {
+  fOpen: function (id) { ui.fid = id; ui.screen = 'friend'; ding('open'); render(); },
+  gOpen: function (id) { var c = chById(id); if (!c) return; c.seen = true; lastAnim.ov = 'glove' + id; ui.ov = { t: 'glove', id: id }; render(); },
+  gYes: function (id) { var c = chById(id); c.st = 'accepted'; c.ta = Date.now(); c.reply = (ui.ov && ui.ov.reply) || ''; save(); ui.ov = null; ding('ok'); toast('Guanto raccolto: lo trovi in home come quest bonus.'); },
+  gNo: function (id) { var c = chById(id); c.st = 'declined'; c.reply = (ui.ov && ui.ov.reply) || ''; save(); ui.ov = null; ding('tap'); toast('Non oggi. ' + friend(c.from).n + ' lo vedrà nelle letterine.'); },
+  gEdit: function (id) { var c = chById(id); ui.ov = { t: 'gcounter', id: id, sp: S.profile.sports.indexOf(c.sp) >= 0 ? c.sp : S.profile.sports[0], q: c.q, msg: '' }; render(); },
+  cSp: function (s) { ui.ov.sp = s; render(); },
+  cGo: function () { var o = ui.ov, c = chById(o.id); c.st = 'countered'; c.sp2 = o.sp; c.q2 = o.q.trim(); c.msg2 = o.msg; c.tc = Date.now(); save(); ui.ov = null; ding('ok'); toast('Modifica rimandata a ' + friend(c.from).n + '.'); },
+  gHome: function (id) { ui.ov = { t: 'gdone', id: id }; ding('open'); render(); },
+  gWin: function (id) { var c = chById(id); c.me = true; if (c.to === 'me' && !c.shared) c.st = 'won'; if (c.to === 'me' && c.shared && c.done) c.st = 'won'; save(); ui.ov = { t: 'gwin', id: id }; medalSound(); render(); },
+  launch: function (fid) { var f = friend(fid), sp = f.sports.filter(function (s) { return S.profile.sports.indexOf(s) >= 0; })[0] || f.sports[0]; ui.ov = { t: 'launch', fid: fid, sp: sp, q: (PRESETS[sp] || [''])[0], sh: true, msg: '' }; ding('open'); render(); },
+  launchGang: function (gid) { var sp = S.profile.sports.filter(function (s) { return s !== 'bon'; })[0] || 'run'; ui.ov = { t: 'launch', gid: gid, sp: sp, q: (PRESETS[sp] || [''])[0], sh: true, msg: '' }; ding('open'); render(); },
+  lSp: function (s) { ui.ov.sp = s; ui.ov.q = (PRESETS[s] || [''])[0]; render(); },
+  lPre: function (t) { ui.ov.q = t; render(); },
+  lSh: function () { ui.ov.sh = !ui.ov.sh; render(); },
+  lGo: function () {
+    var o = ui.ov, t = todayKey(), now = Date.now(), to = o.fid ? [o.fid] : P().gangs.filter(function (g) { return g.id === o.gid; })[0].mem, sent = 0;
+    to.forEach(function (fid) { if (chOpenToday(fid)) return; P().ch.unshift({ id: uid(), from: 'me', to: fid, sp: o.sp, q: o.q.trim(), shared: o.sh, msg: o.msg, st: 'pending', day: t, t: now }); sent++; });
+    save(); ui.ov = null; ding('ok');
+    toast(sent ? (o.fid ? 'Guanto lanciato a ' + friend(o.fid).n + '.' : 'Guanto lanciato a ' + sent + (sent === 1 ? ' amico' : ' amici') + ' della Gang.') : 'Oggi con loro c’è già un guanto aperto.');
+  },
+  five: function (fid) { var f = friend(fid), w = mondayOf(todayKey()); if (P().fives[fid] === w) { toast('Il cinque a ' + f.n + ' l’hai già dato questa settimana.'); return; } P().fives[fid] = w; P().nfive = (P().nfive || 0) + 1; save(); ding('ok'); toast('Cinque a ' + f.n + '!'); },
+  pInvite: function () { toast('Gli inviti veri arrivano con il cloud.'); },
+  pTg: function (k) { var p = P(); if (k === 'demo') p.demo = !p.demo; else p.set[k] = !p.set[k]; save(); ding('tap'); render(); },
+  pReset: function () { delete S.party; partyInit(); ding('tap'); toast('Prova ricominciata: Marco ti ha appena lanciato un guanto.'); },
+  gangNew: function () { ui.ov = { t: 'gangNew', name: '', col: 0, mem: {} }; ding('open'); render(); },
+  gCol: function (i) { ui.ov.col = +i; render(); },
+  gMem: function (id) { ui.ov.mem[id] = !ui.ov.mem[id]; render(); },
+  gangCreate: function () { var o = ui.ov, g = { id: uid(), name: o.name.trim(), col: GANG_COLS[o.col], mem: Object.keys(o.mem).filter(function (k) { return o.mem[k]; }), code: 'GNG-' + uid().slice(-4).toUpperCase() }; P().gangs.push(g); save(); ui.ov = null; ui.gid = g.id; ui.screen = 'gang'; ding('ok'); render(); },
+  gangOpen: function (id) { ui.gid = id; ui.screen = 'gang'; ding('open'); render(); }
+};
+function homeGloves() {
+  if (!partyOn()) return '';
+  return activeGloves().map(function (c) {
+    var f = friend(c.from === 'me' ? c.to : c.from);
+    return '<button class="card" data-a="gHome" data-v="' + c.id + '" style="border-color:' + PGOLD + '8C;background:#14120A;box-shadow:0 0 14px rgba(255,201,77,.14);padding:8px 14px;display:flex;align-items:center;gap:12px;text-align:left;color:var(--ink);width:100%">' + svg(PI.glove, PGOLD, 22) + '<span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column"><span class="lbl" style="color:#D9B04A;font-size:10.5px;letter-spacing:2px">Quest bonus · ' + (c.from === 'me' ? 'condivisa con ' : 'guanto di ') + f.n + '</span><span style="font:700 15px/20px var(--fd);letter-spacing:1px;text-transform:uppercase;color:var(--rew);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(chLabel(c)) + '</span></span>' + svg(IC.right, '#D9B04A', 18) + '</button>';
+  }).join('');
+}
+
+for (var pk in PA) A[pk] = PA[pk];
 /* ---------- render ---------- */
 var root = document.getElementById('app');
 function fitTitles() {
@@ -1869,6 +2184,7 @@ window.addEventListener('popstate', function () {
     ui.ov = null;
   } else if (ui.arrange) ui.arrange = false;
   else if (ui.screen === 'settings' || ui.screen === 'bacheca') ui.screen = 'stato';
+  else if (['friend', 'letters', 'psettings', 'gang'].indexOf(ui.screen) >= 0) ui.screen = 'party';
   else if (ui.screen !== 'home') ui.screen = 'home';
   render();
 });
@@ -1880,14 +2196,16 @@ function render() {
   var h;
   if (!S) { lastAnim = {}; h = viewOnboarding(); }
   else {
+    partyTick();
     if (medalDirty) { noteMid(); checkMedals(); }
     if (!ui.ov && ui.mq && ui.mq.length) { if (!ui.mqTot || ui.mqN >= ui.mqTot) { ui.mqTot = ui.mq.length; ui.mqN = 0; } var q = ui.mq.shift(); ui.mqN++; ui.ov = { t: 'medal', id: q.id, tr: q.t, n: ui.mqN, tot: ui.mqTot }; if (!ui.mq.length) { ui.mqTot = 0; } medalSound(); }
-    var body = ui.screen === 'stato' ? viewStato() : ui.screen === 'settings' ? viewSettings() : ui.screen === 'bacheca' ? viewBacheca() : viewHome();
+    gloveQueue();
+    var body = ui.screen === 'party' ? viewParty() : ui.screen === 'friend' ? viewFriend() : ui.screen === 'letters' ? viewLetters() : ui.screen === 'psettings' ? viewPSettings() : ui.screen === 'gang' ? viewGang() : ui.screen === 'stato' ? viewStato() : ui.screen === 'settings' ? viewSettings() : ui.screen === 'bacheca' ? viewBacheca() : viewHome();
     if (!ui.ov) lastAnim.ov = null;
     if (ui.screen !== 'home') lastAnim.card = null;
     var ovKey = ui.ov ? [ui.ov.t, ui.ov.kind, ui.ov.k, ui.ov.id, ui.ov.sport, ui.ov.group].join('|') : null;
     if (ovKey !== lastOvKey) { lastOvKey = ovKey; if (ovKey && toastMsg) { toastMsg = null; clearTimeout(toastTimer); } }
-    h = '<div class="scroller">' + body + '</div><nav class="nav"><button class="' + (ui.screen === 'home' ? 'on' : '') + '" data-a="go" data-v="home">' + svg(IC.cal) + 'Calendario</button><button class="' + (ui.screen !== 'home' ? 'on' : '') + '" data-a="go" data-v="stato">' + svg(IC.stato) + 'Stato</button></nav>' + viewOverlay();
+    h = '<div class="scroller">' + body + '</div><nav class="nav"><button class="' + (ui.screen === 'home' ? 'on' : '') + '" data-a="go" data-v="home">' + svg(IC.cal) + 'Calendario</button><button class="' + (['stato', 'settings', 'bacheca'].indexOf(ui.screen) >= 0 ? 'on' : '') + '" data-a="go" data-v="stato">' + svg(IC.stato) + 'Stato</button><button class="' + (PSCR.indexOf(ui.screen) >= 0 ? 'on' : '') + '" data-a="go" data-v="party">' + svg(PI.party) + 'Party</button></nav>' + viewOverlay();
   }
   if (toastMsg) h += '<div class="toast' + (S && ui.ov ? ' low' : '') + '"' + (toastShown === toastMsg ? ' style="animation-delay:-' + Math.min(2.5, (Date.now() - toastAt) / 1000) + 's"' : '') + ' role="status"><span class="mark">!</span><span>' + esc(toastMsg) + '</span></div>';
   root.innerHTML = h;
@@ -1950,6 +2268,10 @@ root.addEventListener('input', function (e) {
   else if (f === 'exname') ui.ov.form.adding.name = e.target.value;
   else if (f === 'exedit') ui.ov.form.editing.name = e.target.value;
   else if (f.indexOf('fn:') === 0) ui.ov.form.n[f.slice(3)] = e.target.value;
+  else if (f === 'greply') ui.ov.reply = e.target.value;
+  else if (f === 'lq' || f === 'cq') { ui.ov.q = e.target.value; var gb = root.querySelector('[data-a="' + (f === 'lq' ? 'lGo' : 'cGo') + '"]'); if (gb) gb.disabled = !ui.ov.q.trim(); }
+  else if (f === 'lmsg' || f === 'cmsg') ui.ov.msg = e.target.value;
+  else if (f === 'gname') { ui.ov.name = e.target.value; var cb = root.querySelector('[data-a="gangCreate"]'); if (cb) cb.disabled = !(ui.ov.name.trim() && Object.keys(ui.ov.mem).filter(function (k) { return ui.ov.mem[k]; }).length >= 2); }
 });
 root.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.getAttribute('data-f') === 'obname') { e.preventDefault(); A.obNext(); } });
 function resetViewport() { if (window.scrollY || window.scrollX || document.documentElement.scrollTop || document.body.scrollTop) { window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; } }
