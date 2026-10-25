@@ -1,5 +1,5 @@
 // Sistema — service worker: l'app funziona anche offline (palestra senza campo).
-const VERSION = 'sistema-v2.1.0';
+const VERSION = 'sistema-v2.2.0';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
