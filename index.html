@@ -1819,7 +1819,7 @@ function partyInit() {
   save();
 }
 function friend(id) { for (var i = 0; i < DEMO.length; i++) if (DEMO[i].id === id) return DEMO[i]; return null; }
-function fTitle(f) { var T = TITLES[f.top]; return f.g === 'f' ? T[1] : T[0]; }
+function fTitle(f) { var T = TITLES[f.top], B = TITLES[f.sports[1]] || null, fem = f.g === 'f', g = fem ? T[2] : 'm'; return (fem ? T[1] : T[0]) + (B ? ' ' + (g === 'f' ? B[4] : B[3]) : ''); }
 function trainedOn(f, k) { if (k > todayKey()) return false; return hashN(k + f.id) % 10 < f.fr; }
 function fSportOn(f, k) { return f.sports[hashN(f.id + k) % f.sports.length]; }
 function myCh() { return P() ? P().ch : []; }
