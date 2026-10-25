@@ -70,7 +70,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .rtick{position:absolute;top:0;bottom:0;width:1px;margin-left:-1px;background:rgba(7,11,20,.55)}
 .rtxt{position:absolute;right:8px;top:0;bottom:0;display:flex;align-items:center;font:700 11px/1 var(--fd);letter-spacing:.5px;color:var(--ink);text-shadow:0 0 4px #000,0 0 2px #000}
 .rlets{position:relative;height:14px;margin-top:-4px}.rlets .rlet{position:absolute;transform:translateX(-50%);font:700 10px/14px var(--fd);color:var(--mut)}.rlets .rlet.on{color:var(--ink)}.rlets .rlet:last-child{transform:translateX(-100%)}
-.tcard{padding:12px 16px 12px 10px;display:flex;align-items:center;gap:12px}
+.tcard{padding:10px 12px 10px 16px;display:flex;align-items:center;gap:12px}
 .bachbtn{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 14px;cursor:pointer;text-align:left;border-color:#7A6430!important;background:#14120A!important;box-shadow:0 0 14px rgba(255,201,77,.12)}
 .mcount{white-space:nowrap;flex:0 0 auto;font:700 14px/18px var(--fd);color:var(--rew);border:1px solid #7A6430;border-radius:6px;padding:2px 10px}
 .msec{display:flex;flex-direction:column;gap:10px}
@@ -1010,6 +1010,15 @@ function viewStato() {
     '<div style="width:76px;height:84px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;position:relative"><svg width="76" height="84" viewBox="0 0 76 84" aria-hidden="true" style="position:absolute;inset:0"><path d="M38 3l33 19v40L38 81 5 62V22z" fill="#0E1A30" stroke="#3BA7FF" stroke-width="2" stroke-linejoin="round"/></svg><span style="position:relative;font:700 44px/1 var(--fd);text-shadow:0 0 16px rgba(59,167,255,.9)">' + ms.rank + '</span></div>' +
     '<div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:6px"><span style="font:700 24px/28px var(--fd);letter-spacing:2px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(S.profile.name) + '</span><span style="font:500 14px/18px var(--fb);color:var(--soft)">Rango ' + ms.rank + ' · Livello ' + lv + '</span>' + (pj ? '<span style="font:600 12px/16px var(--fd);letter-spacing:1px;color:' + (pj.early ? 'var(--mut)' : '#D9B04A') + '">' + (pj.early ? 'Proiezione dalla seconda settimana' : pj.rank === ms.rank ? 'Al tuo ritmo resti ' + ms.rank : 'Al tuo ritmo chiudi in ' + pj.rank) + '</span>' : '') + '<div class="track"><div class="fill" style="width:' + Math.round(inLv / li.need * 100) + '%"></div></div><span class="hint">' + inLv + ' / ' + li.need + ' XP al livello ' + (lv + 1) + '</span></div></div>';
   h += '<div style="border-radius:14px;border:1px solid rgba(255,201,77,.55);background:#14120A;box-shadow:0 0 18px rgba(255,201,77,.16);padding:14px 16px;display:flex;flex-direction:column;gap:2px"><span class="lbl" style="color:#D9B04A">Titolo di ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span class="fit1 t28" style="color:var(--rew);text-shadow:0 0 14px rgba(255,201,77,.45);letter-spacing:1px;text-transform:uppercase">' + esc(ms.title) + '</span><div style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px"><span style="font:500 13px/18px var(--fb);color:#C9BFA0;min-width:0">' + titleWhy(ms) + (ms.top ? ' questo mese' : '') + '</span><span style="font:500 13px/18px var(--fb);color:#C9BFA0;white-space:nowrap;flex:0 0 auto">' + ms.weeksOk + '/' + ms.weeksTot + ' settimane</span></div></div>';
+  var mtc = monthTraits(n.getFullYear(), n.getMonth());
+  if (mtc) {
+    var tc = TRAITS[mtc.top].c;
+    h += '<div class="card tcard" style="border-color:' + tc + '8C;box-shadow:0 0 18px ' + tc + '29;background:#0C1320;background:color-mix(in srgb, ' + tc + ' 6%, #0A0F1A)">' +
+      '<div style="display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 auto"><span class="lbl" style="font-size:11px;white-space:nowrap;color:' + tc + '">Tratto di ' + MONTHS[n.getMonth()].toLowerCase() + '</span>' +
+      '<span style="display:flex;align-items:center;gap:8px;min-width:0">' + svg(TRAITS[mtc.top].ic, tc, 22) + '<span class="fit1 t24" style="min-width:0;letter-spacing:1.5px;text-transform:uppercase;color:' + tc + ';text-shadow:0 0 12px ' + tc + '73">' + TRAITS[mtc.top].name + '</span></span>' +
+      '<span style="font:500 13px/18px var(--fb);color:var(--soft)">' + traitPhrase(mtc, true) + '</span></div><div style="flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:0">' + rombo(mtc.v, ms.rank, mtc.grow ? 68 : 78, false) +
+      (mtc.grow ? '<span style="font:600 10px/12px var(--fd);letter-spacing:.5px;color:#9BE15D;white-space:nowrap">↑ ' + TRAITS[mtc.grow].name + '</span>' : '') + '</div></div>';
+  } else h += '<div class="card tcard"><div style="display:flex;flex-direction:column;gap:3px"><span class="lbl" style="font-size:11px">Tratto del mese</span><span class="hint">Si accende con il primo allenamento del mese.</span></div></div>';
   h += '<div style="display:flex;flex-direction:column;gap:10px;padding-top:4px"><div style="padding:0 2px;display:flex;flex-direction:column;gap:2px"><span class="lbl">Parametri · ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span class="hint">' + pfmt(ms.pts) + ' · ' + nextGoal(ms) + '</span></div><div class="g2" id="tiles" style="gap:10px">';
   S.profile.sports.forEach(function (s) {
     var sp = SPORTS[s], p = ms.sportPts[s] || 0, val, pct;
@@ -1018,15 +1027,6 @@ function viewStato() {
     h += '<div class="tw" data-s="' + s + '"><button class="tile' + (ui.arrange ? ' jig' : '') + '" data-a="sport" data-v="' + s + '" style="animation-delay:-' + ((ORDER.indexOf(s) * 0.07) % 0.3).toFixed(2) + 's">' + sportIc(s, 28, true) + '<span class="tname"' + (sp.name.length > 9 ? ' style="font-size:12.5px;letter-spacing:0"' : '') + '>' + sp.name + '</span><span class="trank" style="' + (s === 'bon' ? 'font-size:20px;' : '') + 'text-shadow:0 0 12px ' + sp.c + '">' + val + '</span><span class="tbar"><i style="width:' + pct + '%;background:' + sp.c + '"></i></span></button></div>';
   });
   h += '</div>' + (ui.arrange ? '<div class="row" id="arrbar" style="padding:0 2px"><span class="hint">Trascina per cambiare l’ordine</span><button class="btn sm main" data-a="arrangeDone">Fatto</button></div>' : '<span class="hint" id="arrbar" style="padding:0 2px;font-size:11px">Tieni premuto uno sport per riordinarli</span>') + '</div>';
-  var mtc = monthTraits(n.getFullYear(), n.getMonth());
-  if (mtc) {
-    var tc = TRAITS[mtc.top].c;
-    h += '<div class="card tcard" style="border-color:' + tc + '8C;box-shadow:0 0 18px ' + tc + '29;background:#0C1320;background:color-mix(in srgb, ' + tc + ' 6%, #0A0F1A)">' + rombo(mtc.v, ms.rank, 116, false) +
-      '<div style="display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 auto"><span class="lbl" style="font-size:11px;color:' + tc + '">Tratto di ' + MONTHS[n.getMonth()].toLowerCase() + '</span>' +
-      '<span style="display:flex;align-items:center;gap:8px">' + svg(TRAITS[mtc.top].ic, tc, 24) + '<span class="fit1 t24" style="min-width:0;letter-spacing:1.5px;text-transform:uppercase;color:' + tc + ';text-shadow:0 0 12px ' + tc + '73">' + TRAITS[mtc.top].name + '</span></span>' +
-      '<span style="font:500 14px/18px var(--fb);color:var(--soft)">' + traitPhrase(mtc) + '</span>' +
-      (mtc.grow ? '<span style="font:500 12px/16px var(--fb);color:#9BE15D">↑ In crescita: ' + TRAITS[mtc.grow].name + '</span>' : '') + '</div></div>';
-  } else h += '<div class="card tcard"><div style="display:flex;flex-direction:column;gap:3px"><span class="lbl" style="font-size:11px">Tratto del mese</span><span class="hint">Si accende con il primo allenamento del mese.</span></div></div>';
   // ultime quest
   var last = [];
   allKeysSorted().reverse().forEach(function (k) { sessions(k).slice().reverse().forEach(function (s) { if (last.length < 2 && s.quest && s.quest.done !== null) last.push({ k: k, s: s }); }); });
@@ -1303,8 +1303,9 @@ function monthTraits(y, m) {
   return { v: v, top: t1, sec: t2, third: t3, kind: kind, grow: grow };
 }
 function tw(t) { return '<span style="color:' + TRAITS[t].c + '">' + TRAITS[t].name + '</span>'; }
-function traitPhrase(mt) {
+function traitPhrase(mt, cap) {
   if (!mt) return '';
+  if (cap) return traitPhrase(mt).replace(/^./, function (c) { return c.toUpperCase(); });
   if (mt.kind === 'pura') return 'pura';
   if (mt.kind === 'tocco') return 'con un tocco di ' + tw(mt.sec);
   if (mt.kind === 'tocco2') return 'con un tocco di ' + tw(mt.sec) + ' e ' + tw(mt.third);
@@ -1536,13 +1537,13 @@ function viewBacheca() {
     return '<div class="msec"><div class="row" style="align-items:baseline"><span class="lbl kick">' + title + '</span><span class="hint" style="font-size:11px">' + sub + '</span></div><div class="mgrid">' + list.map(function (d) { return medalCell(d, st[d.id]); }).join('') + '</div></div>';
   }
   var sportsSorted = mine.concat(ORDER.filter(function (s) { return mine.indexOf(s) < 0; }));
-  h += sec('Costanza', 'la parte più importante', MEDALS.filter(function (d) { return d.grp === 'cost'; }));
-  h += sec('Tratti', 'punti delle sessioni', MEDALS.filter(function (d) { return d.grp === 'trait'; }));
-  h += sec('Sport', f === 'mine' ? 'i tuoi' : 'prima i tuoi, poi gli altri', sportsSorted.map(function (s) { return MBYID['s_' + s]; }));
+  h += sec('Costanza', 'La parte più importante', MEDALS.filter(function (d) { return d.grp === 'cost'; }));
+  h += sec('Tratti', 'Punti delle sessioni', MEDALS.filter(function (d) { return d.grp === 'trait'; }));
+  h += sec('Sport', f === 'mine' ? 'I tuoi' : 'Prima i tuoi, poi gli altri', sportsSorted.map(function (s) { return MBYID['s_' + s]; }));
   h += sec('Ranghi', '', MEDALS.filter(function (d) { return d.grp === 'rank'; }));
   var secs = MEDALS.filter(function (d) { return d.grp === 'secret'; });
   secs.sort(function (a, b) { return (st[b.id].t >= 0) - (st[a.id].t >= 0); });
-  h += sec('Segrete', 'le scopri facendo', secs);
+  h += sec('Segrete', 'Le scopri facendo', secs);
   h += '<p class="hint" style="text-align:center;padding:4px 0 8px">Ogni medaglia sale di lega: Legno, Bronzo, Argento, Oro, Platino, Diamante, Challenger.</p>';
   return h;
 }
@@ -1689,7 +1690,7 @@ function viewStory(o) {
     body = '<span class="skick">Il tuo ' + mname + ' in numeri</span>' + constellation(D, 290) + '<div class="pills"><span style="color:#7CC4FF;border-color:#2C3D5E">' + ms.qd + ' quest</span><span style="color:#FFC94D;border-color:#7A6430">' + ms.stars + (ms.stars === 1 ? ' stella' : ' stelle') + '</span>' + (D.pv.days && dd > 0 ? '<span style="color:#9BE15D;border-color:#2C3D5E">+' + dd + ' giorni</span>' : '') + '</div><p class="stext" style="font-size:13px;color:#5A6B88">Ogni punto è un giorno: acceso se ti sei allenato, cerchiato se è stato da stella.</p>';
   } else if (i === 3) {
     var mt = D.mt;
-    body = mt ? '<span class="skick">Il tratto di ' + mname + '</span><div style="display:flex;align-items:center;justify-content:center;gap:12px;max-width:100%">' + svg(TRAITS[mt.top].ic, TRAITS[mt.top].c, 40) + '<span class="sbig fit1 t42" style="min-width:0;color:' + TRAITS[mt.top].c + ';text-shadow:0 0 18px ' + TRAITS[mt.top].c + '99">' + TRAITS[mt.top].name + '</span></div><p class="stext" style="font-size:18px;color:var(--soft)">' + traitPhrase(mt) + '</p><div style="align-self:center">' + rombo(mt.v, ms.rank, 250, true) + '</div>' + (mt.grow ? '<div class="sgrow"><span style="display:flex;align-items:center;gap:10px">' + svg(TRAITS[mt.grow].ic, TRAITS[mt.grow].c, 20) + 'In crescita: ' + TRAITS[mt.grow].name + '</span><span style="color:#9BE15D">↑ da ' + MONTHS[prevMonth(D.y, D.m).m].toLowerCase() + '</span></div>' : '')
+    body = mt ? '<span class="skick">Il tratto di ' + mname + '</span><div style="display:flex;align-items:center;justify-content:center;gap:12px;max-width:100%">' + svg(TRAITS[mt.top].ic, TRAITS[mt.top].c, 40) + '<span class="sbig fit1 t42" style="min-width:0;color:' + TRAITS[mt.top].c + ';text-shadow:0 0 18px ' + TRAITS[mt.top].c + '99">' + TRAITS[mt.top].name + '</span></div><p class="stext" style="font-size:18px;color:var(--soft)">' + traitPhrase(mt, true) + '</p><div style="align-self:center">' + rombo(mt.v, ms.rank, 250, true) + '</div>' + (mt.grow ? '<div class="sgrow"><span style="display:flex;align-items:center;gap:10px">' + svg(TRAITS[mt.grow].ic, TRAITS[mt.grow].c, 20) + 'In crescita: ' + TRAITS[mt.grow].name + '</span><span style="color:#9BE15D">↑ Da ' + MONTHS[prevMonth(D.y, D.m).m].toLowerCase() + '</span></div>' : '')
       : '<span class="skick">Il tratto di ' + mname + '</span><p class="stext">Si accende con il primo allenamento.</p>';
   } else if (i === 4) {
     body = '<span class="skick">Questo mese mi sei proprio ' + gw('sembrato', 'sembrata') + '</span>' + (D.pers ? D.pers.map(function (p, k) { var ct = PCAT[p[1]]; return '<div class="pcard"><span class="pn">' + (k + 1) + '</span><div style="flex:1 1 auto;display:flex;flex-direction:column;gap:3px;min-width:0"><span class="pname">' + esc(p[0]) + '</span><span class="hint" style="font-size:13px">' + esc(p[2]) + '</span></div><span class="pcat">' + svg(ct[1], '#7CC4FF', 22) + '<span>' + ct[0] + '</span></span></div>'; }).join('') : '') + '<p class="stext" style="font-size:12px;color:#5A6B88">Scelti da: ' + (D.mt ? 'mese di ' + TRAITS[D.mt.top].name : '—') + ' · rango ' + ms.rank + '</p>';
