@@ -2099,7 +2099,7 @@ var PA2 = {
   fCh: function (id) { ui.ov = { t: 'fch', fid: id }; ding('open'); render(); },
   vetrina: function (id) { var l = showcase(), i = l.indexOf(id); if (i >= 0) { l.splice(i, 1); save(); ding('tap'); toast('Tolta dalla vetrina.'); return; } var st = medalState(); l = l.filter(function (x) { return st[x] && st[x].t >= 0; }); S.showcase = l; if (l.length >= 3) { toast('Vetrina piena: togline una prima.'); return; } l.push(id); save(); ding('ok'); toast('In vetrina: la vedono gli amici.'); },
   vetHint: function () { toast('Apri una medaglia che hai preso e tocca “Metti in vetrina”.'); },
-  hqNext: function () { ui.hq = (ui.hq || 0) + 1; ui.hqDir = 'l'; ding('tap'); render(); }
+  hqNext: function () { qShow(1); ding('tap'); }
 };
 for (var pk2 in PA2) A[pk2] = PA2[pk2];
 /* gesti: tira via le schermate secondarie e le finestre, scorri le quest */
@@ -2151,7 +2151,7 @@ function gEnd() {
   var el = g.el;
   function snap() { el.style.transition = 'transform .22s ease-out, opacity .22s ease-out'; el.style.transform = ''; el.style.opacity = ''; }
   if (g.k === 'q') {
-    if (Math.abs(g.d) > 60) { ui.hq = (ui.hq || 0) + (g.d < 0 ? 1 : -1); var n = root.querySelectorAll('.qslot').length ? 1 : 0; ui.hqDir = g.d < 0 ? 'l' : 'r'; ding('tap'); render(); } else snap();
+    if (Math.abs(g.d) > 60) { el.style.transition = ''; el.style.transform = ''; el.style.opacity = ''; qShow(g.d < 0 ? 1 : -1); ding('tap'); } else snap();
     return;
   }
   if (g.d > 90) {
@@ -2232,7 +2232,7 @@ function questSlot(items) {
   var n = items.length; if (!n) return ''; if (n === 1) { ui.hq = 0; return items[0]; }
   var i = (((ui.hq || 0) % n) + n) % n; ui.hq = i;
   var dir = ui.hqDir; ui.hqDir = null;
-  return '<div class="qslot" style="position:relative;touch-action:pan-y;display:grid">' + items.map(function (it, j) { return '<div class="qitem' + (j === i ? ' on' + (dir ? ' qin' + dir : '') : '') + '" style="grid-area:1/1;display:flex;flex-direction:column' + (j === i ? '' : ';visibility:hidden;pointer-events:none') + '"' + (j === i ? '' : ' aria-hidden="true"') + '>' + it + '</div>'; }).join('') +
+  return '<div class="qslot" style="position:relative;touch-action:pan-y;display:grid;grid-template-columns:minmax(0,1fr)">' + items.map(function (it, j) { return '<div class="qitem' + (j === i ? ' on' + (dir ? ' qin' + dir : '') : '') + '" style="grid-area:1/1;min-width:0;display:flex;flex-direction:column' + (j === i ? '' : ';visibility:hidden;pointer-events:none') + '"' + (j === i ? '' : ' aria-hidden="true"') + '>' + it + '</div>'; }).join('') +
     '<button data-a="hqNext" aria-label="Quest ' + (i + 1) + ' di ' + n + ', tocca per la prossima" style="position:absolute;top:-9px;right:14px;z-index:2;display:flex;align-items:center;gap:5px;height:20px;padding:0 9px;border-radius:10px;border:1px solid var(--line2);background:var(--ground);color:var(--soft);font:700 11px/1 var(--fd);letter-spacing:1px">' + items.map(function (_, j) { return '<i style="display:block;width:5px;height:5px;border-radius:3px;background:' + (j === i ? 'var(--glow)' : '#3A4866') + '"></i>'; }).join('') + '<span>' + (i + 1) + '/' + n + '</span></button></div>';
 }
 function viewGDone(o, cls) {
@@ -2322,6 +2322,28 @@ var PA3 = {
   }
 };
 for (var pk3 in PA3) A[pk3] = PA3[pk3];
+/* rotazione automatica delle quest in home: ogni 2 secondi, ferma col dito sopra */
+var qHold = false, qLast = Date.now();
+function qShow(step) {
+  var q = root.querySelector('.qslot'); if (!q) return;
+  var it = q.querySelectorAll('.qitem'), n = it.length; if (n < 2) return;
+  var i = ((((ui.hq || 0) + step) % n) + n) % n; ui.hq = i; qLast = Date.now();
+  Array.prototype.forEach.call(it, function (e, j) {
+    e.classList.remove('qinl', 'qinr');
+    if (j === i) { e.classList.add('on'); e.style.visibility = ''; e.style.pointerEvents = ''; e.removeAttribute('aria-hidden'); void e.offsetWidth; e.classList.add(step > 0 ? 'qinl' : 'qinr'); }
+    else { e.classList.remove('on'); e.style.visibility = 'hidden'; e.style.pointerEvents = 'none'; e.setAttribute('aria-hidden', 'true'); }
+  });
+  var b = q.querySelector('[data-a="hqNext"]');
+  if (b) { var d = ''; for (var j = 0; j < n; j++) d += '<i style="display:block;width:5px;height:5px;border-radius:3px;background:' + (j === i ? 'var(--glow)' : '#3A4866') + '"></i>'; b.innerHTML = d + '<span>' + (i + 1) + '/' + n + '</span>'; b.setAttribute('aria-label', 'Quest ' + (i + 1) + ' di ' + n + ', tocca per la prossima'); }
+}
+setInterval(function () { if (!S || ui.ov || ui.screen !== 'home' || qHold || gs || document.hidden || Date.now() - qLast < 2000) return; qShow(1); }, 250);
+function qDown(t) { if (t && t.closest && t.closest('.qslot')) { qHold = true; qLast = Date.now(); } }
+function qUp() { if (qHold) { qHold = false; qLast = Date.now(); } }
+document.addEventListener('touchstart', function (e) { qDown(e.target); }, { passive: true });
+document.addEventListener('touchend', qUp, { passive: true });
+document.addEventListener('touchcancel', qUp, { passive: true });
+document.addEventListener('pointerdown', function (e) { if (e.pointerType === 'mouse') qDown(e.target); }, true);
+document.addEventListener('pointerup', function (e) { if (e.pointerType === 'mouse') qUp(); }, true);
 /* ---------- render ---------- */
 var root = document.getElementById('app');
 function fitTitles() {
