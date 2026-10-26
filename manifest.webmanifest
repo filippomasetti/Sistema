@@ -1,7 +1,7 @@
 {
-  "name": "Sistema",
-  "short_name": "Sistema",
-  "description": "Il sistema che premia la costanza: quest, ranghi e calendario per i tuoi sport.",
+  "name": "Gesta",
+  "short_name": "Gesta",
+  "description": "Il gioco che premia la costanza: quest, ranghi e calendario per i tuoi sport.",
   "lang": "it",
   "start_url": "./",
   "scope": "./",

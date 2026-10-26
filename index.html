@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<title>Sistema</title>
+<title>Gesta</title>
 <meta name="theme-color" content="#070B14">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Sistema">
+<meta name="apple-mobile-web-app-title" content="Gesta">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
@@ -615,7 +615,7 @@ function questsFor(sport, group) {
     out.med = { t: { lvl: 'g' }, label: 'Giornata verde' };
     out.hard = { t: { lvl: 'g*' }, label: 'Giornata verde da stella' };
     out.title = SPORTS[sport].name;
-    out.last = lf ? 'Ultima volta: giornata ' + FACE_NAME[lf][1] : 'Prima partita nel sistema: punta in alto.';
+    out.last = lf ? 'Ultima volta: giornata ' + FACE_NAME[lf][1] : 'Prima volta in Gesta: punta in alto.';
     return out;
   }
   var b = baseline(sport, group);
@@ -739,7 +739,7 @@ var A = {
     if (ui.ob.step === 0) { if (!ui.ob.name.trim()) { toast('Scrivi il tuo nome per iniziare.'); return; } ui.ob.step = 1; ding('open'); render(); return; }
     if (!ui.ob.sports.length) { toast('Scegli almeno uno sport.'); return; }
     S = newState(ui.ob.name.trim().slice(0, 24), ORDER.filter(function (s) { return ui.ob.sports.indexOf(s) >= 0; })); S.profile.g = ui.ob.g || 'm'; S.seen = { recap: ymKey(new Date().getFullYear(), new Date().getMonth()), intro: false };
-    save(); ding('reward'); ui.screen = 'home'; startupNotice(); render(); toast(gw('Benvenuto', 'Benvenuta') + ' nel sistema, ' + S.profile.name + '.');
+    save(); ding('reward'); ui.screen = 'home'; startupNotice(); render(); toast(gw('Benvenuto', 'Benvenuta') + ' in Gesta, ' + S.profile.name + '.');
   },
   install: function () { if (!installEvt) return; var e = installEvt; installEvt = null; try { e.prompt(); } catch (x) {} render(); },
   vib: function () { S.settings.vib = S.settings.vib === false; save(); render(); if (S.settings.vib) buzz(40); },
@@ -811,7 +811,7 @@ var A = {
     var D = ui.ov && ui.ov.D; if (!D) return;
     shareImage(D, function (blob) {
       if (!blob) return toast('Non riesco a creare l’immagine.');
-      var name = 'sistema-' + ymKey(D.y, D.m) + '.png', file = null;
+      var name = 'gesta-' + ymKey(D.y, D.m) + '.png', file = null;
       try { file = new File([blob], name, { type: 'image/png' }); } catch (e) {}
       if (file && navigator.canShare && navigator.canShare({ files: [file] })) { navigator.share({ files: [file], title: 'Il mio ' + MONTHS[D.m].toLowerCase() }).catch(function () {}); return; }
       var url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 1500);
@@ -911,7 +911,7 @@ var A = {
     var wasAssess = s.assess && !s.d;
     var hadStar = s.star, wkB = weekCount(o.k, s.id);
     s.d = d; s.star = !!f.star; save();
-    if (wasAssess) { var lvB = levelOf(totalXp() - sessXp(s)); ui.ov = null; rewardAfter(o.k, { beforeLv: lvB, beforeWeek: wkB }, 'Punto di partenza salvato', sessXp(s), 'Dalla prossima volta il sistema ti propone le quest di ' + SPORTS[s.sport].name.toLowerCase() + '.'); return; }
+    if (wasAssess) { var lvB = levelOf(totalXp() - sessXp(s)); ui.ov = null; rewardAfter(o.k, { beforeLv: lvB, beforeWeek: wkB }, 'Punto di partenza salvato', sessXp(s), 'Dalla prossima volta Gesta ti propone le quest di ' + SPORTS[s.sport].name.toLowerCase() + '.'); return; }
     ui.ov = null; ding('tap'); toast('Dettagli salvati.' + (s.star && !hadStar ? ' Stella: +5 XP' : ''));
   },
   /* stato */
@@ -967,7 +967,7 @@ function openDetails(k, id, assess) {
 /* ---------- backup ---------- */
 function exportBackup() {
   try {
-    var data = JSON.stringify(S, null, 1), name = 'sistema-backup-' + todayKey() + '.json';
+    var data = JSON.stringify(S, null, 1), name = 'gesta-backup-' + todayKey() + '.json';
     var blob = new Blob([data], { type: 'application/json' });
     var file = null; try { file = new File([blob], name, { type: 'application/json' }); } catch (e) {}
     var done = function () { S.lastBackup = todayKey(); save(); render(); toast(ANDROID ? 'Backup pronto. Salvalo su Google Drive o nei file del telefono.' : 'Backup pronto. Salvalo in iCloud Drive o in File.'); };
@@ -988,7 +988,7 @@ function importBackup(file) {
       var s = JSON.parse(r.result);
       if (!s || s.v !== 1 || !s.profile || typeof s.days !== 'object') throw new Error('formato');
       S = s; save(); ui.screen = 'home'; ui.ov = null; render(); toast('Dati ripristinati. Bentornato, ' + S.profile.name + '.');
-    } catch (e) { toast('Questo file non è un backup del Sistema.'); }
+    } catch (e) { toast('Questo file non è un backup di Gesta.'); }
   };
   r.readAsText(file);
 }
@@ -996,7 +996,7 @@ function importBackup(file) {
 /* ---------- viste ---------- */
 function header(title, extra) {
   var li = levelInfo(totalXp()), lv = li.lv, inLv = li.inLv;
-  return '<div class="top"><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="lbl kick">[ Sistema ]</span><h1>' + title + '</h1></div>' +
+  return '<div class="top"><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="lbl kick">[ Gesta ]</span><h1>' + title + '</h1></div>' +
     '<div style="display:flex;align-items:flex-end;gap:10px">' +
     '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><span class="lv">LV ' + lv + '</span><div class="track" style="width:104px"><div class="fill" style="width:' + Math.round(inLv / li.need * 100) + '%"></div></div><span style="font:600 11px/14px var(--fd);color:var(--mut)">' + inLv + '/' + li.need + '</span></div>' +
     (extra || '') + '</div></div>';
@@ -1101,7 +1101,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">XP, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 2.5.4</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 2.6</span>';
   return h;
 }
 
@@ -1164,7 +1164,7 @@ function viewOverlay() {
     if (o.kind === 'intro') h = '<div class="' + cls + '">' + whead('Notifica', false) + '<p class="wtitle">Come funziona</p><div class="rules">' +
       '<p><b>Esserci conta più di tutto.</b> Ogni giorno in cui fai sport ti avvicina al rango del mese.</p>' +
       '<p><b>Le quest sono il di più.</b> Prima della sessione scegli una sfida facile, media o difficile: più è dura, più ti fa salire di rango.</p>' +
-      '<p><b>Niente penalità.</b> Un giorno saltato non toglie niente: il sistema premia solo quello che fai.</p></div>' +
+      '<p><b>Niente penalità.</b> Un giorno saltato non toglie niente: Gesta premia solo quello che fai.</p></div>' +
       '<div class="acts"><button class="btn" data-a="introRules">Tutte le regole</button><button class="btn main" data-a="introOk">Inizia</button></div></div>';
     else if (o.kind === 'gender') h = '<div class="' + cls + '">' + whead('Notifica', false) + '<p class="wtitle">Nuovi titoli del mese</p><p class="wtext">I titoli ora si declinano. Maschile o femminile?</p><div class="g2"><button class="opt pick" style="justify-content:center" data-a="gender" data-v="m">M</button><button class="opt pick" style="justify-content:center" data-a="gender" data-v="f">F</button></div><p class="wtext" style="font-size:12px">Puoi cambiarlo quando vuoi dal profilo.</p></div>';
     else if (o.kind === 'edit') h = '<div class="' + cls + '">' + whead('Notifica', false) + '<p class="wtitle">Recupera il mese</p><p class="wtext">Per i primi 14 giorni puoi segnare anche gli allenamenti dell’ultimo mese: tocca i giorni passati sul calendario. Così parti dal tuo rango vero.</p><div class="acts one"><button class="btn main" data-a="noticeOk">Ricevuto</button></div></div>';
@@ -1174,9 +1174,9 @@ function viewOverlay() {
       '<div class="fld"><span class="lbl" style="font-size:11px">Rango del mese</span><p>Ogni giorno con almeno uno sport vale <b>2 Punti Rango</b>, fino a 16 giorni. Se quel giorno completi una quest media vale <b>+0,5</b>, una difficile <b>+1</b>. La facile dà solo Punti XP. Per A e S servono anche le stelle delle sessioni top.</p>' +
       '<div class="rtab">' + RANKS.slice(0, 5).map(function (r) { return '<span><b>' + r[0] + '</b>' + r[1] + ' Punti Rango' + (r[2] ? ' · ' + r[2] + (r[2] === 1 ? ' stella' : ' stelle') : '') + '</span>'; }).join('') + '</div><p class="hint">Dalla seconda settimana Stato ti dice dove chiudi il mese al tuo ritmo.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Rango di ogni sport</span><p>Ogni sessione vale <b>2 Punti Rango</b> (fino a 6 al mese). Una quest media riuscita <b>+0,5</b>, una difficile <b>+1</b>. B a 10 Punti Rango, A a 14, S a 16.</p></div>' +
-      '<div class="fld"><span class="lbl" style="font-size:11px">Quest</span><p>Tocca oggi sul calendario: il sistema propone tre sfide partendo dalla tua ultima volta. A fine sessione dici se ce l’hai fatta.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Quest</span><p>Tocca oggi sul calendario: Gesta propone tre sfide partendo dalla tua ultima volta. A fine sessione dici se ce l’hai fatta.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Titolo del mese</span><p>Viene dallo sport che hai fatto di più. Se un secondo sport ci va vicino (almeno il 70%), il titolo diventa doppio.</p></div>' +
-      '<div class="fld"><span class="lbl" style="font-size:11px">Badge della settimana</span><p>Uno per ogni giorno di sport da lunedì a domenica. Le frasi cambiano ogni settimana. Oltre i 5 giorni il sistema ti consiglia di riposare.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Badge della settimana</span><p>Uno per ogni giorno di sport da lunedì a domenica. Le frasi cambiano ogni settimana. Oltre i 5 giorni Gesta ti consiglia di riposare.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Hard Study/Work</span><p>Un segno sul calendario per le giornate di testa. Non è sport e non dà né XP né Punti Rango: è solo un modo per ricordarle.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Tratto del mese</span><p>Ogni sport allena uno o più tratti: <b>Forza</b>, <b>Agilità</b>, <b>Resistenza</b>, <b>Equilibrio</b>. Il tratto del mese è quello che hai allenato di più; il rombo ne mostra la forma, e la sua grandezza segue il rango. Il secondo tratto compare se arriva almeno a metà del primo: <b>non male anche</b> dal 50%, <b>notevole anche</b> dal 75%, <b>spalla a spalla</b> dall’80%.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Bacheca</span><p>Medaglie che non si azzerano mai e salgono di lega: Legno, Bronzo, Argento, Oro, Platino, Diamante, Challenger. Molte sono <b>segrete</b>: le scopri facendo. Se togli una sessione segnata per errore, sparisce anche tutto quello che aveva sbloccato: medaglie, XP, quest e tratto.</p></div>' +
@@ -1245,7 +1245,7 @@ function viewOverlay() {
 
 function viewRecap(o, cls) {
   var ms = monthStats(o.y, o.m), p = prevMonth(o.y, o.m), pv = monthStats(p.y, p.m), dd = ms.days - pv.days;
-  var cmp = !pv.days ? 'Il tuo primo mese nel sistema.' : dd > 0 ? '+' + dd + (dd === 1 ? ' giorno' : ' giorni') + ' rispetto a ' + MONTHS[p.m].toLowerCase() + '.' : dd === 0 ? 'Stessi giorni di ' + MONTHS[p.m].toLowerCase() + ': costanza pura.' : 'Ogni mese conta: questo è nel libro.';
+  var cmp = !pv.days ? 'Il tuo primo mese in Gesta.' : dd > 0 ? '+' + dd + (dd === 1 ? ' giorno' : ' giorni') + ' rispetto a ' + MONTHS[p.m].toLowerCase() + '.' : dd === 0 ? 'Stessi giorni di ' + MONTHS[p.m].toLowerCase() + ': costanza pura.' : 'Ogni mese conta: questo è nel libro.';
   var h = '<div class="' + cls + ' gold" style="text-align:center;gap:14px">' + whead('Recap · ' + MONTHS[o.m] + ' ' + o.y, !o.first);
   h += '<div style="display:flex;flex-direction:column;align-items:center;gap:6px"><span class="lbl" style="color:#D9B04A">Rango del mese</span><span class="recap-big pop">' + ms.rank + '</span></div>';
   h += '<div class="pop" style="display:flex;flex-direction:column;gap:2px"><span class="lbl" style="color:#D9B04A;font-size:11px">Titolo</span><span class="fit1 t24" style="color:var(--rew);text-shadow:0 0 14px rgba(255,201,77,.45);letter-spacing:1px;text-transform:uppercase">' + esc(ms.title) + '</span><span class="hint">' + titleWhy(ms) + '</span></div>';
@@ -1325,14 +1325,14 @@ function sportPicker(sel, act) {
   return h;
 }
 function sportCount(sel) { return '<span class="hint" style="color:' + (sel.length > SOFT_SPORTS ? 'var(--rew)' : 'var(--mut)') + '">' + sel.length + ' di ' + MAX_SPORTS + '</span>'; }
-var MANY_HINT = 'Più di 6? Va bene, ma il sistema premia la costanza.';
+var MANY_HINT = 'Più di 6? Va bene, ma Gesta premia la costanza.';
 var PICK_HINT = 'Scegli quelli che fai con costanza. Uno sport fatto ogni tanto? Segnalo come Bonus.';
 
 function viewOnboarding() {
   var o = ui.ob, h = '<div class="ob">';
   var standalone = window.navigator.standalone || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
   if (o.step === 0) {
-    h += '<div class="win anim" style="gap:16px">' + whead('Notifica', false) + '<p class="wtitle">Nuovo giocatore rilevato</p><p class="wtext">Il sistema premia la costanza: segni gli sport che fai, ricevi quest, sali di livello. Come ti chiami?</p><input id="obname" class="inp" maxlength="24" placeholder="Il tuo nome" value="' + esc(o.name) + '" data-f="obname" autocomplete="given-name" enterkeyhint="next"><div class="row" style="justify-content:center;gap:12px"><span class="hint">Titoli del mese al</span><div class="chips"><button class="chip mf' + (o.g !== 'f' ? ' on' : '') + '" data-a="obG" data-v="m" aria-label="Maschile">M</button><button class="chip mf' + (o.g === 'f' ? ' on' : '') + '" data-a="obG" data-v="f" aria-label="Femminile">F</button></div></div><button class="btn main" data-a="obNext">Avanti</button>' + (cloudOn() ? '<button class="mlink" data-a="cLogin" style="color:var(--sysl)">Hai già un account? Entra</button>' : '') + '</div>';
+    h += '<div class="win anim" style="gap:16px">' + whead('Notifica', false) + '<p class="wtitle">Nuovo giocatore rilevato</p><p class="wtext">Gesta premia la costanza: segni gli sport che fai, ricevi quest, sali di livello. Come ti chiami?</p><input id="obname" class="inp" maxlength="24" placeholder="Il tuo nome" value="' + esc(o.name) + '" data-f="obname" autocomplete="given-name" enterkeyhint="next"><div class="row" style="justify-content:center;gap:12px"><span class="hint">Titoli del mese al</span><div class="chips"><button class="chip mf' + (o.g !== 'f' ? ' on' : '') + '" data-a="obG" data-v="m" aria-label="Maschile">M</button><button class="chip mf' + (o.g === 'f' ? ' on' : '') + '" data-a="obG" data-v="f" aria-label="Femminile">F</button></div></div><button class="btn main" data-a="obNext">Avanti</button>' + (cloudOn() ? '<button class="mlink" data-a="cLogin" style="color:var(--sysl)">Hai già un account? Entra</button>' : '') + '</div>';
     if (!standalone) h += installEvt ? '<button class="btn" data-a="install">Installa l’app sul telefono</button>' : '<p class="hint" style="text-align:center">' + (ANDROID ? 'Per averla come app: in Chrome tocca il menu ⋮, poi “Installa app”.' : 'Per averla come app: in Safari tocca Condividi, poi “Aggiungi alla schermata Home”. Fallo prima di iniziare, così i dati restano nell’app.') + '</p>';
   } else {
     h += '<div class="win anim obwin" style="gap:12px">' + whead('Notifica', false) + '<div style="display:flex;flex-direction:column;gap:4px"><p class="wtitle">Che sport fai, ' + esc(o.name) + '?</p><p class="wtext" style="font-size:13px">' + PICK_HINT + '</p></div><div class="wbody" data-keep style="gap:8px">' + sportPicker(o.sports, 'obSport') + '</div>' +
@@ -1471,7 +1471,7 @@ SX('ferragosto', 'Ferragosto', [], MIC.sun, GC, 'Sport il 15 agosto.', [1], func
 SX('inverno', 'Inverno di ferro', [], MIC.snow, GC, 'Almeno 2 giorni ogni settimana di gennaio e febbraio.', [1], function (c) {
   var yrs = {}; c.keys.forEach(function (k) { yrs[k.slice(0, 4)] = 1; }); var cur = mondayOf(todayKey());
   return Object.keys(yrs).some(function (y) { var w = mondayOf(y + '-01-07'), ok = true, any = false; while (w.slice(0, 7) <= y + '-02') { if (w >= cur) return false; any = true; if (!c.weeks[w] || c.weeks[w].days < 2) ok = false; w = addDays(w, 7); } return any && ok; }) ? 1 : 0; });
-SX('anno', 'Un anno di Sistema', [], MIC.cal, GC, 'Dodici mesi di fila con almeno un giorno di sport.', [1], function (c) { var run = 0, ok = 0; c.months.forEach(function (x) { run = x.ms.days ? run + 1 : 0; if (run >= 12) ok = 1; }); return ok; });
+SX('anno', 'Un anno di Gesta', [], MIC.cal, GC, 'Dodici mesi di fila con almeno un giorno di sport.', [1], function (c) { var run = 0, ok = 0; c.months.forEach(function (x) { run = x.ms.days ? run + 1 : 0; if (run >= 12) ok = 1; }); return ok; });
 SX('studente', 'Studente modello', [], MIC.book, GC, 'Giornate di Hard Study/Work.', N100, function () { return Object.keys(S.marks || {}).length; }, 'giornate');
 SX('triatleta', 'Triatleta', ['run', 'swm', 'bik'], MIC.crown, '#7EE3F7', 'Corsa, nuoto e bici nella stessa settimana.', WK, function (c) { return weeksWith(c, function (w) { return w.sp.run && w.sp.swm && w.sp.bik; }); }, 'settimane');
 SX('duathlon', 'Duathlon', ['run', 'bik'], MIC.two, '#9BE15D', 'Corsa e bici nello stesso giorno.', N60, function (c) { return daysWith(c, function (l) { return l.some(function (s) { return s.sport === 'run'; }) && l.some(function (s) { return s.sport === 'bik'; }); }); }, 'giorni');
@@ -1799,7 +1799,7 @@ function rankHex(r, size) {
 function viewStory(o) {
   var D = o.D, ms = D.ms, i = o.i, total = 5, body = '', gold = false, mname = MONTHS[D.m].toLowerCase();
   if (i === 0) {
-    body = '<span class="skick">[ Sistema ] · Recap</span><span class="sbig" style="font-size:40px">' + MONTHS[D.m] + '</span><p class="stext">Il tuo mese è pronto.</p><span class="stap">Tocca per iniziare</span>';
+    body = '<span class="skick">[ Gesta ] · Recap</span><span class="sbig" style="font-size:40px">' + MONTHS[D.m] + '</span><p class="stext">Il tuo mese è pronto.</p><span class="stap">Tocca per iniziare</span>';
   } else if (i === 1) {
     gold = true; var ri = 'EDCBAS'.indexOf(ms.rank);
     body = '<span class="skick" style="color:#D9B04A">' + MONTHS[D.m] + ' si chiude in</span>' + rankHex(ms.rank, 200) + '<span class="sbig gold fit1 t34">' + esc(ms.title) + '</span><div class="segs">' + [0, 1, 2, 3, 4, 5].map(function (r) { return '<i class="' + (r <= ri ? 'on' : '') + '"></i>'; }).join('') + '</div><p class="stext" style="color:#8A7A50;font-size:13px">' + (ms.rank === 'S' ? 'Rango massimo. Leggendario.' : nextGoal(ms).replace(/^(.)/, function (x) { return x.toUpperCase(); }) + '.') + '</p>';
@@ -1816,11 +1816,11 @@ function viewStory(o) {
     body = '<span class="skick">Da condividere</span>' + shareCardHTML(D) + '<div class="acts"><button class="btn" data-a="storyClose">Chiudi</button><button class="btn main" data-a="shareRecap">Condividi</button></div>';
   }
   var segs = '<div class="ssegs">' + [0, 1, 2, 3, 4].map(function (k) { return '<i class="' + (k < i ? 'on' : '') + '"></i>'; }).join('') + '</div>';
-  return '<div class="story' + (gold ? ' gold' : '') + '" data-a="storyTap">' + (i ? segs : '') + '<div class="shead"><span>[ SISTEMA ] · RECAP</span><span>' + MONTHS[D.m].toUpperCase() + ' ' + D.y + '</span><button class="x" data-a="storyClose" aria-label="Chiudi il recap">' + svg(IC.close, null, 20) + '</button></div><div class="sbody' + animCls('story' + i + D.y + D.m, 'story') + '">' + body + '</div>' + (i > 0 && i < 5 ? '<span class="stap">Tocca per continuare</span>' : '') + '</div>';
+  return '<div class="story' + (gold ? ' gold' : '') + '" data-a="storyTap">' + (i ? segs : '') + '<div class="shead"><span>[ GESTA ] · RECAP</span><span>' + MONTHS[D.m].toUpperCase() + ' ' + D.y + '</span><button class="x" data-a="storyClose" aria-label="Chiudi il recap">' + svg(IC.close, null, 20) + '</button></div><div class="sbody' + animCls('story' + i + D.y + D.m, 'story') + '">' + body + '</div>' + (i > 0 && i < 5 ? '<span class="stap">Tocca per continuare</span>' : '') + '</div>';
 }
 function shareCardHTML(D) {
   var ms = D.ms, mt = D.mt;
-  return '<div class="scard"><div class="row"><span class="skick" style="font-size:11px;letter-spacing:3px">[ Sistema ]</span><span class="hint" style="letter-spacing:2px;font-size:11px">' + MONTHS[D.m].toUpperCase() + ' ' + D.y + '</span></div>' +
+  return '<div class="scard"><div class="row"><span class="skick" style="font-size:11px;letter-spacing:3px">[ Gesta ]</span><span class="hint" style="letter-spacing:2px;font-size:11px">' + MONTHS[D.m].toUpperCase() + ' ' + D.y + '</span></div>' +
     '<div style="display:flex;align-items:center;gap:8px"><div style="flex:1 1 auto;display:flex;flex-direction:column;gap:4px;min-width:0"><span style="font:700 44px/44px var(--fd);color:#FFF4D6;text-shadow:0 0 16px rgba(255,201,77,.8)">' + ms.rank + '</span><span style="font:700 16px/20px var(--fd);color:var(--rew);text-transform:uppercase;letter-spacing:1px">' + esc(ms.title) + '</span>' + (mt ? '<span style="font:600 12px/16px var(--fd);letter-spacing:2px;color:' + TRAITS[mt.top].c + '">' + TRAITS[mt.top].name.toUpperCase() + ' <span style="color:var(--mut);letter-spacing:0;font-family:var(--fb);font-weight:500">' + traitPhrase(mt) + '</span></span>' : '') + '</div>' + (mt ? rombo(mt.v, ms.rank, 104, false) : '') + '</div>' +
     '<div style="border-top:1px solid var(--line);padding-top:10px;font:500 13px/18px var(--fb);color:var(--soft)">' + ms.days + ' giorni · ' + ms.qd + ' quest · ' + ms.stars + ' stelle' + (D.pers ? '<div style="margin-top:6px"><span style="font:600 11px/16px var(--fd);letter-spacing:2px;color:var(--mut)">PERSONAGGI: </span>' + persList(D.pers, function (b) { return '<b style="color:var(--ink)">' + esc(b) + '</b>'; }, true) + '</div>' : '') + '</div></div>';
 }
@@ -1841,7 +1841,7 @@ function shareImage(D, cb) {
   var bg = g.createRadialGradient(W * 0.3, 0, 50, W * 0.3, 0, H); bg.addColorStop(0, '#1B1A10'); bg.addColorStop(0.45, '#0B1220'); bg.addColorStop(1, '#070B14'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
   g.strokeStyle = '#FFC94D'; g.lineWidth = 3; roundRect(g, 40, 40, W - 80, H - 80, 40); g.stroke();
   var FD = '"Exo 2", "Segoe UI", sans-serif', FB = 'Manrope, "Segoe UI", sans-serif';
-  g.fillStyle = '#7CC4FF'; g.font = '600 30px ' + FD; g.fillText('[ SISTEMA ]', 100, 130);
+  g.fillStyle = '#7CC4FF'; g.font = '600 30px ' + FD; g.fillText('[ GESTA ]', 100, 130);
   g.fillStyle = '#8FA3C2'; g.textAlign = 'right'; g.fillText(MONTHS[D.m].toUpperCase() + ' ' + D.y, W - 100, 130); g.textAlign = 'left';
   g.save(); g.shadowColor = 'rgba(255,201,77,.85)'; g.shadowBlur = 50; g.fillStyle = '#FFF4D6'; g.font = '700 300px ' + FD; g.fillText(ms.rank, 90, 450); g.restore();
   g.fillStyle = '#FFC94D'; g.font = '700 64px ' + FD; wrapText(g, ms.title.toUpperCase(), 100, 560, W - 200, 72);
@@ -1855,7 +1855,7 @@ function shareImage(D, cb) {
   g.fillStyle = '#7CC4FF'; g.font = '700 120px ' + FD; g.fillText(String(ms.qd), 420, 960); g.fillStyle = '#8FA3C2'; g.font = '600 30px ' + FD; g.fillText('QUEST', 420, 1005);
   g.fillStyle = '#FFC94D'; g.font = '700 120px ' + FD; g.fillText(String(ms.stars), 700, 960); g.fillStyle = '#8FA3C2'; g.font = '600 30px ' + FD; g.fillText('STELLE', 700, 1005);
   if (D.pers) { g.fillStyle = '#C6D6EA'; g.font = '500 36px ' + FB; g.fillStyle = '#8FA3C2'; g.font = '600 26px ' + FD; g.fillText('PERSONAGGI', 100, 1085); g.fillStyle = '#C6D6EA'; g.font = '500 36px ' + FB; wrapText(g, persList(D.pers, null, true), 100, 1135, W - 200, 48); }
-  g.fillStyle = '#5A6B88'; g.font = '600 26px ' + FD; g.fillText('SISTEMA · IL GIOCO DELLA COSTANZA', 100, H - 100);
+  g.fillStyle = '#5A6B88'; g.font = '600 26px ' + FD; g.fillText('GESTA · IL GIOCO DELLA COSTANZA', 100, H - 100);
   cv.toBlob(function (b) { cb(b); }, 'image/png');
 }
 function roundRect(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
@@ -2596,7 +2596,7 @@ function cloudPull(quiet) {
 }
 document.addEventListener('visibilitychange', function () { if (!document.hidden && cauth && cloudOn()) cloudPull(true); });
 function viewLogin(o, cls) {
-  var h = '<div class="' + cls + '">' + whead(o.step === 'code' ? 'Codice' : 'Entra in Sistema', true);
+  var h = '<div class="' + cls + '">' + whead(o.step === 'code' ? 'Codice' : 'Entra in Gesta', true);
   if (o.step === 'code') {
     h += '<p class="wtext">Scrivi il codice di 6 cifre che ti è arrivato a<br><b style="color:var(--ink)">' + esc(o.email) + '</b></p>' +
       '<input class="inp" data-f="ccode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" value="' + esc(o.code || '') + '" placeholder="Codice" style="text-align:center;letter-spacing:8px;font:700 24px/1 var(--fd)">' +
