@@ -1104,7 +1104,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">XP, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.0.3</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.0.4</span>';
   return h;
 }
 
@@ -1568,6 +1568,9 @@ function undoAfterRemove(k) {
     c.me = false;
     if (c.gang && c.st === 'passed' && k === todayKey() && gangDone(c) < gangNeed(gangById(c.gang))) c.st = 'open';
   });
+  capMedals();
+}
+function capMedals() {
   medalDirty = true; var st = medalState(); S.medals = S.medals || {};
   Object.keys(S.medals).forEach(function (id) { if (st[id] && st[id].t < S.medals[id]) { if (st[id].t < 0) delete S.medals[id]; else S.medals[id] = st[id].t; } });
   if (ui.mq) ui.mq = ui.mq.filter(function (q) { return S.medals[q.id] !== undefined && S.medals[q.id] >= q.t; });
@@ -1903,8 +1906,11 @@ var DEMO = [
 function hashN(s) { var h = 7; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 1000003; return h; }
 function P() { return S.party; }
 function partyOn() { return !!(S && S.party && S.party.demo); }
+/* la modalità prova con gli amici finti resta solo per i test: localStorage 'gesta.demo' = '1' */
+var DEMO_ON = (function () { try { return localStorage.getItem('gesta.demo') === '1'; } catch (e) { return false; } })();
 function partyInit() {
   if (S.party) return;
+  if (!DEMO_ON) { S.party = { demo: false, code: 'GES-' + uid().slice(-4).toUpperCase(), friends: [], ch: [], letters: [], fives: {}, gangs: [], set: { q: true, det: false, rec: false, nG: true, nW: true, nF: false } }; save(); return; }
   var t = todayKey(), now = Date.now(), mine = S.profile.sports.filter(function (s) { return s !== 'bon'; }), sp = mine.indexOf('bld') >= 0 ? 'bld' : (mine[0] || 'run');
   S.party = {
     demo: true, code: 'SIS-' + uid().slice(-4).toUpperCase(), friends: DEMO.map(function (f) { return f.id; }),
@@ -1923,6 +1929,11 @@ function fTitle(f) { var T = TITLES[f.top], B = TITLES[f.sports[1]] || null, fem
 function trainedOn(f, k) { if (k > todayKey()) return false; return hashN(k + f.id) % 10 < f.fr; }
 function fSportOn(f, k) { return f.sports[hashN(f.id + k) % f.sports.length]; }
 function myCh() { return P() ? P().ch : []; }
+/* chi aveva la prova accesa: via amici finti, sfide, lettere, e le medaglie che venivano solo da lì */
+function purgeDemo() {
+  if (DEMO_ON || !S || !S.party || !S.party.demo) return;
+  delete S.party; partyInit(); capMedals(); save();
+}
 function chWith(fid) { return myCh().filter(function (c) { return c.from === fid || c.to === fid; }).sort(function (a, b) { return b.t - a.t; }); }
 function chOpenToday(fid) { var t = todayKey(); return myCh().filter(function (c) { return c.day === t && (c.from === fid || c.to === fid) && ['pending', 'accepted', 'countered'].indexOf(c.st) >= 0; })[0] || null; }
 function incomingPending() { var t = todayKey(); return myCh().filter(function (c) { return c.to === 'me' && c.day === t && c.st === 'pending'; }); }
@@ -2009,7 +2020,7 @@ function viewParty() {
   var p = P(), n = unreadLetters();
   var top = '<button class="icon-btn" data-a="go" data-v="letters" aria-label="Letterine' + (n ? ', ' + n + ' nuove' : '') + '" style="position:relative">' + svg(PI.letter) + (n ? '<i style="position:absolute;top:6px;right:6px;min-width:16px;height:16px;border-radius:8px;background:#FFC94D;color:#14120A;font:700 10px/16px var(--fd);font-style:normal;text-align:center">' + n + '</i>' : '') + '</button><button class="icon-btn" data-a="go" data-v="psettings" aria-label="Impostazioni del Party">' + svg(IC.gear) + '</button>';
   var h = header('Party', top);
-  if (!p.demo) return h + '<div class="card" style="padding:16px;display:flex;flex-direction:column;gap:8px"><span class="lbl kick">Party in arrivo</span><p style="margin:0;font:500 14px/21px var(--fb);color:var(--soft)">Gli amici veri arrivano con il cloud. Intanto puoi riaccendere la modalità prova dalle impostazioni.</p><button class="btn" data-a="go" data-v="psettings">Impostazioni</button></div>';
+  if (!p.demo) return h + '<div class="card" style="padding:18px 16px;display:flex;flex-direction:column;gap:10px;border-color:rgba(255,201,77,.45);background:#14120A"><span style="display:flex;align-items:center;gap:10px">' + svg(PI.glove, PGOLD, 26) + '<span class="lbl kick" style="color:' + PGOLD + '">Party in arrivo</span></span><p style="margin:0;font:500 14px/21px var(--fb);color:var(--soft)">Presto aggiungi gli amici con il loro codice, lanci il guanto di sfida, crei una Gang e vi date il cinque. ' + (cauth ? 'Il tuo account è già pronto.' : 'Per giocare serve l’account: collega la tua email da Stato → ingranaggio.') + '</p></div>';
   var t = todayKey();
   var ym0 = ymKey(new Date().getFullYear(), new Date().getMonth()), mch = myCh().filter(function (c) { return c.day.indexOf(ym0) === 0; }), mwon = mch.filter(function (c) { return c.me; }).length, mlive = mch.filter(function (c) { return c.day === t && !c.me && !c.myNo && (c.gang ? ['open', 'passed'].indexOf(c.st) >= 0 && c.myAcc !== false : ['pending', 'accepted', 'countered'].indexOf(c.st) >= 0); }).length;
   h += '<button class="card" data-a="go" data-v="sfide" style="' + (mlive ? 'border-color:' + PGOLD + '8C;background:#14120A;box-shadow:0 0 14px ' + PGOLD + '24;' : '') + 'padding:10px 14px;display:flex;align-items:center;gap:12px;text-align:left;color:var(--ink);width:100%">' + svg(PI.glove, mlive ? PGOLD : 'var(--glow)', 22) + '<span style="flex:1 1 auto;display:flex;flex-direction:column;gap:2px"><span class="lbl" style="font-size:11px' + (mlive ? ';color:' + PGOLD : '') + '">Sfide di ' + MONTHS[new Date().getMonth()].toLowerCase() + '</span><span class="hint" style="font-size:11.5px">' + mlive + ' in corso · ' + mwon + ' vinte</span></span>' + svg(IC.right, 'var(--mut)', 18) + '</button>';
@@ -2044,7 +2055,7 @@ function viewPSettings() {
   h += '<div class="card" style="padding:4px 12px">' + pSec('Sempre', '') + pToggle('', 'Rango, livello, titolo e tratto', '', true, true) + pToggle('', 'Bacheca e medaglie prese', '', true, true) + pToggle('', 'Giorni allenati, come puntini', 'Solo il colore dello sport', true, true) + '</div>';
   h += '<div class="card" style="padding:4px 12px">' + pSec('A scelta', '') + pToggle('q', 'Quest del giorno', 'E se l’hai completata', st.q) + pToggle('det', 'Dettagli delle sessioni', 'Pesi, km, tempi', st.det) + pToggle('rec', 'Card del recap', 'La condividi tu quando vuoi', st.rec) + '</div>';
   h += '<div class="card" style="padding:4px 12px">' + pSec('Notifiche', 'arrivano con il cloud') + pToggle('nG', 'Guanti ricevuti', 'Solo se non ne hai già uno attivo', st.nG) + pToggle('nW', 'Sfide vinte dagli amici', '', st.nW) + pToggle('nF', 'Cinque ricevuti', '', st.nF) + '</div>';
-  h += '<div class="card" style="padding:4px 12px">' + pSec('Modalità prova', '') + pToggle('demo', 'Amici finti', 'Per provare il Party prima del cloud', p.demo) + '<button class="btn sm" data-a="pReset" style="width:100%;margin:6px 0 10px">Ricomincia la prova</button></div>';
+  if (DEMO_ON) h += '<div class="card" style="padding:4px 12px">' + pSec('Modalità prova', '') + pToggle('demo', 'Amici finti', 'Per provare il Party prima del cloud', p.demo) + '<button class="btn sm" data-a="pReset" style="width:100%;margin:6px 0 10px">Ricomincia la prova</button></div>';
   return h;
 }
 /* finestre */
@@ -2771,6 +2782,7 @@ function render() {
   var h;
   if (!S) { lastAnim = {}; h = viewOnboarding() + (ui.ov && ui.ov.t === 'login' ? '<div class="veil">' + viewLogin(ui.ov, 'win') + '</div>' : ''); }
   else {
+    if (S.party && S.party.demo && !DEMO_ON) purgeDemo();
     partyTick();
     if (medalDirty) { noteMid(); rankCheck(); checkMedals(); }
     if (!ui.ov && ui.rkq) { ui.ov = { t: 'rankup', r: ui.rkq.r, plus: ui.rkq.plus, k: ui.rkq.r + ui.rkq.plus }; ui.rkq = null; rankSound(); buzz([40, 50, 40, 50, 140]); }
