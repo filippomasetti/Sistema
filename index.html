@@ -396,7 +396,7 @@ function load() {
   try { var raw = localStorage.getItem(KEY); if (raw) { var s = JSON.parse(raw); if (s && s.v === 1) return s; } } catch (e) {}
   return null;
 }
-function save() { medalDirty = true; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast('Non riesco a salvare: spazio pieno o salvataggio bloccato.'); } }
+function save() { medalDirty = true; if (S) S.mt = Date.now(); cloudDirty(); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast('Non riesco a salvare: spazio pieno o salvataggio bloccato.'); } }
 function newState(name, sports) { return { v: 1, profile: { name: name, sports: sports, created: todayKey() }, settings: { sound: true }, days: {}, lastBackup: null }; }
 var ANDROID = /Android/i.test(navigator.userAgent || '');
 var CLOUD = ANDROID ? 'Google Drive' : 'iCloud Drive';
@@ -810,7 +810,7 @@ var A = {
   addOther: function () { var k = ui.ov.k; ding('open'); open({ t: k === todayKey() && !activeToday() ? 'pick' : 'past', k: k }); },
   edit: function (id) { ding('open'); openDetails(ui.ov.k, id, false); },
   askRemove: function (id) { ui.ov.confirm = id; render(); },
-  remove: function (id) { var k = ui.ov.k; S.days[k] = sessions(k).filter(function (s) { return s.id !== id; }); if (!S.days[k].length) delete S.days[k]; save(); ui.ov.confirm = null; toast('Sessione rimossa.'); if (!sessions(k).length) close(); },
+  remove: function (id) { var k = ui.ov.k; S.del = S.del || {}; S.del[id] = Date.now(); S.days[k] = sessions(k).filter(function (s) { return s.id !== id; }); if (!S.days[k].length) delete S.days[k]; save(); ui.ov.confirm = null; toast('Sessione rimossa.'); if (!sessions(k).length) close(); },
   /* dettagli */
   step: function (arg) { var p = arg.split('|'), f = ui.ov.form, path = p[0].split('.'), delta = +p[1], min = p[2] !== undefined ? +p[2] : 0, o = f; for (var i = 0; i < path.length - 1; i++) o = o[path[i]]; var last = path[path.length - 1]; o[last] = Math.max(min, Math.round((o[last] + delta) * 10) / 10); ding('tap'); render(); },
   exOn: function (ex) { var e = ui.ov.form.ex[ex]; e.on = !e.on; ding('tap'); render(); },
@@ -1048,11 +1048,12 @@ function viewSettings() {
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><label class="lbl" for="pname">Nome</label><input id="pname" class="inp" maxlength="24" value="' + esc(S.profile.name) + '" data-f="pname" autocomplete="off"><div class="row"><span class="hint">Titoli del mese al</span><div class="chips"><button class="chip mf' + (!fem() ? ' on' : '') + '" data-a="gender" data-v="m" aria-label="Maschile">M</button><button class="chip mf' + (fem() ? ' on' : '') + '" data-a="gender" data-v="f" aria-label="Femminile">F</button></div></div></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:8px"><div class="row"><span class="lbl">I tuoi sport</span>' + sportCount(S.profile.sports) + '</div><span class="hint">' + PICK_HINT + '</span>' + sportPicker(S.profile.sports, 'setSport') + '<span class="hint">Quelli spenti non compaiono nella scelta del giorno né in Stato. I dati già segnati restano.</span></div>';
   h += '<div class="card" style="padding:6px 12px"><button class="toggle" data-a="sound"><span style="display:flex;flex-direction:column"><span style="font:600 15px/20px var(--fd)">Suoni</span><span class="hint">Usano il volume dei media' + (ANDROID ? '' : ' e tacciono con l’iPhone in silenzioso') + '</span></span><span class="sw' + (S.settings.sound ? ' on' : '') + '"></span></button>' + (ANDROID && navigator.vibrate ? '<button class="toggle" data-a="vib" style="border-top:1px solid var(--line)"><span style="font:600 15px/20px var(--fd)">Vibrazione</span><span class="sw' + (S.settings.vib !== false ? ' on' : '') + '"></span></button>' : '') + '</div>';
+  h += cloudCard();
   var lb = S.lastBackup, age = lb ? diffDays(todayKey(), lb) : null;
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">Punti, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + CLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 2.3</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 2.4</span>';
   return h;
 }
 
@@ -1066,6 +1067,7 @@ function viewOverlay() {
   var o = ui.ov; if (!o) return '';
   if (o.t === 'story') return viewStory(o);
   if (o.t === 'glove') return viewGloveWin(o);
+  if (o.t === 'login') return '<div class="veil' + (animCls('login' + o.step) ? ' fade' : '') + '">' + viewLogin(o, 'win') + '</div>';
   if (o.t === 'medal') return '<div class="veil' + (animCls('medal' + o.id + o.tr) ? ' fade' : '') + '">' + viewMedalWin(o, 'win') + '</div>';
   var key = o.t + (o.sport || '') + (o.group || '') + (o.k || '') + (o.id || ''), cls = 'win' + animCls(key), h = '';
   if (o.t === 'pick' || o.t === 'past') {
@@ -1276,7 +1278,7 @@ function viewOnboarding() {
   var o = ui.ob, h = '<div class="ob">';
   var standalone = window.navigator.standalone || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
   if (o.step === 0) {
-    h += '<div class="win anim" style="gap:16px">' + whead('Notifica', false) + '<p class="wtitle">Nuovo giocatore rilevato</p><p class="wtext">Il sistema premia la costanza: segni gli sport che fai, ricevi quest, sali di livello. Come ti chiami?</p><input id="obname" class="inp" maxlength="24" placeholder="Il tuo nome" value="' + esc(o.name) + '" data-f="obname" autocomplete="given-name" enterkeyhint="next"><div class="row" style="justify-content:center;gap:12px"><span class="hint">Titoli del mese al</span><div class="chips"><button class="chip mf' + (o.g !== 'f' ? ' on' : '') + '" data-a="obG" data-v="m" aria-label="Maschile">M</button><button class="chip mf' + (o.g === 'f' ? ' on' : '') + '" data-a="obG" data-v="f" aria-label="Femminile">F</button></div></div><button class="btn main" data-a="obNext">Avanti</button></div>';
+    h += '<div class="win anim" style="gap:16px">' + whead('Notifica', false) + '<p class="wtitle">Nuovo giocatore rilevato</p><p class="wtext">Il sistema premia la costanza: segni gli sport che fai, ricevi quest, sali di livello. Come ti chiami?</p><input id="obname" class="inp" maxlength="24" placeholder="Il tuo nome" value="' + esc(o.name) + '" data-f="obname" autocomplete="given-name" enterkeyhint="next"><div class="row" style="justify-content:center;gap:12px"><span class="hint">Titoli del mese al</span><div class="chips"><button class="chip mf' + (o.g !== 'f' ? ' on' : '') + '" data-a="obG" data-v="m" aria-label="Maschile">M</button><button class="chip mf' + (o.g === 'f' ? ' on' : '') + '" data-a="obG" data-v="f" aria-label="Femminile">F</button></div></div><button class="btn main" data-a="obNext">Avanti</button>' + (cloudOn() ? '<button class="mlink" data-a="cLogin" style="color:var(--sysl)">Hai già un account? Entra</button>' : '') + '</div>';
     if (!standalone) h += installEvt ? '<button class="btn" data-a="install">Installa l’app sul telefono</button>' : '<p class="hint" style="text-align:center">' + (ANDROID ? 'Per averla come app: in Chrome tocca il menu ⋮, poi “Installa app”.' : 'Per averla come app: in Safari tocca Condividi, poi “Aggiungi alla schermata Home”. Fallo prima di iniziare, così i dati restano nell’app.') + '</p>';
   } else {
     h += '<div class="win anim obwin" style="gap:12px">' + whead('Notifica', false) + '<div style="display:flex;flex-direction:column;gap:4px"><p class="wtitle">Che sport fai, ' + esc(o.name) + '?</p><p class="wtext" style="font-size:13px">' + PICK_HINT + '</p></div><div class="wbody" data-keep style="gap:8px">' + sportPicker(o.sports, 'obSport') + '</div>' +
@@ -2344,6 +2346,147 @@ document.addEventListener('touchend', qUp, { passive: true });
 document.addEventListener('touchcancel', qUp, { passive: true });
 document.addEventListener('pointerdown', function (e) { if (e.pointerType === 'mouse') qDown(e.target); }, true);
 document.addEventListener('pointerup', function (e) { if (e.pointerType === 'mouse') qUp(); }, true);
+/* ---------- cloud (3.0): account con codice via email e salvataggio su Supabase ---------- */
+var CLOUD = { url: '', key: '' };
+try { var ccfg = JSON.parse(localStorage.getItem('sistema.cloudcfg') || 'null'); if (ccfg && ccfg.url && ccfg.key) CLOUD = ccfg; } catch (e) {}
+var AUTH_KEY = 'sistema.auth', CMETA_KEY = 'sistema.cloud';
+function cloudOn() { return !!(CLOUD.url && CLOUD.key); }
+var cauth = null; try { cauth = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null'); } catch (e) {}
+var cmeta = {}; try { cmeta = JSON.parse(localStorage.getItem(CMETA_KEY) || '{}') || {}; } catch (e) {}
+function authStore() { try { if (cauth) localStorage.setItem(AUTH_KEY, JSON.stringify(cauth)); else localStorage.removeItem(AUTH_KEY); } catch (e) {} }
+function cloudMeta(o) { for (var k in o) cmeta[k] = o[k]; try { localStorage.setItem(CMETA_KEY, JSON.stringify(cmeta)); } catch (e) {} }
+function sbFetch(path, opt) {
+  opt = opt || {};
+  var h = { apikey: CLOUD.key, 'Content-Type': 'application/json', Authorization: 'Bearer ' + (opt.anon || !cauth ? CLOUD.key : cauth.at) };
+  if (opt.prefer) h.Prefer = opt.prefer;
+  return fetch(CLOUD.url.replace(/\/$/, '') + path, { method: opt.method || 'GET', headers: h, body: opt.body ? JSON.stringify(opt.body) : undefined }).then(function (r) {
+    return r.text().then(function (t) {
+      var j = null; try { j = t ? JSON.parse(t) : null; } catch (e) {}
+      if (!r.ok) { var err = new Error((j && (j.msg || j.message || j.error_description || j.error)) || ('HTTP ' + r.status)); err.status = r.status; throw err; }
+      return j;
+    });
+  });
+}
+function setSession(j) {
+  cauth = { at: j.access_token, rt: j.refresh_token, exp: Date.now() + (j.expires_in || 3600) * 1000, uid: (j.user && j.user.id) || (cauth && cauth.uid), email: (j.user && j.user.email) || (cauth && cauth.email) };
+  authStore();
+}
+function authFresh() {
+  if (!cauth) return Promise.reject(new Error('Non sei collegato'));
+  if (Date.now() < cauth.exp - 60000) return Promise.resolve();
+  return sbFetch('/auth/v1/token?grant_type=refresh_token', { method: 'POST', anon: true, body: { refresh_token: cauth.rt } }).then(setSession);
+}
+function otpSend(email) { return sbFetch('/auth/v1/otp', { method: 'POST', anon: true, body: { email: email, create_user: true } }); }
+function otpVerify(email, code) { return sbFetch('/auth/v1/verify', { method: 'POST', anon: true, body: { type: 'email', email: email, token: code } }).then(setSession); }
+/* unione di due stati: sessioni unite per id, il resto dal più recente */
+function mergeState(a, b) {
+  if (!a) return { s: b, changed: true };
+  if (!b) return { s: a, changed: false };
+  var newer = (a.mt || 0) >= (b.mt || 0) ? a : b, older = newer === a ? b : a;
+  var out = JSON.parse(JSON.stringify(newer));
+  var del = {}; [a.del || {}, b.del || {}].forEach(function (d) { for (var k in d) del[k] = Math.max(del[k] || 0, d[k]); });
+  out.del = del;
+  var days = {};
+  [newer, older].forEach(function (st) {
+    Object.keys(st.days || {}).forEach(function (k) {
+      (st.days[k] || []).forEach(function (s) {
+        if (!s || del[s.id]) return;
+        days[k] = days[k] || [];
+        if (!days[k].some(function (x) { return x.id === s.id; })) days[k].push(JSON.parse(JSON.stringify(s)));
+      });
+    });
+  });
+  Object.keys(days).forEach(function (k) { days[k].sort(function (x, y) { return (x.t || 0) - (y.t || 0); }); if (!days[k].length) delete days[k]; });
+  out.days = days;
+  out.marks = out.marks || {}; Object.keys(older.marks || {}).forEach(function (k) { if (!(k in out.marks)) out.marks[k] = older.marks[k]; });
+  out.medals = out.medals || {}; Object.keys(older.medals || {}).forEach(function (k) { out.medals[k] = Math.max(out.medals[k] == null ? -1 : out.medals[k], older.medals[k]); });
+  if (older.custom && older.custom.ex) { out.custom = out.custom || { ex: {}, key: {} }; out.custom.ex = out.custom.ex || {}; Object.keys(older.custom.ex).forEach(function (n) { if (!out.custom.ex[n]) out.custom.ex[n] = older.custom.ex[n]; }); }
+  if (older.profile && out.profile && older.profile.created && (!out.profile.created || older.profile.created < out.profile.created)) out.profile.created = older.profile.created;
+  return { s: out, changed: JSON.stringify(out) !== JSON.stringify(a) };
+}
+/* riepilogo pubblico per gli amici (3.1) */
+function summaryOf() {
+  var n = new Date(), ms = monthStats(n.getFullYear(), n.getMonth()), mt = monthTraits(n.getFullYear(), n.getMonth()), st = medalState();
+  var days = monthKeys(n.getFullYear(), n.getMonth()).sort().map(function (k) { return [+k.slice(8), sessions(k)[0].sport]; });
+  return { rank: ms.rank, plus: !!ms.plus, lv: levelOf(totalXp()), title: ms.title || '', sports: [ms.top, ms.second].filter(Boolean), trait: mt ? mt.top : null, days: days, ym: ymKey(n.getFullYear(), n.getMonth()),
+    showcase: (S.showcase || []).filter(function (id) { return st[id] && st[id].t >= 0; }).map(function (id) { return [id, st[id].t]; }), medals: MEDALS.filter(function (d) { return st[d.id].t >= 0; }).length };
+}
+var syncT = null, syncBusy = false, syncPending = false;
+function cloudDirty() { if (!cloudOn() || !cauth || !S) return; clearTimeout(syncT); syncT = setTimeout(cloudPush, 2500); }
+function cloudPush() {
+  if (!cloudOn() || !cauth || !S) return Promise.resolve();
+  if (syncBusy) { syncPending = true; return Promise.resolve(); }
+  syncBusy = true;
+  var now = new Date().toISOString();
+  return authFresh().then(function () {
+    return sbFetch('/rest/v1/user_state', { method: 'POST', prefer: 'resolution=merge-duplicates,return=minimal', body: { user_id: cauth.uid, data: S, updated_at: now } });
+  }).then(function () {
+    return sbFetch('/rest/v1/profiles?id=eq.' + cauth.uid, { method: 'PATCH', prefer: 'return=minimal', body: { name: S.profile.name, gender: S.profile.g || null, summary: summaryOf(), updated_at: now } });
+  }).then(function () { syncBusy = false; cloudMeta({ ok: Date.now(), err: null }); if (syncPending) { syncPending = false; cloudDirty(); } if (ui.screen === 'settings') render(); })
+    .catch(function (e) { syncBusy = false; cloudMeta({ err: e.message || String(e) }); if (e.status === 401 || e.status === 403) { /* sessione scaduta */ } if (ui.screen === 'settings') render(); });
+}
+function cloudPull(quiet) {
+  if (!cloudOn() || !cauth) return Promise.resolve(false);
+  return authFresh().then(function () { return sbFetch('/rest/v1/user_state?user_id=eq.' + cauth.uid + '&select=data,updated_at'); }).then(function (rows) {
+    var r = rows && rows[0];
+    if (!r || !r.data) { if (S) return cloudPush().then(function () { return false; }); return false; }
+    var m = mergeState(S, r.data);
+    if (m.changed) {
+      S = m.s; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+      medalDirty = true; lastAnim = {};
+      if (!quiet) toast('Dati aggiornati dal cloud.');
+      render();
+    }
+    if (JSON.stringify(S) !== JSON.stringify(r.data)) cloudDirty();
+    cloudMeta({ ok: Date.now(), err: null });
+    return m.changed;
+  }).catch(function (e) { cloudMeta({ err: e.message || String(e) }); return false; });
+}
+document.addEventListener('visibilitychange', function () { if (!document.hidden && cauth && cloudOn()) cloudPull(true); });
+function viewLogin(o, cls) {
+  var h = '<div class="' + cls + '">' + whead(o.step === 'code' ? 'Codice' : 'Entra in Sistema', true);
+  if (o.step === 'code') {
+    h += '<p class="wtext">Scrivi il codice di 6 cifre che ti è arrivato a<br><b style="color:var(--ink)">' + esc(o.email) + '</b></p>' +
+      '<input class="inp" data-f="ccode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" value="' + esc(o.code || '') + '" placeholder="Codice" style="text-align:center;letter-spacing:8px;font:700 24px/1 var(--fd)">' +
+      (o.err ? '<p class="wtext" style="color:#FF8A80">' + esc(o.err) + '</p>' : '') +
+      '<div class="acts"><button class="btn" data-a="cBack">Indietro</button><button class="btn main" data-a="cVerify"' + (o.busy ? ' disabled' : '') + '>' + (o.busy ? 'Un attimo…' : 'Entra') + '</button></div>';
+  } else {
+    h += '<p class="wtext" style="text-align:left">Con un account i tuoi dati si salvano da soli nel cloud e li ritrovi su un telefono nuovo. Il tuo storico resta tutto.</p>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Email</span><input class="inp" data-f="cemail" type="email" inputmode="email" autocomplete="email" value="' + esc(o.email || '') + '" placeholder="nome@esempio.it"></div>' +
+      (o.err ? '<p class="wtext" style="color:#FF8A80">' + esc(o.err) + '</p>' : '') +
+      '<div class="acts one"><button class="btn main" data-a="cSend"' + (o.busy ? ' disabled' : '') + '>' + (o.busy ? 'Invio…' : 'Mandami il codice') + '</button></div><span class="hint" style="text-align:center">Niente password: ti arriva un codice di 6 cifre.</span>';
+  }
+  return h + '</div>';
+}
+function cloudCard() {
+  if (!cloudOn()) return '';
+  if (!cauth) return '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Account</span><span class="hint">Entra con la tua email: i dati si salvano da soli nel cloud e il Party diventa vero.</span><button class="btn main" data-a="cLogin">Entra con l’email</button></div>';
+  var when = cmeta.ok ? (function () { var m = Math.round((Date.now() - cmeta.ok) / 60000); return m < 1 ? 'adesso' : m < 60 ? m + ' min fa' : niceDate(keyOf(new Date(cmeta.ok))); })() : 'mai';
+  return '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="row"><span class="lbl">Account</span><span style="font:600 11px/14px var(--fd);letter-spacing:1px;color:' + (cmeta.err ? '#FF8A80' : '#9BE15D') + '">' + (cmeta.err ? 'DA RIPROVARE' : 'NEL CLOUD') + '</span></span><span style="font:600 15px/20px var(--fb)">' + esc(cauth.email || '') + '</span><span class="hint">Ultimo salvataggio: ' + when + (cmeta.err ? ' · ' + esc(cmeta.err) : '') + '</span><div class="g2"><button class="btn sm" data-a="cSync">Salva ora</button><button class="btn sm" data-a="cLogout">Esci</button></div></div>';
+}
+var PAC = {
+  cLogin: function () { ui.ov = { t: 'login', step: 'email', email: '' }; ding('open'); render(); },
+  cSend: function () {
+    var o = ui.ov, em = (o.email || '').trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { o.err = 'Controlla l’email.'; render(); return; }
+    o.busy = true; o.err = null; render();
+    otpSend(em).then(function () { if (ui.ov !== o) return; o.busy = false; o.step = 'code'; o.email = em; o.code = ''; ui.focusNext = 'ccode'; render(); })
+      .catch(function (e) { if (ui.ov !== o) return; o.busy = false; o.err = e.status === 429 ? 'Troppi tentativi, riprova tra un minuto.' : 'Non riesco a mandare il codice (' + e.message + ').'; render(); });
+  },
+  cBack: function () { ui.ov.step = 'email'; ui.ov.err = null; render(); },
+  cVerify: function () {
+    var o = ui.ov, code = (o.code || '').replace(/\D/g, '');
+    if (code.length < 6) { o.err = 'Il codice ha 6 cifre.'; render(); return; }
+    o.busy = true; o.err = null; render();
+    otpVerify(o.email, code).then(function () { return cloudPull(true); }).then(function () {
+      ui.ov = null; ding('ok'); toast('Sei dentro: i tuoi dati ora si salvano nel cloud.');
+      if (S) cloudPush(); render();
+    }).catch(function (e) { if (ui.ov !== o) return; o.busy = false; o.err = 'Codice non valido o scaduto.'; render(); });
+  },
+  cSync: function () { ding('tap'); cloudPull(true).then(function () { return cloudPush(); }).then(function () { toast(cmeta.err ? 'Non riesco a salvare: ' + cmeta.err : 'Salvato nel cloud.'); }); },
+  cLogout: function () { cauth = null; authStore(); ding('tap'); toast('Sei uscito. I dati restano su questo telefono.'); render(); }
+};
+for (var pkc in PAC) A[pkc] = PAC[pkc];
 /* ---------- render ---------- */
 var root = document.getElementById('app');
 function fitTitles() {
@@ -2470,7 +2613,7 @@ function render() {
   var main = root.querySelector('.scroller'), mainTop = main && lastScreen === ui.screen ? main.scrollTop : 0; lastScreen = ui.screen;
   var focus = document.activeElement && document.activeElement.getAttribute && document.activeElement.getAttribute('data-f');
   var h;
-  if (!S) { lastAnim = {}; h = viewOnboarding(); }
+  if (!S) { lastAnim = {}; h = viewOnboarding() + (ui.ov && ui.ov.t === 'login' ? '<div class="veil">' + viewLogin(ui.ov, 'win') + '</div>' : ''); }
   else {
     partyTick();
     if (medalDirty) { noteMid(); checkMedals(); }
@@ -2546,6 +2689,8 @@ root.addEventListener('input', function (e) {
   else if (f === 'exedit') ui.ov.form.editing.name = e.target.value;
   else if (f.indexOf('fn:') === 0) ui.ov.form.n[f.slice(3)] = e.target.value;
   else if (f === 'greply') ui.ov.reply = e.target.value;
+  else if (f === 'cemail') ui.ov.email = e.target.value;
+  else if (f === 'ccode') ui.ov.code = e.target.value;
   else if (f === 'lq' || f === 'cq') { ui.ov.q = e.target.value; var gb = root.querySelector('[data-a="' + (f === 'lq' ? 'lGo' : 'cGo') + '"]'); if (gb) gb.disabled = !ui.ov.q.trim(); }
   else if (f === 'lmsg' || f === 'cmsg') ui.ov.msg = e.target.value;
   else if (f === 'gname') { ui.ov.name = e.target.value; var cb = root.querySelector('[data-a="gangCreate"]'); if (cb) cb.disabled = !(ui.ov.name.trim() && Object.keys(ui.ov.mem).filter(function (k) { return ui.ov.mem[k]; }).length >= 2); }
@@ -2561,6 +2706,7 @@ document.addEventListener('visibilitychange', function () { if (!document.hidden
 autoClose();
 startupNotice();
 render();
+if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
 if ('serviceWorker' in navigator && location.protocol !== 'file:') { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }

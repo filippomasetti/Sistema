@@ -1,5 +1,5 @@
 // Sistema — service worker: l'app funziona anche offline (palestra senza campo).
-const VERSION = 'sistema-v2.3.6';
+const VERSION = 'sistema-v2.4.0';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
@@ -17,6 +17,8 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
+  // Il cloud (Supabase) passa sempre dalla rete e non si salva mai in copia.
+  if (/\/(rest|auth|functions|realtime|storage)\/v1\//.test(req.url) || /\.supabase\.(co|in)$/.test(new URL(req.url).hostname)) return;
   // Pagina: prima la rete (così arrivano gli aggiornamenti), poi la copia salvata.
   if (req.mode === 'navigate') {
     e.respondWith(
