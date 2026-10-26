@@ -297,7 +297,8 @@ var FUNDS = {
   ten: [['servizio', 'Servizio', 'm'], ['dritto', 'Dritto', 'm'], ['rovescio', 'Rovescio', 'm'], ['volee', 'Volée'], ['risposta', 'Risposta']]
 };
 var GAME_TYPES = { bch: ['allenamento', 'partitella', 'torneo'], def: ['allenamento', 'partita', 'torneo'] };
-var DAYF = { g: 'Alla grande', y: 'Così così', r: 'Giornata no' };
+var DAYF = { g: 'Bella giornata', y: 'Ho fatto il mio', r: 'Giornata no' };
+var FACE_TXT = { g: 'bella giornata', y: 'ho fatto il mio', r: 'giornata no' };
 function lastFace(sport) { var h = history(sport); for (var i = 0; i < h.length; i++) { var d = h[i].s.d; if (d && d.face) return d.face; } return null; }
 var SAT = [[1, 'Così così'], [2, 'Bene'], [3, 'Top']];
 var NONE_TEXT = {
@@ -616,11 +617,11 @@ function questsFor(sport, group) {
   var qt = qType(sport), out = {};
   if (qt === 'focus') {
     var lf = lastFace(sport);
-    out.easy = { t: { lvl: 'y' }, label: 'Giornata almeno gialla' };
-    out.med = { t: { lvl: 'g' }, label: 'Giornata verde' };
-    out.hard = { t: { lvl: 'g*' }, label: 'Giornata verde da stella' };
+    out.easy = { t: { lvl: 'y' }, label: 'Almeno «ho fatto il mio»' };
+    out.med = { t: { lvl: 'g' }, label: 'Una bella giornata' };
+    out.hard = { t: { lvl: 'g*' }, label: 'Da MVP: bella giornata con la stella' };
     out.title = SPORTS[sport].name;
-    out.last = lf ? 'Ultima volta: giornata ' + FACE_NAME[lf][1] : 'Prima volta in Gesta: punta in alto.';
+    out.last = lf ? 'Ultima volta: ' + FACE_TXT[lf] : 'Prima volta in Gesta: punta in alto.';
     return out;
   }
   var b = baseline(sport, group);
@@ -657,7 +658,7 @@ function sessSummary(s) {
   if (d) {
     if (qt === 'ex' && d.ex) { var ks = Object.keys(d.ex); if (ks.length) { var e0 = d.ex[ks[0]], t0 = exMeta(ks[0]).t; parts.push(ks[0] + ' ' + (t0 === 't' ? e0.sec + ' s' : e0.w ? kg(e0.w) : '3×' + e0.reps) + (ks.length > 1 ? ' + altri ' + (ks.length - 1) : '')); } }
     if (qt === 'bld' && d.colors) { var tops = []; COLORS.forEach(function (c) { var v = d.colors[c.k]; if (v && v.c + v.f) tops.push((v.c + v.f) + ' ' + c.name.toLowerCase()); }); if (tops.length) parts.push(tops.slice(-2).join(', ')); }
-    if (qt === 'focus' && d.face) parts.push('giornata ' + FACE_NAME[d.face][1]);
+    if (qt === 'focus' && d.face) parts.push(FACE_TXT[d.face]);
     if (qt === 'focus' && d.type) parts.push(d.type);
     if (qt === 'focus' && d.n && Object.keys(d.n).length) parts.push(Object.keys(d.n).length + (Object.keys(d.n).length === 1 ? ' nota' : ' note'));
     if (qt === 'dist' && d[DIST[s.sport].f]) parts.push(distFmt(s.sport, d[DIST[s.sport].f]));
@@ -1109,7 +1110,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">XP, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.4</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.4.1</span>';
   return h;
 }
 
@@ -1137,7 +1138,7 @@ function viewOverlay() {
     h = '<div class="' + cls + '">' + whead('Palestra', true) + '<p class="wtitle">Cosa alleni?</p><div class="wbody" data-keep style="gap:8px">' +
       GROUP_ORDER.map(function (g) { var kx = groupKey(g); return '<button class="opt" style="min-height:48px" data-a="group" data-v="' + g + '"><span style="font:600 16px/22px var(--fd);letter-spacing:1px">' + GROUPS[g].name + '</span><span class="hint">' + (kx ? 'quest: ' + esc(kx) : 'esercizi tuoi') + '</span></button>'; }).join('') + '</div></div>';
   } else if (o.t === 'focus') {
-    h = '<div class="' + cls + '">' + whead(SPORTS[o.sport].name, true) + '<div style="display:flex;flex-direction:column;gap:4px"><p class="wtitle">Su cosa lavori oggi?</p><p class="wtext" style="font-size:13px">Scegli il fondamentale: la quest è portarlo a verde.</p></div><div style="display:flex;flex-direction:column;gap:8px">' +
+    h = '<div class="' + cls + '">' + whead(SPORTS[o.sport].name, true) + '<div style="display:flex;flex-direction:column;gap:4px"><p class="wtitle">Su cosa lavori oggi?</p><p class="wtext" style="font-size:13px">Scegli il fondamentale: la quest è chiuderlo con una bella giornata.</p></div><div style="display:flex;flex-direction:column;gap:8px">' +
       funds(o.sport).map(function (x) { var lf = lastFund(o.sport, x[0]), fc = lf.face ? FACES.filter(function (q) { return q[0] === lf.face; })[0][1] : null; return '<button class="opt" data-a="focus" data-v="' + x[0] + '"><span style="font:600 16px/22px var(--fd);letter-spacing:1px">' + x[1] + '</span><span class="hint" style="display:flex;align-items:center;gap:6px">' + (fc ? 'ultima volta <i style="display:block;width:10px;height:10px;border-radius:5px;background:' + fc + '"></i>' : 'ancora nessun voto') + '</span></button>'; }).join('') + '</div></div>';
   } else if (o.t === 'quest') {
     var q = questsFor(o.sport, o.group);
@@ -1240,7 +1241,7 @@ function viewOverlay() {
     if (qt === 'ex') { var bw = {}; hh.forEach(function (e) { var d = e.s.d; if (d && d.ex) Object.keys(d.ex).forEach(function (x) { var v = d.ex[x], t = exMeta(x).t, sc = t === 't' ? v.sec || 0 : v.w ? v.w * 1000 : v.reps || 0; if (!bw[x] || sc > bw[x].sc) bw[x] = { sc: sc, txt: t === 't' ? (v.sec || 0) + ' s' : v.w ? kg(v.w) : (v.reps || 0) + ' rip.' }; }); }); var ks = Object.keys(bw); best = ks.length ? ks.slice(0, 3).map(function (x) { return x + ' ' + bw[x].txt; }).join(' · ') : '—'; }
     if (qt === 'bld') { var bc = -1; hh.forEach(function (e) { var d = e.s.d; if (d && d.colors) COLORS.forEach(function (c, i) { var v = d.colors[c.k]; if (v && v.c + v.f > 0 && i > bc) bc = i; }); }); best = bc >= 0 ? 'Colore più alto chiuso: ' + COLORS[bc].name.toLowerCase() : '—'; }
     var notesH = '';
-    if (qt === 'focus') { var gd = hh.filter(function (e) { return e.s.d && e.s.d.face === 'g'; }).length; best = gd ? gd + (gd === 1 ? ' giornata verde' : ' giornate verdi') : '—';
+    if (qt === 'focus') { var gd = hh.filter(function (e) { return e.s.d && e.s.d.face === 'g'; }).length; best = gd ? gd + (gd === 1 ? ' bella giornata' : ' belle giornate') : '—';
       funds(o.sport).forEach(function (x) { var ns = hh.filter(function (e) { return e.s.d && e.s.d.n && e.s.d.n[x[0]]; }).slice(0, 3); if (!ns.length) return; notesH += '<div class="fld" style="gap:4px"><span class="lbl" style="font-size:11px">' + x[1] + '</span>' + ns.map(function (e) { return '<span style="font:500 13px/18px var(--fb)"><span class="hint">' + niceDate(e.k) + ' · </span>' + esc(e.s.d.n[x[0]]) + '</span>'; }).join('') + '</div>'; });
       if (notesH) notesH = '<span class="lbl" style="font-size:11px">Appunti dal corso</span>' + notesH; }
     if (qt === 'dist') { var df = DIST[o.sport].f, bm = 0; hh.forEach(function (e) { if (e.s.d && e.s.d[df] > bm) bm = e.s.d[df]; }); best = bm ? 'Distanza massima: ' + distFmt(o.sport, bm) : '—'; }
@@ -1307,7 +1308,7 @@ function viewDetails(o, cls) {
     });
   } else if (qt === 'focus') {
     h += '<div class="chips">' + (GAME_TYPES[s] || GAME_TYPES.def).map(function (t) { return '<button class="chip' + (f.type === t ? ' on' : '') + '" data-a="btype" data-v="' + t + '">' + t.charAt(0).toUpperCase() + t.slice(1) + '</button>'; }).join('') + '</div>';
-    h += '<p class="wtext" style="font-size:13px">Com’è andata la giornata?</p><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">' + FACES.map(function (fc) { var on = f.face === fc[0]; return '<button class="opt dayf' + (on ? ' on' : '') + '" style="--diff:' + fc[1] + '" data-a="dayFace" data-v="' + fc[0] + '"><i style="background:' + fc[1] + '"></i><span>' + DAYF[fc[0]] + '</span></button>'; }).join('') + '</div>';
+    h += '<p class="wtext" style="font-size:13px">Com’è andata la giornata?</p><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">' + [FACES[2], FACES[1], FACES[0]].map(function (fc) { var on = f.face === fc[0]; return '<button class="opt dayf' + (on ? ' on' : '') + '" style="--diff:' + fc[1] + '" data-a="dayFace" data-v="' + fc[0] + '"><i style="background:' + fc[1] + '"></i><span>' + DAYF[fc[0]] + '</span></button>'; }).join('') + '</div>';
     if (f.type === 'allenamento') {
       h += '<span class="lbl" style="font-size:11px;padding-top:4px">Appunti dal corso</span><p class="hint" style="margin:-6px 0 0">Facoltativi: li ritrovi in Stato, toccando lo sport.</p>';
       funds(s).forEach(function (x) {
@@ -1325,7 +1326,7 @@ function viewDetails(o, cls) {
   } else {
     h += '<div class="fld">' + (qt === 'bon' ? '<label class="hint" for="bname">Attività</label><input id="bname" class="inp" maxlength="40" placeholder="Squash, arrampicata in falesia, sup…" value="' + esc(f.name) + '" data-f="bname" autocomplete="off">' : '') + '<label class="hint" for="bnote">Nota' + (s === 'cfx' ? ' · il WOD di oggi' : '') + '</label><textarea id="bnote" class="inp" maxlength="280" data-f="bnote">' + esc(f.note) + '</textarea></div>';
   }
-  h += '<div class="fld"><button class="toggle" style="min-height:40px;padding:0" data-a="star"><span style="display:flex;align-items:center;gap:10px;font:600 15px/20px var(--fd)">' + svg(IC.star, f.star ? '#FFC94D' : '#8FA3C2', 20) + 'Sessione top</span><span class="sw' + (f.star ? ' on' : '') + '"></span></button><span class="hint">Solo per le giornate davvero speciali: +5 XP e una stella sul calendario.</span></div>';
+  h += '<div class="fld"><button class="toggle" style="min-height:40px;padding:0" data-a="star"><span style="display:flex;align-items:center;gap:10px;font:600 15px/20px var(--fd)">' + svg(IC.star, f.star ? '#FFC94D' : '#8FA3C2', 20) + (qt === 'focus' ? 'MVP' : 'Sessione top') + '</span><span class="sw' + (f.star ? ' on' : '') + '"></span></button><span class="hint">' + (qt === 'focus' ? 'Quando sei la stella della partita: +5 XP e una stella sul calendario.' : 'Solo per le giornate davvero speciali: +5 XP e una stella sul calendario.') + '</span></div>';
   h += '</div><button class="btn main" data-a="saveDetails">' + (o.assess ? 'Salva il punto di partenza' : 'Salva') + '</button></div>';
   return h;
 }
@@ -1504,7 +1505,7 @@ SX('colore', 'Nuovo colore', ['bld'], SPI('bld'), SPC('bld'), 'Il colore più al
 SX('arcobaleno', 'Arcobaleno', ['bld'], SPI('bld'), SPC('bld'), 'Blocchi di 4 colori diversi nella stessa sessione.', [1], function (c) { return bySport(c, 'bld').some(function (e) { var d = e.s.d; return d && d.colors && Object.keys(d.colors).filter(function (k) { return d.colors[k].c + d.colors[k].f > 0; }).length >= 4; }) ? 1 : 0; });
 SX('testadura', 'Testa dura', ['bld'], SPI('bld'), SPC('bld'), 'Un WIP chiuso nella sessione successiva.', N60, function (c) { var l = bySport(c, 'bld'), n = 0; for (var i = 1; i < l.length; i++) { var a = l[i - 1].s.d, b = l[i].s.d; if (a && b && a.colors && b.colors) Object.keys(a.colors).forEach(function (k) { if (a.colors[k].w > 0 && b.colors[k] && b.colors[k].c + b.colors[k].f > 0) n++; }); } return n; }, 'volte');
 SX('ragnocasa', 'Ragno di casa', ['bld'], SPI('bld'), SPC('bld'), 'Boulder 3 volte nella stessa settimana.', WK, function (c) { return weeksWith(c, function (w) { return (w.sd.bld || 0) >= 3; }); }, 'settimane');
-['bch', 'soc', 'pad', 'ten'].forEach(function (sp) { SX('felice_' + sp, 'Giornata felice · ' + SPORTS[sp].name, [sp], SPI(sp), SPC(sp), 'Giornate verdi di ' + SPORTS[sp].name.toLowerCase() + '.', N100, function (c) { return bySport(c, sp).filter(function (e) { return e.s.d && e.s.d.face === 'g'; }).length; }, 'giornate'); });
+['bch', 'soc', 'pad', 'ten'].forEach(function (sp) { SX('felice_' + sp, 'Giornata felice · ' + SPORTS[sp].name, [sp], SPI(sp), SPC(sp), 'Belle giornate di ' + SPORTS[sp].name.toLowerCase() + '.', N100, function (c) { return bySport(c, sp).filter(function (e) { return e.s.d && e.s.d.face === 'g'; }).length; }, 'giornate'); });
 SX('torneo', 'Torneo', ['bch'], SPI('bch'), SPC('bch'), 'Tornei di beach giocati.', [1, 2, 4, 8, 12, 20, 30], function (c) { return bySport(c, 'bch').filter(function (e) { return e.s.d && e.s.d.type === 'torneo'; }).length; }, 'tornei');
 SX('coach', 'Appunti da coach', ['bch'], SPI('bch'), SPC('bch'), 'Sessioni di beach con appunti sui fondamentali.', N100, function (c) { return bySport(c, 'bch').filter(function (e) { return e.s.d && e.s.d.n && Object.keys(e.s.d.n).length; }).length; }, 'sessioni');
 SX('sabbia', 'Sabbia ovunque', ['bch'], SPI('bch'), SPC('bch'), 'Beach 3 volte nella stessa settimana.', WK, function (c) { return weeksWith(c, function (w) { return (w.sd.bch || 0) >= 3; }); }, 'settimane');
@@ -3124,7 +3125,7 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v3.4.0';
+var APP_V = 'gesta-v3.4.1';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
