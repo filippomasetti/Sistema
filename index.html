@@ -133,6 +133,14 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .win.gold{border-color:var(--rew);box-shadow:0 0 28px rgba(255,201,77,.3)}
 .win.gold::before{background:linear-gradient(90deg,transparent,var(--rew),transparent)}
 .win.tall{height:100%}
+body.kb .veil{position:fixed;inset:auto 0 auto 0;top:var(--vvt,0px);height:calc(var(--vvh,100%) - 44px);align-items:flex-start;padding:8px 12px}
+body.kb .veil .win{max-height:100%}
+body.kb .veil .medalwin{max-height:100%;justify-content:flex-start}
+body.kb .veil .mspin-wrap{display:none!important}
+#kbbar{position:fixed;left:0;right:0;z-index:60;top:calc(var(--vvt,0px) + var(--vvh,100%) - 44px);height:44px;display:none;align-items:center;justify-content:space-between;padding:0 14px;background:#0B1424;border-top:1px solid var(--sysl);box-shadow:0 -6px 18px rgba(0,0,0,.35)}
+body.kb #kbbar{display:flex}
+#kbbar span{font:500 12px/16px var(--fb);color:var(--mut)}
+#kbbar button{height:32px;padding:0 16px;border-radius:16px;border:1px solid var(--glow);background:rgba(59,167,255,.14);color:var(--ink);font:700 13px/1 var(--fd);letter-spacing:2px;text-transform:uppercase}
 .whead{display:flex;align-items:center;gap:10px;min-height:28px}
 .mark{width:22px;height:22px;flex:0 0 auto;border-radius:6px;border:1.5px solid var(--sysl);display:flex;align-items:center;justify-content:center;font:700 14px/1 var(--fd);color:var(--glow);box-shadow:0 0 14px rgba(59,167,255,.35)}
 .wlabel{font:600 12px/16px var(--fd);letter-spacing:3px;text-transform:uppercase;color:var(--sysl);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -742,7 +750,7 @@ var A = {
   go: function (scr) { ui.arrange = false; ui.screen = scr; ui.ov = null; ding('tap'); render(); },
   month: function (dir) { var m = ui.vm.m + +dir, y = ui.vm.y; if (m < 0) { m = 11; y--; } if (m > 11) { m = 0; y++; } var n = new Date(); if (y > n.getFullYear() || (y === n.getFullYear() && m > n.getMonth())) return; ui.vm = { y: y, m: m }; ding('tap'); render(); },
   sound: function () { S.settings.sound = !S.settings.sound; save(); render(); if (S.settings.sound) ding('tap'); },
-  close: function () { close(); },
+  close: function () { if (ui.ov && ui.ov.back) { var b = ui.ov.back; ui.ov = b; lastAnim.ov = null; render(); return; } close(); },
   noticeOk: function () { var o = ui.ov; if (o && o.kind === 'edit') { S.seen = S.seen || {}; S.seen.edit = true; save(); } ui.ov = null; startupNotice(); render(); },
   noticeLater: function () { S.backupSnooze = addDays(todayKey(), 3); save(); close(); },
   noticeBackup: function () { ui.ov = null; render(); exportBackup(); },
@@ -1093,7 +1101,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">XP, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 2.5.3</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 2.5.4</span>';
   return h;
 }
 
@@ -1918,7 +1926,7 @@ function activeGloves() { var t = todayKey(); return myCh().filter(function (c) 
 function gloveWonCount(ym) { return myCh().filter(function (c) { return c.to === 'me' && c.me && (!ym || c.day.indexOf(ym) === 0); }).length; }
 function gloveXp() { return myCh().filter(function (c) { return c.me; }).length * GXP; }
 function unreadLetters() { return P() ? P().letters.filter(function (l) { return !l.rd; }).length : 0; }
-function letter(k, f, tx, sub) { P().letters.unshift({ id: uid(), k: k, f: f, tx: tx, sub: sub, t: Date.now(), rd: false }); }
+function letter(k, f, tx, sub, cid) { P().letters.unshift({ id: uid(), k: k, f: f, tx: tx, sub: sub, cid: cid || null, t: Date.now(), rd: false }); }
 function chLabel(c) { return SPORTS[c.sp].name + ' · ' + c.q; }
 function partyTick() {
   if (!partyOn()) return;
@@ -1926,21 +1934,21 @@ function partyTick() {
   p.ch.slice().forEach(function (c) {
     var f = friend(c.from === 'me' ? c.to : c.from); if (!f) return;
     if (c.day < t) {
-      if (c.st === 'pending' || c.st === 'countered') { c.st = 'expired'; dirty = true; if (c.from === 'me') letter('none', f.id, f.n + ': nessuna risposta', chLabel(c) + ' · è scaduta a mezzanotte'); }
-      else if (c.st === 'accepted' && !c.me) { c.st = 'over'; dirty = true; if (c.from === 'me' && !c.done) letter('flost', f.id, f.n + ' non ha superato la tua sfida', chLabel(c)); }
-      else if (c.st === 'accepted' && c.me && c.from === 'me' && !c.done) { c.st = 'over'; dirty = true; letter('flost', f.id, f.n + ' non ha superato la tua sfida', chLabel(c)); }
+      if (c.st === 'pending' || c.st === 'countered') { c.st = 'expired'; dirty = true; if (c.from === 'me') letter('none', f.id, f.n + ': nessuna risposta', chLabel(c) + ' · è scaduta a mezzanotte', c.id); }
+      else if (c.st === 'accepted' && !c.me) { c.st = 'over'; dirty = true; if (c.from === 'me' && !c.done) letter('flost', f.id, f.n + ' non ha superato la tua sfida', chLabel(c), c.id); }
+      else if (c.st === 'accepted' && c.me && c.from === 'me' && !c.done) { c.st = 'over'; dirty = true; letter('flost', f.id, f.n + ' non ha superato la tua sfida', chLabel(c), c.id); }
       return;
     }
     if (c.from === 'me' && c.st === 'pending' && now - c.t > 8000) {
-      if (f.mode === 'acc') { c.st = 'accepted'; c.ta = now; c.reply = f.rep; dirty = true; letter('acc', f.id, f.n + ' ha accettato', chLabel(c) + (c.shared ? ' · quest condivisa' : '') + ' · “' + f.rep + '”'); }
+      if (f.mode === 'acc') { c.st = 'accepted'; c.ta = now; c.reply = f.rep; dirty = true; letter('acc', f.id, f.n + ' ha accettato', chLabel(c) + (c.shared ? ' · quest condivisa' : '') + ' · “' + f.rep + '”', c.id); }
       else if (f.mode === 'counter') {
         c.st = 'countered'; dirty = true;
         var q2 = (PRESETS[c.sp] || [c.q]).filter(function (x) { return x !== c.q; })[0] || c.q;
         p.ch.unshift({ id: uid(), from: f.id, to: 'me', sp: c.sp, q: q2, shared: c.shared, msg: f.rep + ' ' + q2 + ' invece di ' + c.q.toLowerCase() + '.', st: 'pending', day: t, t: now, seen: false, counter: true });
       }
     }
-    if (c.from === 'me' && c.st === 'accepted' && !c.done && now - (c.ta || c.t) > 45000) { c.done = true; dirty = true; letter('won', f.id, f.n + ' ha vinto la tua sfida', chLabel(c)); if (!c.shared || c.me) c.st = 'won'; }
-    if (c.to === 'me' && c.st === 'countered' && now - (c.tc || c.t) > 8000) { c.st = 'accepted'; c.sp = c.sp2 || c.sp; c.q = c.q2 || c.q; c.ta = now; dirty = true; letter('acc', f.id, f.n + ' accetta la tua modifica', chLabel(c)); }
+    if (c.from === 'me' && c.st === 'accepted' && !c.done && now - (c.ta || c.t) > 45000) { c.done = true; dirty = true; letter('won', f.id, f.n + ' ha vinto la tua sfida', chLabel(c), c.id); if (!c.shared || c.me) c.st = 'won'; }
+    if (c.to === 'me' && c.st === 'countered' && now - (c.tc || c.t) > 8000) { c.st = 'accepted'; c.sp = c.sp2 || c.sp; c.q = c.q2 || c.q; c.ta = now; dirty = true; letter('acc', f.id, f.n + ' accetta la tua modifica', chLabel(c), c.id); }
     if (c.to === 'me' && c.shared && c.st === 'accepted' && !c.done && now - (c.ta || c.t) > 60000) { c.done = true; dirty = true; }
   });
   if (dirty) save();
@@ -2019,7 +2027,7 @@ function viewLetters() {
   h += pSec(nw ? 'Nuove' : 'Letterine', nw ? String(nw) : '') + '<div style="display:flex;flex-direction:column;gap:8px">' + (l.length ? l.map(function (x) {
     var c = col[x.k] || '#7CC4FF', ic = x.k === 'five' ? PI.five : x.k === 'medal' ? PI.medal : x.k === 'gang' ? PI.party : PI.letter;
     var when = diffDays(todayKey(), keyOf(new Date(x.t))), w = when === 0 ? 'oggi' : when === 1 ? 'ieri' : niceDate(keyOf(new Date(x.t)));
-    return '<div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 12px;' + (x.rd ? '' : 'border-color:' + c + '66') + '"><span style="width:38px;height:38px;border-radius:10px;border:1px solid ' + c + '88;display:flex;align-items:center;justify-content:center;flex:0 0 auto">' + svg(ic, c, 20) + '</span><span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font:600 14px/19px var(--fb)">' + esc(x.tx) + '</span><span class="hint" style="font-size:11.5px">' + esc(x.sub || '') + '</span></span><span class="hint" style="font-size:11px;white-space:nowrap">' + w + '</span></div>';
+    return '<button class="card" data-a="lOpen" data-v="' + x.id + '" style="display:flex;align-items:center;gap:12px;padding:10px 12px;text-align:left;color:var(--ink);width:100%;' + (x.rd ? '' : 'border-color:' + c + '66') + '"><span style="width:38px;height:38px;border-radius:10px;border:1px solid ' + c + '88;display:flex;align-items:center;justify-content:center;flex:0 0 auto">' + svg(ic, c, 20) + '</span><span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font:600 14px/19px var(--fb)">' + esc(x.tx) + '</span><span class="hint" style="font-size:11.5px">' + esc(x.sub || '') + '</span></span><span class="hint" style="font-size:11px;white-space:nowrap">' + w + '</span></button>';
   }).join('') : '<span class="hint">Nessuna letterina, per ora.</span>') + '</div>';
   h += '<span class="hint" style="text-align:center;padding:4px 10px">Accetto, rifiuto e silenzio arrivano qui, senza notifiche. La notifica parte solo quando un amico vince la tua sfida.</span>';
   if (nw) { p.letters.forEach(function (x) { x.rd = true; }); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
@@ -2046,7 +2054,7 @@ function viewGloveWin(o) {
     '<div class="row" style="padding:0 2px">' + (c.shared ? pPill('Quest condivisa', '#7CC4FF') : '<span></span>') + '<span class="hint">+' + GXP + ' XP · ½ Punto Rango</span></div>' +
     (c.msg ? '<div style="border-radius:12px 12px 12px 4px;background:#13203A;padding:8px 12px;font:500 14px/20px var(--fb);color:var(--soft);align-self:flex-start;max-width:92%">“' + esc(c.msg) + '”</div>' : '') +
  (V ? '<div class="acts"' + (live ? '' : ' style="grid-template-columns:1fr"') + '>' + (live ? '<button class="btn" data-a="close">Chiudi</button><button class="btn main" data-a="gHome" data-v="' + c.id + '" style="background:' + PGOLD + ';border-color:' + PGOLD + '">Esito</button>' : '<button class="btn main" data-a="close">Ok</button>') + '</div></div>' : '') +
-    (V ? '' : '<textarea class="inp" data-f="greply" style="height:48px" placeholder="Rispondi a ' + f.n + ' (facoltativo)">' + esc(o.reply || '') + '</textarea>' +
+    (V ? '' : '<textarea class="inp" data-f="greply" enterkeyhint="done" style="height:48px" placeholder="Rispondi a ' + f.n + ' (facoltativo)">' + esc(o.reply || '') + '</textarea>' +
     '<div class="acts"><button class="btn" data-a="gNo" data-v="' + c.id + '">Non oggi</button><button class="btn main" data-a="gYes" data-v="' + c.id + '" style="background:' + PGOLD + ';border-color:' + PGOLD + ';box-shadow:0 0 14px rgba(255,201,77,.4)">Accetto</button></div>' +
     (c.counter ? '' : '<button class="mlink" data-a="gEdit" data-v="' + c.id + '" style="display:flex;align-items:center;justify-content:center;gap:6px">' + svg(PI.edit, '#D9B04A', 14) + 'Modifica la quest e rimandala</button>') + '</div>');
   var hex = '<svg width="120" height="132" viewBox="0 0 76 84" aria-hidden="true" style="filter:drop-shadow(0 0 10px rgba(255,201,77,.7))"><path d="M38 3l33 19v40L38 81 5 62V22z" fill="#14120A" stroke="#FFC94D" stroke-width="2.4" stroke-linejoin="round"/><g transform="translate(17 21) scale(1.75)" fill="none" stroke="#FFC94D" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + PI.glove + '</g></svg>';
@@ -2061,9 +2069,9 @@ function viewLaunch(o, cls) {
   var pre = PRESETS[o.sp] || [];
   return '<div class="' + cls + '">' + whead(f ? 'Guanto a ' + f.n : 'Obiettivo della Gang', true) + '<div class="wbody" data-keep>' +
     '<div class="fld"><span class="lbl" style="font-size:11px">Sport</span><div class="chips">' + sps.map(function (s) { return '<button class="chip' + (o.sp === s ? ' on' : '') + '" data-a="lSp" data-v="' + s + '" style="display:flex;align-items:center;gap:6px">' + sportIc(s, 16, true) + SPORTS[s].name + '</button>'; }).join('') + (o.all ? '' : '<button class="chip" data-a="lAll" style="border-style:dashed;display:flex;align-items:center;gap:6px">' + svg(PI.plus, null, 14) + 'Altro</button>') + '</div><span class="hint" style="font-size:11px">' + (o.all ? 'Tutti gli sport: se non è tra i suoi, gli arriva come sport bonus' : f ? 'Gli sport di ' + f.n + (base.indexOf(o.sp) < 0 ? ' · ' + SPORTS[o.sp].name + ' gli arriva come sport bonus' : '') : g ? esc(g.name) : '') + '</span></div>' +
-    '<div class="fld"><span class="lbl" style="font-size:11px">' + (g ? 'L’obiettivo' : 'La sfida') + '</span><input class="inp" data-f="lq" maxlength="60" value="' + esc(o.q) + '" placeholder="' + (g ? 'Scrivi qui l’obiettivo' : 'Scrivi qui la sfida') + '">' + (pre.length ? '<span style="font:600 10px/13px var(--fd);letter-spacing:2px;text-transform:uppercase;color:#5A6B88">Predefiniti</span><div class="chips" style="gap:5px">' + pre.map(function (t) { return '<button class="chip" data-a="lPre" data-v="' + esc(t) + '" style="height:26px;padding:0 10px;font-size:11.5px;color:var(--mut);border-color:var(--line)">' + esc(t) + '</button>'; }).join('') + '</div>' : '') + '</div>' +
+    '<div class="fld"><span class="lbl" style="font-size:11px">' + (g ? 'L’obiettivo' : 'La sfida') + '</span><input class="inp" data-f="lq" enterkeyhint="done" maxlength="60" value="' + esc(o.q) + '" placeholder="' + (g ? 'Scrivi qui l’obiettivo' : 'Scrivi qui la sfida') + '">' + (pre.length ? '<span style="font:600 10px/13px var(--fd);letter-spacing:2px;text-transform:uppercase;color:#5A6B88">Predefiniti</span><div class="chips" style="gap:5px">' + pre.map(function (t) { return '<button class="chip" data-a="lPre" data-v="' + esc(t) + '" style="height:26px;padding:0 10px;font-size:11.5px;color:var(--mut);border-color:var(--line)">' + esc(t) + '</button>'; }).join('') + '</div>' : '') + '</div>' +
     (g ? '' : '<button class="toggle" data-a="lSh" style="min-height:44px"><span style="display:flex;flex-direction:column;gap:2px"><span style="font:600 15px/20px var(--fb)">La faccio anch’io</span><span class="hint" style="font-size:11.5px">Diventa una quest condivisa</span></span><span class="sw' + (o.sh ? ' on' : '') + '"></span></button>') +
-    '<div class="fld"><span class="lbl" style="font-size:11px">Messaggio</span><textarea class="inp" data-f="lmsg" maxlength="120" style="height:56px" placeholder="Facoltativo">' + esc(o.msg) + '</textarea></div>' +
+    '<div class="fld"><span class="lbl" style="font-size:11px">Messaggio</span><textarea class="inp" data-f="lmsg" enterkeyhint="done" maxlength="120" style="height:56px" placeholder="Facoltativo">' + esc(o.msg) + '</textarea></div>' +
     '<span class="hint" style="padding:0 2px">' + (g ? 'Condiviso con tutta la Gang. Superato se lo completano ' + gangNeed(g) + ' su ' + (g.mem.length + 1) + ': mezzo Punto Rango a tutti. Serve che almeno uno accetti.' : 'Premio per chi la completa: +' + GXP + ' XP e mezzo Punto Rango, anche per te se condivisa. Chi accetta e non la chiude perde mezzo Punto Rango. Conta per il + del rango.') + '</span></div>' +
     '<div class="acts one"><button class="btn main" data-a="lGo" style="display:flex;align-items:center;justify-content:center;gap:8px"' + (o.q.trim() ? '' : ' disabled') + '>' + svg(g ? PI.party : PI.glove, null, 20) + (g ? 'Fissa' : 'Lancia') + '</button></div></div>';
 }
@@ -2072,7 +2080,7 @@ function viewGCounter(o, cls) {
   return '<div class="' + cls + '">' + whead('Rimanda a ' + f.n, true) + '<p class="wtext" style="text-align:left">Cambia la quest e ' + f.n + ' la riceve indietro: decide ' + (f.g === 'f' ? 'lei' : 'lui') + ' se accettarla.</p>' +
     '<div class="fld"><span class="lbl" style="font-size:11px">Prima</span><span style="font:600 15px/20px var(--fb);color:var(--mut);text-decoration:line-through">' + esc(chLabel(c)) + '</span></div>' +
     '<div class="fld" style="border-color:var(--sysl)"><span class="lbl" style="font-size:11px">Proposta</span><div class="chips">' + S.profile.sports.filter(function (s) { return s !== 'bon'; }).slice(0, 5).map(function (s) { return '<button class="chip' + (o.sp === s ? ' on' : '') + '" data-a="cSp" data-v="' + s + '" style="display:flex;align-items:center;gap:6px">' + sportIc(s, 16, true) + SPORTS[s].name + '</button>'; }).join('') + '</div><input class="inp" data-f="cq" maxlength="40" value="' + esc(o.q) + '"></div>' +
-    '<textarea class="inp" data-f="cmsg" maxlength="120" style="height:52px" placeholder="Un messaggio (facoltativo)">' + esc(o.msg) + '</textarea>' +
+    '<textarea class="inp" data-f="cmsg" enterkeyhint="done" maxlength="120" style="height:52px" placeholder="Un messaggio (facoltativo)">' + esc(o.msg) + '</textarea>' +
     '<div class="acts"><button class="btn" data-a="gOpen" data-v="' + c.id + '">Annulla</button><button class="btn main" data-a="cGo"' + (o.q.trim() ? '' : ' disabled') + '>Rimanda</button></div></div>';
 }
 function viewGangNew(o, cls) {
@@ -2085,6 +2093,7 @@ function viewGangNew(o, cls) {
 /* azioni */
 var PA = {
   fOpen: function (id) { ui.fid = id; ui.screen = 'friend'; var q = P().letters.filter(function (l) { return l.f === id && !l.rd; }).reverse(); q.forEach(function (l) { l.rd = true; }); if (q.length) { save(); ui.ov = { t: 'fnote', fid: id, list: q.map(function (l) { return l.id; }), i: 0 }; } ding('open'); render(); },
+  lOpen: function (id) { var l = P().letters.filter(function (x) { return x.id === id; })[0]; if (!l) return; ui.ov = { t: 'fnote', fid: l.f && friend(l.f) ? l.f : null, list: [id], i: 0 }; ding('open'); render(); },
   fnNext: function () { var o = ui.ov; if (o.i + 1 < o.list.length) { o.i++; ding('tap'); render(); } else { ui.ov = null; render(); } },
   gOpen: function (id) { var c = chById(id); if (!c) return; c.seen = true; lastAnim.ov = 'glove' + id; ui.ov = { t: 'glove', id: id }; render(); },
   gYes: function (id) { var c = chById(id); c.st = 'accepted'; c.ta = Date.now(); c.reply = (ui.ov && ui.ov.reply) || ''; save(); ui.ov = null; ding('ok'); toast('Guanto raccolto: lo trovi in home come quest bonus.'); },
@@ -2094,10 +2103,12 @@ var PA = {
   cGo: function () { var o = ui.ov, c = chById(o.id); c.st = 'countered'; c.sp2 = o.sp; c.q2 = o.q.trim(); c.msg2 = o.msg; c.tc = Date.now(); save(); ui.ov = null; ding('ok'); toast('Modifica rimandata a ' + friend(c.from).n + '.'); },
   gHome: function (id) { ui.ov = { t: 'gdone', id: id }; ding('open'); render(); },
   gView: function (id) {
-    var c = chById(id); if (!c) return;
+    var c = chById(id); if (!c) return; var prev = ui.ov && ['fch', 'fnote'].indexOf(ui.ov.t) >= 0 ? ui.ov : null;
+    if (prev && prev.t === 'fnote') prev = null;
     if (c.gang) { if (c.from !== 'me' && c.myAcc === undefined && c.st === 'open' && c.day === todayKey()) { A.goOpen(id); return; } ui.ov = { t: 'gobj', id: id, view: true }; }
     else if (c.to === 'me' && (c.st === 'pending' || c.st === 'countered') && c.day === todayKey()) { A.gOpen(id); return; }
     else { lastAnim.ov = null; ui.ov = { t: 'glove', id: id, view: true }; }
+    if (prev) ui.ov.back = prev;
     ding('open'); render();
   },
   gWin: function (id) { var c = chById(id); c.me = true; if (c.to === 'me' && !c.shared) c.st = 'won'; if (c.to === 'me' && c.shared && c.done) c.st = 'won'; save(); ui.ov = { t: 'gwin', id: id }; medalSound(); render(); },
@@ -2180,7 +2191,7 @@ function chMark(c, who) {
 }
 function chLine(c, f) {
   var lab = function (t) { return '<span style="font:600 10px/12px var(--fd);letter-spacing:.5px;color:var(--mut)">' + t + '</span>'; };
-  return '<div style="display:flex;align-items:center;gap:8px;min-height:36px;border-bottom:1px solid var(--line)"><span class="hint" style="font-size:11px;width:40px;flex:0 0 auto">' + niceDate(c.day) + '</span>' + sportIc(c.sp, 15, true) + '<span style="flex:1 1 auto;min-width:0;font:600 13px/18px var(--fb);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(c.q) + '</span>' + lab('TU') + chMark(c, 'me') + lab((f.g === 'f' ? 'LEI' : 'LUI')) + chMark(c, 'them') + '</div>';
+  return '<button data-a="gView" data-v="' + c.id + '" style="display:flex;align-items:center;gap:8px;min-height:36px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);text-align:left;padding:0;width:100%"><span class="hint" style="font-size:11px;width:40px;flex:0 0 auto">' + niceDate(c.day) + '</span>' + sportIc(c.sp, 15, true) + '<span style="flex:1 1 auto;min-width:0;font:600 13px/18px var(--fb);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(c.q) + '</span>' + lab('TU') + chMark(c, 'me') + lab((f.g === 'f' ? 'LEI' : 'LUI')) + chMark(c, 'them') + '</button>';
 }
 function viewFCh(o, cls) {
   var f = friend(o.fid), sc = fScore(f.id), hist = chWith(f.id);
@@ -2303,12 +2314,12 @@ function gangTick() {
     var fid = g.mem[hashN(g.id + t) % g.mem.length], f = friend(fid), sp = f.sports.filter(function (x) { return S.profile.sports.indexOf(x) >= 0; })[0] || f.sports[0];
     g.auto = t; dirty = true;
     p.ch.unshift({ id: uid(), gang: g.id, from: fid, to: 'gang', sp: sp, q: (PRESETS[sp] || ['Una sessione'])[0], msg: 'Dai che ci state tutti', st: 'open', day: t, t: now, mem: {}, acc: {} });
-    letter('gang', fid, f.n + ' ha fissato l’obiettivo della Gang ' + g.name, SPORTS[sp].name + ' · ' + (PRESETS[sp] || ['Una sessione'])[0]);
+    letter('gang', fid, f.n + ' ha fissato l’obiettivo della Gang ' + g.name, SPORTS[sp].name + ' · ' + (PRESETS[sp] || ['Una sessione'])[0], p.ch[0].id);
   });
   myCh().forEach(function (c) {
     if (!c.gang) return; var g = gangById(c.gang); if (!g) return;
     c.mem = c.mem || {}; c.acc = c.acc || {};
-    if (c.day < t) { if (c.st === 'open') { c.st = gangAccepted(c) ? 'over' : 'void'; dirty = true; if (c.st === 'void' && c.from === 'me') letter('none', null, g.name + ': nessuno ha accettato', chLabel(c)); } return; }
+    if (c.day < t) { if (c.st === 'open') { c.st = gangAccepted(c) ? 'over' : 'void'; dirty = true; if (c.st === 'void' && c.from === 'me') letter('none', null, g.name + ': nessuno ha accettato', chLabel(c), c.id); } return; }
     if (c.st !== 'open') return;
     g.mem.forEach(function (fid) {
       if (fid === c.from) { if (!c.mem[fid] && now - c.t > 30000 + (hashN(c.id + fid) % 4) * 8000) { c.mem[fid] = 1; dirty = true; } return; }
@@ -2316,7 +2327,7 @@ function gangTick() {
       if (!c.acc[fid] && h % 4 !== 0 && now - c.t > 8000 + (h % 3) * 4000) { c.acc[fid] = 1; dirty = true; }
       if (c.acc[fid] && !c.mem[fid] && h % 3 !== 0 && now - c.t > 20000 + (h % 5) * 9000) { c.mem[fid] = 1; dirty = true; }
     });
-    if (gangAccepted(c) && gangDone(c) >= gangNeed(g)) { c.st = 'passed'; dirty = true; letter('gang', null, g.name + ': obiettivo superato', chLabel(c) + ' · mezzo Punto Rango a tutta la Gang'); }
+    if (gangAccepted(c) && gangDone(c) >= gangNeed(g)) { c.st = 'passed'; dirty = true; letter('gang', null, g.name + ': obiettivo superato', chLabel(c) + ' · mezzo Punto Rango a tutta la Gang', c.id); }
   });
   if (dirty) save();
 }
@@ -2399,11 +2410,13 @@ function viewGang() {
   return h;
 }
 function viewFNote(o, cls) {
-  var f = friend(o.fid), l = P().letters.filter(function (x) { return x.id === o.list[o.i]; })[0], n = o.list.length, sc = fScore(f.id), lui = f.g === 'f' ? 'lei' : 'lui';
-  if (!l) { return ''; }
+  var l = P().letters.filter(function (x) { return x.id === o.list[o.i]; })[0]; if (!l) { return ''; }
+  var f = o.fid ? friend(o.fid) : null, cq = l.cid ? chById(l.cid) : null, gq = cq && cq.gang ? gangById(cq.gang) : null;
+  if (!f) f = { id: null, n: gq ? gq.name : 'Party', g: 'm' };
+  var n = o.list.length, sc = f.id ? fScore(f.id) : [0, 0], lui = f.g === 'f' ? 'lei' : 'lui';
   var gold = ['won', 'medal', 'rank'].indexOf(l.k) >= 0, title = l.tx, body = l.sub || '', score = false, icon = PI.letter;
-  if (l.k === 'won') { title = f.n + ' ha superato la tua sfida'; score = true; icon = PI.glove; }
-  else if (l.k === 'flost') { title = 'Sei stat' + gw('o', 'a') + ' bell' + gw('o', 'a') + ' dur' + gw('o', 'a'); body = f.n + ' non ha superato la tua sfida: ' + (l.sub || ''); score = true; icon = PI.glove; }
+  if (l.k === 'won') { title = f.n + ' ha superato la tua sfida'; score = !!f.id; icon = PI.glove; }
+  else if (l.k === 'flost') { title = 'Sei stat' + gw('o', 'a') + ' bell' + gw('o', 'a') + ' dur' + gw('o', 'a'); body = f.n + ' non ha superato la tua sfida: ' + (l.sub || ''); score = !!f.id; icon = PI.glove; }
   else if (l.k === 'acc') { icon = PI.glove; }
   else if (l.k === 'five') { icon = PI.five; }
   else if (l.k === 'medal' || l.k === 'rank') { icon = PI.medal; }
@@ -2412,6 +2425,7 @@ function viewFNote(o, cls) {
   return '<div class="' + cls + (gold ? ' gold' : '') + '">' + '<div class="whead"><span class="mark"' + (gold ? ' style="border-color:' + PGOLD + ';color:' + PGOLD + '"' : '') + '>!</span><span class="wlabel"' + (gold ? ' style="color:' + PGOLD + '"' : '') + '>' + f.n + (n > 1 ? ' · ' + (o.i + 1) + ' di ' + n : '') + '</span><span class="rule"></span><button class="x" data-a="close" aria-label="Chiudi">' + svg(IC.close, null, 20) + '</button></div>' +
     '<div style="display:flex;justify-content:center">' + svg(icon, col, 44) + '</div><p class="wtitle">' + esc(title) + '</p>' + (body ? '<p class="wtext">' + esc(body) + '</p>' : '') +
     (score ? '<div style="display:flex;align-items:baseline;justify-content:center;gap:12px;font:700 34px/1 var(--fd)"><span style="font:600 11px/14px var(--fd);letter-spacing:1px;color:var(--mut)">TU</span><span>' + sc[0] + '</span><span style="color:var(--mut)">–</span><span>' + sc[1] + '</span><span style="font:600 11px/14px var(--fd);letter-spacing:1px;color:var(--mut)">' + f.n.toUpperCase() + '</span></div>' : '') +
+    (cq ? '<button class="mlink" data-a="gView" data-v="' + cq.id + '" style="display:flex;align-items:center;justify-content:center;gap:6px">' + svg(cq.gang ? PI.party : PI.glove, col, 14) + 'Vedi la quest ›</button>' : '') +
     '<div class="acts' + (n > 1 && o.i + 1 < n ? '' : ' one') + '">' + (n > 1 && o.i + 1 < n ? '<button class="btn" data-a="close">Salta</button><button class="btn main" data-a="fnNext">Avanti</button>' : '<button class="btn main" data-a="fnNext">Ok</button>') + '</div></div>';
 }
 function viewGObj(o, cls) {
@@ -2437,8 +2451,8 @@ function viewSfide() {
   h += '<span class="hint" style="text-align:center;font-size:11.5px">Questo mese: ' + (pt.pts >= 0 ? '+' : '−') + num(Math.abs(pt.pts)) + ' Punti Rango dalle sfide. Si azzera ogni mese.</span>';
   function row(c) {
     var right = c.gang ? (c.st === 'passed' ? 'Gang: superato' : c.st === 'void' ? 'Nessuno ha accettato' : c.st === 'open' ? gangDone(c) + ' / ' + gangNeed(gangById(c.gang)) : 'Gang: non superato') : (c.from === 'me' ? 'Da te' : 'Da ' + friend(c.from).n) + (c.shared ? ' · condivisa' : '');
-    var tap = live.indexOf(c) >= 0;
-    return '<' + (tap ? 'button data-a="gView" data-v="' + c.id + '"' : 'div') + ' class="card" style="padding:8px 12px;display:flex;flex-direction:column;gap:4px;text-align:left;color:var(--ink);width:100%' + (tap ? ';border-color:' + (c.gang ? gangById(c.gang).col : PGOLD) + '8C;background:#14120A' : '') + '"><span class="row"><span style="display:flex;align-items:center;gap:6px;min-width:0">' + chTag(c) + '<span class="hint" style="font-size:11px">' + niceDate(c.day) + '</span></span><span class="hint" style="font-size:11px;white-space:nowrap">' + right + '</span></span><span style="display:flex;align-items:center;gap:8px;font:600 14px/19px var(--fb)">' + sportIc(c.sp, 16, true) + esc(chLabel(c)) + (tap ? '<span style="margin-left:auto;display:flex">' + svg(IC.right, PGOLD, 16) + '</span>' : '') + '</span></' + (tap ? 'button' : 'div') + '>';
+    var tap = true, lit = live.indexOf(c) >= 0;
+    return '<' + (tap ? 'button data-a="gView" data-v="' + c.id + '"' : 'div') + ' class="card" style="padding:8px 12px;display:flex;flex-direction:column;gap:4px;text-align:left;color:var(--ink);width:100%' + (lit ? ';border-color:' + (c.gang ? gangById(c.gang).col : PGOLD) + '8C;background:#14120A' : '') + '"><span class="row"><span style="display:flex;align-items:center;gap:6px;min-width:0">' + chTag(c) + '<span class="hint" style="font-size:11px">' + niceDate(c.day) + '</span></span><span class="hint" style="font-size:11px;white-space:nowrap">' + right + '</span></span><span style="display:flex;align-items:center;gap:8px;font:600 14px/19px var(--fb)">' + sportIc(c.sp, 16, true) + esc(chLabel(c)) + '<span style="margin-left:auto;display:flex">' + svg(IC.right, lit ? PGOLD : 'var(--mut)', 16) + '</span>' + '</span></' + (tap ? 'button' : 'div') + '>';
   }
   function sec(title, arr, empty, col) { return '<div class="card" style="padding:10px 10px 12px;display:flex;flex-direction:column;gap:6px;border-color:' + col + '55"><div class="row" style="padding:0 2px"><span class="lbl kick" style="color:' + col + '">' + title + '</span><span class="hint" style="font-size:11px">' + arr.length + '</span></div>' + (arr.length ? arr.map(row).join('') : '<span class="hint" style="padding:0 2px">' + empty + '</span>') + '</div>'; }
   h += sec('In corso', live, 'Niente in corso oggi.', PGOLD) + sec('Vinte', won, 'Ancora nessuna vittoria questo mese.', '#9BE15D') + sec('Perse', lost, 'Nessuna persa: bene così.', '#FF8A80');
@@ -2455,7 +2469,7 @@ var PA3 = {
   launchGang: function (gid) { if (gangToday(gid)) { toast('Oggi la Gang ha già un obiettivo.'); return; } var sp = S.profile.sports.filter(function (s) { return s !== 'bon'; })[0] || 'run'; ui.ov = { t: 'launch', gid: gid, sp: sp, q: '', sh: true, msg: '' }; ding('open'); render(); },
   gWin: function (id) {
     var c = chById(id); c.me = true;
-    if (c.gang) { var g = gangById(c.gang); if (c.st === 'open' && gangDone(c) >= gangNeed(g)) { c.st = 'passed'; letter('gang', null, g.name + ': obiettivo superato', chLabel(c) + ' · mezzo Punto Rango a tutta la Gang'); } }
+    if (c.gang) { var g = gangById(c.gang); if (c.st === 'open' && gangDone(c) >= gangNeed(g)) { c.st = 'passed'; letter('gang', null, g.name + ': obiettivo superato', chLabel(c) + ' · mezzo Punto Rango a tutta la Gang', c.id); } }
     else if (c.to === 'me' && (!c.shared || c.done)) c.st = 'won';
     save(); ui.ov = { t: 'gwin', id: id }; medalSound(); render();
   }
@@ -2834,7 +2848,28 @@ root.addEventListener('input', function (e) {
   else if (f === 'lmsg' || f === 'cmsg') ui.ov.msg = e.target.value;
   else if (f === 'gname') { ui.ov.name = e.target.value; var cb = root.querySelector('[data-a="gangCreate"]'); if (cb) cb.disabled = !(ui.ov.name.trim() && Object.keys(ui.ov.mem).filter(function (k) { return ui.ov.mem[k]; }).length >= 2); }
 });
-root.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.getAttribute('data-f') === 'obname') { e.preventDefault(); A.obNext(); } });
+root.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.getAttribute('data-f') === 'obname') { e.preventDefault(); A.obNext(); } else if (e.key === 'Enter' && !e.shiftKey && /^(lq|lmsg|greply|cmsg)$/.test(e.target.getAttribute('data-f') || '')) { e.preventDefault(); e.target.blur(); } });
+/* tastiera: la finestra si stringe sopra la tastiera, il campo resta in vista, barra "Fatto" per chiuderla */
+(function () {
+  var bar = document.createElement('div'); bar.id = 'kbbar'; bar.innerHTML = '<span>Scrivi, poi chiudi la tastiera</span><button type="button">Fatto</button>';
+  document.body.appendChild(bar);
+  bar.addEventListener('pointerdown', function (e) { e.preventDefault(); });
+  bar.querySelector('button').addEventListener('click', function () { var a = document.activeElement; if (a && a.blur) a.blur(); });
+  function typing() { var a = document.activeElement; return a && (a.tagName === 'TEXTAREA' || (a.tagName === 'INPUT' && !/^(checkbox|radio|button|file)$/.test(a.type))); }
+  function sync() {
+    var vv = window.visualViewport, H = window.innerHeight, h = vv ? vv.height : H, top = vv ? vv.offsetTop : 0;
+    var kb = typing() && H - h > 120, de = document.documentElement;
+    de.style.setProperty('--vvh', h + 'px'); de.style.setProperty('--vvt', top + 'px');
+    var was = document.body.classList.contains('kb'); document.body.classList.toggle('kb', kb);
+    if (kb) { var a = document.activeElement; if (a && a.closest && a.closest('.veil')) setTimeout(function () { try { a.scrollIntoView({ block: 'nearest' }); } catch (e) {} }, was ? 0 : 60); }
+  }
+  window.__kbSync = sync;
+  if (window.visualViewport) { window.visualViewport.addEventListener('resize', sync); window.visualViewport.addEventListener('scroll', sync); }
+  document.addEventListener('focusin', function () { setTimeout(sync, 50); setTimeout(sync, 350); });
+  document.addEventListener('focusout', function () { setTimeout(sync, 50); });
+  /* toccare fuori dal campo chiude la tastiera, come nelle app di messaggi */
+  root.addEventListener('touchstart', function (e) { if (!document.body.classList.contains('kb')) return; var t = e.target; if (t.closest && !t.closest('input,textarea,button,[data-a]')) { var a = document.activeElement; if (a && a.blur) a.blur(); } }, { passive: true });
+})();
 function resetViewport() { if (window.scrollY || window.scrollX || document.documentElement.scrollTop || document.body.scrollTop) { window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; } }
 root.addEventListener('focusout', function () { setTimeout(resetViewport, 60); setTimeout(resetViewport, 350); });
 window.addEventListener('scroll', resetViewport);
