@@ -348,7 +348,7 @@ var DAY_CAP = 16;
 // Rango del singolo sport: 2 punti a sessione (fino a 6 al mese), +1 per quest riuscita.
 var SPORT_RANKS = [['S', 16], ['A', 14], ['B', 10], ['C', 6], ['D', 2], ['E', 0]];
 var SPORT_CAP = 6;
-// Punti rango per quest riuscita: facile solo XP, media mezzo punto, difficile un punto.
+// Punti rango per quest riuscita: facile solo XP, media mezzo Punto Rango, difficile un punto.
 var QPTS = { easy: 0, med: 0.5, hard: 1 };
 function qPts(s) { return s.quest && s.quest.done === true ? (QPTS[s.quest.diff] || 0) : 0; }
 function rankBar(p, table, c) {
@@ -356,7 +356,7 @@ function rankBar(p, table, c) {
   var ticks = table.slice(0, table.length - 1).map(function (r) { var x = r[1] / max * 100; return x < 100 ? '<i class="rtick" style="left:' + x + '%"></i>' : ''; }).join('');
   return '<div class="rbar"><div class="rfill" style="width:' + w + '%;background:' + c + ';box-shadow:0 0 10px ' + c + '88"></div>' + ticks + '<span class="rtxt">' + num(p) + (nx ? ' / ' + nx[1] : '') + '</span></div><div class="rlets">' + table.slice(0, table.length - 1).map(function (r) { return '<span class="rlet' + (p >= r[1] ? ' on' : '') + '" style="left:' + (r[1] / max * 100) + '%">' + r[0] + '</span>'; }).join('') + '</div>';
 }
-function pfmt(p) { return num(p) + (p === 1 ? ' punto' : ' punti'); }
+function pfmt(p) { return num(p) + (p === 1 ? ' Punto Rango' : ' Punti Rango'); }
 var KEY = 'sistema.v1';
 
 /* ---------- utilità ---------- */
@@ -447,6 +447,13 @@ function rankOf(p, table, stars) { table = table || RANKS; for (var i = 0; i < t
 function nextRank(p, table) { table = table || RANKS; var nx = null, prev = 0; for (var i = table.length - 1; i >= 0; i--) { if (p < table[i][1]) { nx = table[i]; break; } prev = table[i][1]; } return { next: nx, prev: prev }; }
 function monthKeys(y, m) { var pre = y + '-' + pad(m + 1); return Object.keys(S.days).filter(function (k) { return k.indexOf(pre) === 0 && S.days[k].length; }); }
 function monthStats(y, m, cut) {
+  var ms = monthStatsRaw(y, m, cut); if (cut || !S) return ms;
+  var full = rStep(ms.rank, ms.plus), L = stepRank(y, m, full);
+  ms.held = L < full; ms.fullRank = ms.rank + (ms.plus ? '+' : '');
+  if (ms.held) { ms.rank = RLET[L >> 1]; ms.plus = !!(L & 1); }
+  return ms;
+}
+function monthStatsRaw(y, m, cut) {
   var keys = monthKeys(y, m).filter(function (k) { return !cut || k <= cut.upto; }), counts = {}, sportQ = {}, sportQn = {}, n = 0, qd = 0, qt = 0, qDays = 0, qSum = 0, stars = 0;
   keys.forEach(function (k) {
     var dq = false, best = 0;
@@ -469,20 +476,43 @@ function monthStats(y, m, cut) {
   Object.keys(seen).forEach(function (w) { if (seen[w] >= 2) weeksOk++; });
   var first = new Date(y, m, 1), last = new Date(y, m + 1, 0), wTot = {};
   for (var d = new Date(first); d <= last; d.setDate(d.getDate() + 1)) wTot[mondayOf(keyOf(d))] = 1;
-  return { keys: keys, days: keys.length, qDays: qDays, qSum: qSum, stars: stars, pts: pts, rank: rankOf(pts, RANKS, stars), plus: !cut && plusOf(y, m, rankOf(pts, RANKS, stars), cp.wins), gloves: gw, counts: counts, sportPts: sportPts, sessions: n, top: top, second: second, title: title, qd: qd, qt: qt, weeksOk: weeksOk, weeksTot: Object.keys(wTot).length, hw: hw };
+  return { keys: keys, days: keys.length, qDays: qDays, qSum: qSum, stars: stars, pts: pts, rank: rankOf(pts, RANKS, stars), plus: !cut && plusOf(y, m, rankOf(pts, RANKS, stars), cp.wins), wins: cp.wins, gloves: gw, counts: counts, sportPts: sportPts, sessions: n, top: top, second: second, title: title, qd: qd, qt: qt, weeksOk: weeksOk, weeksTot: Object.keys(wTot).length, hw: hw };
 }
 /* il + del rango: una quest social vinta quando eri già in quel rango (il rango prima di quella quest, nello stesso giorno, è quello attuale) */
 function plusOf(y, m, rank, wins) {
   if (!wins || !wins.length) return false;
   return wins.some(function (c) { return monthStats(y, m, { upto: c.day, ex: c.id }).rank === rank; });
 }
+/* un gradino al giorno: E, E+, D, D+ … S, S+. Se in un giorno sali (rango pieno o +), il gradino dopo scatta al primo progresso del giorno successivo.
+   Eccezioni: l'ultimo giorno del mese vale tutto, e A+, S, S+ scattano sempre. */
+var RLET = ['E', 'D', 'C', 'B', 'A', 'S'], RFREE = [9, 10, 11], stepCache = {};
+function rStep(r, plus) { return RLET.indexOf(r) * 2 + (plus ? 1 : 0); }
+function stepPot(y, m, d) { var ms = monthStats(y, m, { upto: d }); return rStep(ms.rank, plusOf(y, m, ms.rank, ms.wins)); }
+function stepRank(y, m, full) {
+  var n = new Date(); if (y !== n.getFullYear() || m !== n.getMonth()) return full;
+  var t = todayKey(), last = keyOf(new Date(y, m + 1, 0)); if (t === last) return full;
+  var ck = ymKey(y, m) + t + (S.mt || 0) + '|' + myCh().length + '|' + full;
+  if (stepCache.k === ck) return stepCache.v;
+  var pre = ymKey(y, m), days = {};
+  Object.keys(S.days).forEach(function (k) { if (k.indexOf(pre) === 0 && k <= t && S.days[k].length) days[k] = 1; });
+  myCh().forEach(function (c) { if (c.me && c.day.indexOf(pre) === 0 && c.day <= t) days[c.day] = 1; });
+  var L = 0;
+  Object.keys(days).sort().forEach(function (d) {
+    var P = stepPot(y, m, d), one = true;
+    if (P < L) { L = P; return; }
+    while (L < P) { var nx = (L >> 1) < (P >> 1) ? ((L >> 1) + 1) * 2 : P; if (RFREE.indexOf(nx) >= 0) L = nx; else if (one) { L = nx; one = false; } else break; }
+  });
+  L = Math.min(L, full);
+  stepCache = { k: ck, v: L }; return L;
+}
 function monthPts(days, qSum) { return Math.min(days, DAY_CAP) * 2 + Math.min(qSum, DAY_CAP); }
 function nextGoal(ms) {
+  if (ms.held) return 'il prossimo gradino scatta domani, alla prima sessione';
   var cur = RANKS.map(function (r) { return r[0]; }).indexOf(ms.rank); if (cur <= 0) return 'rango massimo';
   var nx = RANKS[cur - 1], parts = [];
-  if (ms.pts < nx[1]) parts.push(pfmt(nx[1] - ms.pts));
+  if (ms.pts < nx[1]) parts.push(num(nx[1] - ms.pts));
   if (ms.stars < nx[2]) parts.push((nx[2] - ms.stars) + (nx[2] - ms.stars === 1 ? ' stella' : ' stelle'));
-  return parts.join(' e ') + ' al rango ' + nx[0];
+  return 'mancano ' + parts.join(' e ') + ' al rango ' + nx[0];
 }
 function projection(y, m, ms) {
   var nd = new Date(), len = new Date(y, m + 1, 0).getDate(), el = nd.getDate();
@@ -1060,10 +1090,10 @@ function viewSettings() {
   h += '<div class="card" style="padding:6px 12px"><button class="toggle" data-a="sound"><span style="display:flex;flex-direction:column"><span style="font:600 15px/20px var(--fd)">Suoni</span><span class="hint">Usano il volume dei media' + (ANDROID ? '' : ' e tacciono con l’iPhone in silenzioso') + '</span></span><span class="sw' + (S.settings.sound ? ' on' : '') + '"></span></button>' + (ANDROID && navigator.vibrate ? '<button class="toggle" data-a="vib" style="border-top:1px solid var(--line)"><span style="font:600 15px/20px var(--fd)">Vibrazione</span><span class="sw' + (S.settings.vib !== false ? ' on' : '') + '"></span></button>' : '') + '</div>';
   h += cloudCard();
   var lb = S.lastBackup, age = lb ? diffDays(todayKey(), lb) : null;
-  h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">Punti, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
+  h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">XP, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + CLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 2.5</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Sistema · versione 2.5.1</span>';
   return h;
 }
 
@@ -1078,6 +1108,7 @@ function viewOverlay() {
   if (o.t === 'story') return viewStory(o);
   if (o.t === 'glove') return viewGloveWin(o);
   if (o.t === 'login') return '<div class="veil' + (animCls('login' + o.step) ? ' fade' : '') + '">' + viewLogin(o, 'win') + '</div>';
+  if (o.t === 'rankup') { var ra = animCls('rk' + o.k); return '<div class="veil' + (ra ? ' fade' : '') + '">' + viewRankUp(o, 'win' + ra) + '</div>'; }
   if (o.t === 'medal') return '<div class="veil' + (animCls('medal' + o.id + o.tr) ? ' fade' : '') + '">' + viewMedalWin(o, 'win') + '</div>';
   var key = o.t + (o.sport || '') + (o.group || '') + (o.k || '') + (o.id || ''), cls = 'win' + animCls(key), h = '';
   if (o.t === 'pick' || o.t === 'past') {
@@ -1132,19 +1163,19 @@ function viewOverlay() {
     else h = '<div class="' + cls + '">' + whead('Notifica', false) + '<p class="wtitle">È ora di un backup</p><p class="wtext">I tuoi dati vivono solo su questo telefono. ' + (ANDROID ? 'Tocca Backup e scegli Drive, oppure salvalo nei file del telefono: bastano due tocchi.' : 'Tocca Backup e scegli “Salva in File” → iCloud Drive: bastano due tocchi.') + '</p><div class="acts"><button class="btn" data-a="noticeLater">Più tardi</button><button class="btn main" data-a="noticeBackup">Backup</button></div></div>';
   } else if (o.t === 'rules') {
     h = '<div class="' + cls + ' tall" style="gap:12px">' + whead('Regole del gioco', true) + '<div class="wbody rules" data-keep>' +
-      '<div class="fld"><span class="lbl" style="font-size:11px">Rango del mese</span><p>Ogni giorno con almeno uno sport vale <b>2 punti</b>, fino a 16 giorni. Se quel giorno completi una quest media vale <b>+0,5</b>, una difficile <b>+1</b>. La facile dà solo XP. Per A e S servono anche le stelle delle sessioni top.</p>' +
-      '<div class="rtab">' + RANKS.slice(0, 5).map(function (r) { return '<span><b>' + r[0] + '</b>' + r[1] + ' punti' + (r[2] ? ' · ' + r[2] + (r[2] === 1 ? ' stella' : ' stelle') : '') + '</span>'; }).join('') + '</div><p class="hint">Dalla seconda settimana Stato ti dice dove chiudi il mese al tuo ritmo.</p></div>' +
-      '<div class="fld"><span class="lbl" style="font-size:11px">Rango di ogni sport</span><p>Ogni sessione vale <b>2 punti</b> (fino a 6 al mese). Una quest media riuscita <b>+0,5</b>, una difficile <b>+1</b>. B a 10 punti, A a 14, S a 16.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Rango del mese</span><p>Ogni giorno con almeno uno sport vale <b>2 Punti Rango</b>, fino a 16 giorni. Se quel giorno completi una quest media vale <b>+0,5</b>, una difficile <b>+1</b>. La facile dà solo Punti XP. Per A e S servono anche le stelle delle sessioni top.</p>' +
+      '<div class="rtab">' + RANKS.slice(0, 5).map(function (r) { return '<span><b>' + r[0] + '</b>' + r[1] + ' Punti Rango' + (r[2] ? ' · ' + r[2] + (r[2] === 1 ? ' stella' : ' stelle') : '') + '</span>'; }).join('') + '</div><p class="hint">Dalla seconda settimana Stato ti dice dove chiudi il mese al tuo ritmo.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Rango di ogni sport</span><p>Ogni sessione vale <b>2 Punti Rango</b> (fino a 6 al mese). Una quest media riuscita <b>+0,5</b>, una difficile <b>+1</b>. B a 10 Punti Rango, A a 14, S a 16.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Quest</span><p>Tocca oggi sul calendario: il sistema propone tre sfide partendo dalla tua ultima volta. A fine sessione dici se ce l’hai fatta.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Titolo del mese</span><p>Viene dallo sport che hai fatto di più. Se un secondo sport ci va vicino (almeno il 70%), il titolo diventa doppio.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Badge della settimana</span><p>Uno per ogni giorno di sport da lunedì a domenica. Le frasi cambiano ogni settimana. Oltre i 5 giorni il sistema ti consiglia di riposare.</p></div>' +
-      '<div class="fld"><span class="lbl" style="font-size:11px">Hard Study/Work</span><p>Un segno sul calendario per le giornate di testa. Non è sport e non dà punti: è solo un modo per ricordarle.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Hard Study/Work</span><p>Un segno sul calendario per le giornate di testa. Non è sport e non dà né XP né Punti Rango: è solo un modo per ricordarle.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Tratto del mese</span><p>Ogni sport allena uno o più tratti: <b>Forza</b>, <b>Agilità</b>, <b>Resistenza</b>, <b>Equilibrio</b>. Il tratto del mese è quello che hai allenato di più; il rombo ne mostra la forma, e la sua grandezza segue il rango.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Bacheca</span><p>Medaglie che non si azzerano mai e salgono di lega: Legno, Bronzo, Argento, Oro, Platino, Diamante, Challenger. Molte sono <b>segrete</b>: le scopri facendo.</p></div>' +
-      '<div class="fld"><span class="lbl" style="font-size:11px">Party e guanto di sfida</span><p>Un amico ti lancia il <b>guanto</b>: uno sport e una quest precisa. Puoi accettare, dire non oggi o modificarla e rimandarla. Scade a mezzanotte. Se lo completi vale <b>+15 XP</b> e <b>mezzo punto</b> per il rango del mese. Se chi lancia sceglie “la faccio anch’io”, diventa una <b>quest condivisa</b>: <b>mezzo punto a testa</b> a chi la completa, anche a chi l’ha lanciata. Se accetti un guanto e non lo chiudi entro mezzanotte, <b>−0,5</b> sul rango (solo per i guanti, non per gli obiettivi Gang); nel punteggio tra amici nessuna penalità.</p><p>Tra due amici le sfide restano in equilibrio: puoi lanciarne al massimo <b>2 in più</b> di quelle che tu hai accettato da lui nel mese (le condivise accettate contano per entrambi). Es. se tu ne hai accettate 4 sue, lui al massimo 6 tue.</p></div>' +
-      '<div class="fld"><span class="lbl" style="font-size:11px">Gang</span><p>Un membro <b>fissa l’obiettivo</b> della Gang, uno al giorno, uguale per tutti. Vale se almeno un altro membro accetta, ed è superato se lo completano almeno 2 membri su 3: mezzo punto a tutti, fino a 3 al mese. Se lo completi anche tu, conta per il + del rango. Il <b>rango della Gang</b> sale solo con gli obiettivi superati: D a 1, C a 2, B a 4, A a 6, S a 8.</p></div>' +
-      '<div class="fld"><span class="lbl" style="font-size:11px">Il + del rango</span><p>Ogni rango ha il suo +: C+, B+, fino a S+. Lo prendi vincendo una quest social quando sei già in quel rango: un guanto di un amico che hai completato, o un obiettivo Gang che hai completato tu e che almeno un altro membro ha accettato. Va per soglie: se da D+ sali in C sei C, e per il + ti serve una nuova quest social da C. Senza amici sali lo stesso, ma senza +.</p></div>' +
-      '<div class="fld"><span class="lbl" style="font-size:11px">Cinque</span><p>Un applauso a un amico, uno a settimana per amico. Non dà punti: fa solo piacere.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Party e guanto di sfida</span><p>Un amico ti lancia il <b>guanto</b>: uno sport e una quest precisa. Puoi accettare, dire non oggi o modificarla e rimandarla. Scade a mezzanotte. Se lo completi vale <b>+15 Punti XP</b> e <b>mezzo Punto Rango</b> per il rango del mese. Se chi lancia sceglie “la faccio anch’io”, diventa una <b>quest condivisa</b>: <b>mezzo Punto Rango a testa</b> a chi la completa, anche a chi l’ha lanciata. Se accetti un guanto e non lo chiudi entro mezzanotte, <b>−0,5 Punti Rango</b> (solo per i guanti, non per gli obiettivi Gang); nel punteggio tra amici nessuna penalità.</p><p>Tra due amici le sfide restano in equilibrio: puoi lanciarne al massimo <b>2 in più</b> di quelle che tu hai accettato da lui nel mese (le condivise accettate contano per entrambi). Es. se tu ne hai accettate 4 sue, lui al massimo 6 tue.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Gang</span><p>Un membro <b>fissa l’obiettivo</b> della Gang, uno al giorno, uguale per tutti. Vale se almeno un altro membro accetta, ed è superato se lo completano almeno 2 membri su 3: mezzo Punto Rango a tutti, fino a 3 al mese. Se lo completi anche tu, conta per il + del rango. Il <b>rango della Gang</b> sale solo con gli obiettivi superati: D a 1, C a 2, B a 4, A a 6, S a 8.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Il + del rango</span><p>Ogni rango ha il suo +: C+, B+, fino a S+. Lo prendi vincendo una quest social quando sei già in quel rango: un guanto di un amico che hai completato, o un obiettivo Gang che hai completato tu e che almeno un altro membro ha accettato. Va per soglie: se da D+ sali in C sei C, e per il + ti serve una nuova quest social da C. Senza amici sali lo stesso, ma senza +.</p><p>Si sale di <b>un gradino al giorno</b> (un rango pieno o un +): se oggi sei già salito, il gradino dopo scatta domani alla prima sessione. Non vale l’ultimo giorno del mese, e A+, S e S+ scattano sempre.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Cinque</span><p>Un applauso a un amico, uno a settimana per amico. Non dà né XP né Punti Rango: fa solo piacere.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">XP e livello</span><p>Ogni sessione dà 10 XP, una quest riuscita da 5 a 20 in più, una stella 5, un guanto completato 15. Il livello cresce e non si perde mai.</p></div>' +
       '</div><button class="btn main" data-a="close">Ho capito</button></div>';
   } else if (o.t === 'qask') {
@@ -1527,6 +1558,31 @@ function noteMid() {
   if (!S) return; var n = new Date(); if (n.getDate() < 15) return; S.mid = S.mid || {}; var ym = ymKey(n.getFullYear(), n.getMonth());
   if (S.mid[ym]) return; var ms = monthStats(n.getFullYear(), n.getMonth()), pj = projection(n.getFullYear(), n.getMonth(), ms);
   if (pj && pj.rank) { S.mid[ym] = pj.rank; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+}
+function rankCheck() {
+  var n = new Date(), ym = ymKey(n.getFullYear(), n.getMonth()), ms = monthStats(n.getFullYear(), n.getMonth()), L = rStep(ms.rank, ms.plus), seen = S.rkSeen;
+  if (!seen || seen.ym !== ym || L < seen.l) { if (!seen || seen.l !== L || seen.ym !== ym) { S.rkSeen = { ym: ym, l: L }; save(); } return; }
+  if (L > seen.l) { S.rkSeen = { ym: ym, l: L }; ui.rkq = { r: ms.rank, plus: ms.plus }; save(); }
+}
+function rankSound() {
+  if (!S || !S.settings.sound) return;
+  try {
+    var a = audio(); if (!a) return; if (a.state !== 'running') { try { a.resume(); } catch (e) {} }
+    var t = a.currentTime + 0.03, d = 0;
+    [0, 4, 7, 12, 16, 19].forEach(function (x, i) { synth(a, t + i * 0.06, 64 + x, 0.07, 'square', 0.045, 6000, 0.002); }); d = 0.38;
+    kickAt(a, t + d, 0.45); noiseAt(a, t + d, 0.35, 0.06, 5000);
+    [64, 68, 71, 76].forEach(function (x) { synth(a, t + d, x, 1.3, 'sawtooth', 0.025, 3000, 0.01); synth(a, t + d, x + 0.08, 1.3, 'sawtooth', 0.025, 3000, 0.01); });
+    [88, 92, 95, 100].forEach(function (x, k) { synth(a, t + d + 0.1 + k * 0.06, x, k === 3 ? 0.3 : 0.06, 'square', 0.035, 0, 0.002); });
+  } catch (e) {}
+}
+function viewRankUp(o, cls) {
+  var n = new Date(), ms = monthStats(n.getFullYear(), n.getMonth()), lab = o.r + (o.plus ? '+' : ''), gold = o.r === 'S' || o.plus;
+  return '<div class="' + cls + (gold ? ' gold' : '') + '" style="text-align:center">' + whead('Nuovo rango', true) +
+    '<span class="pop" style="display:flex;justify-content:center;padding:6px 0 2px">' + rkHex(o.r, 104, o.plus) + '</span>' +
+    '<p class="wtitle" style="text-align:center">Rango ' + lab + '</p>' +
+    '<p class="wtext" style="text-align:center">' + (o.plus ? 'Quest social vinta da ' + o.r + ': il gradino in più è tuo.' : 'Questo mese sei salito in rango ' + o.r + '.') + '</p>' +
+    '<span class="hint" style="font-size:11px;text-align:center">' + pfmt(ms.pts) + ' questo mese</span>' +
+    '<div class="acts" style="grid-template-columns:1fr;width:100%"><button class="btn main" data-a="close">Continua</button></div></div>';
 }
 function checkMedals() {
   if (!S) return;
@@ -1975,7 +2031,7 @@ function viewGloveWin(o) {
   var win = '<div class="win gold mwin" style="gap:12px">' + '<div class="whead"><span class="mark" style="border-color:' + PGOLD + ';color:' + PGOLD + '">!</span><span class="wlabel" style="color:' + PGOLD + '">' + (c.counter ? 'Guanto rimandato' : 'Guanto di sfida') + '</span><span class="rule"></span><button class="x" data-a="close" aria-label="Chiudi">' + svg(IC.close, null, 20) + '</button></div>' +
     '<div style="display:flex;align-items:center;gap:12px">' + rkHex(f.r, 36) + '<span style="display:flex;flex-direction:column;gap:2px"><span style="font:700 17px/22px var(--fd);letter-spacing:1px;text-transform:uppercase">' + f.n + '</span><span class="hint">' + (c.counter ? 'ti propone una modifica' : 'ti lancia il guanto') + ' · scade a mezzanotte</span></span></div>' +
     '<div style="border-radius:12px;border:1px solid ' + PGOLD + '8C;background:#14120A;padding:10px 14px;display:flex;align-items:center;gap:12px">' + sportIc(c.sp, 28, true) + '<span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="lbl" style="color:#D9B04A;font-size:11px">' + SPORTS[c.sp].name + (S.profile.sports.indexOf(c.sp) < 0 ? ' · sport bonus' : '') + '</span><span style="font:700 20px/24px var(--fd);letter-spacing:1px;text-transform:uppercase;color:var(--rew)">' + esc(c.q) + '</span></span></div>' +
-    '<div class="row" style="padding:0 2px">' + (c.shared ? pPill('Quest condivisa', '#7CC4FF') : '<span></span>') + '<span class="hint">+' + GXP + ' XP · ½ punto</span></div>' +
+    '<div class="row" style="padding:0 2px">' + (c.shared ? pPill('Quest condivisa', '#7CC4FF') : '<span></span>') + '<span class="hint">+' + GXP + ' Punti XP · ½ Punto Rango</span></div>' +
     (c.msg ? '<div style="border-radius:12px 12px 12px 4px;background:#13203A;padding:8px 12px;font:500 14px/20px var(--fb);color:var(--soft);align-self:flex-start;max-width:92%">“' + esc(c.msg) + '”</div>' : '') +
     '<textarea class="inp" data-f="greply" style="height:48px" placeholder="Rispondi a ' + f.n + ' (facoltativo)">' + esc(o.reply || '') + '</textarea>' +
     '<div class="acts"><button class="btn" data-a="gNo" data-v="' + c.id + '">Non oggi</button><button class="btn main" data-a="gYes" data-v="' + c.id + '" style="background:' + PGOLD + ';border-color:' + PGOLD + ';box-shadow:0 0 14px rgba(255,201,77,.4)">Accetto</button></div>' +
@@ -1995,7 +2051,7 @@ function viewLaunch(o, cls) {
     '<div class="fld"><span class="lbl" style="font-size:11px">' + (g ? 'L’obiettivo' : 'La sfida') + '</span><input class="inp" data-f="lq" maxlength="60" value="' + esc(o.q) + '" placeholder="' + (g ? 'Scrivi qui l’obiettivo' : 'Scrivi qui la sfida') + '">' + (pre.length ? '<span style="font:600 10px/13px var(--fd);letter-spacing:2px;text-transform:uppercase;color:#5A6B88">Predefiniti</span><div class="chips" style="gap:5px">' + pre.map(function (t) { return '<button class="chip" data-a="lPre" data-v="' + esc(t) + '" style="height:26px;padding:0 10px;font-size:11.5px;color:var(--mut);border-color:var(--line)">' + esc(t) + '</button>'; }).join('') + '</div>' : '') + '</div>' +
     (g ? '' : '<button class="toggle" data-a="lSh" style="min-height:44px"><span style="display:flex;flex-direction:column;gap:2px"><span style="font:600 15px/20px var(--fb)">La faccio anch’io</span><span class="hint" style="font-size:11.5px">Diventa una quest condivisa</span></span><span class="sw' + (o.sh ? ' on' : '') + '"></span></button>') +
     '<div class="fld"><span class="lbl" style="font-size:11px">Messaggio</span><textarea class="inp" data-f="lmsg" maxlength="120" style="height:56px" placeholder="Facoltativo">' + esc(o.msg) + '</textarea></div>' +
-    '<span class="hint" style="padding:0 2px">' + (g ? 'Condiviso con tutta la Gang. Superato se lo completano ' + gangNeed(g) + ' su ' + (g.mem.length + 1) + ': mezzo punto a tutti. Serve che almeno uno accetti.' : 'Premio per chi la completa: +' + GXP + ' XP e mezzo punto, anche per te se condivisa. Chi accetta e non la chiude perde mezzo punto. Vale per S+.') + '</span></div>' +
+    '<span class="hint" style="padding:0 2px">' + (g ? 'Condiviso con tutta la Gang. Superato se lo completano ' + gangNeed(g) + ' su ' + (g.mem.length + 1) + ': mezzo Punto Rango a tutti. Serve che almeno uno accetti.' : 'Premio per chi la completa: +' + GXP + ' XP e mezzo Punto Rango, anche per te se condivisa. Chi accetta e non la chiude perde mezzo Punto Rango. Conta per il + del rango.') + '</span></div>' +
     '<div class="acts one"><button class="btn main" data-a="lGo" style="display:flex;align-items:center;justify-content:center;gap:8px"' + (o.q.trim() ? '' : ' disabled') + '>' + svg(g ? PI.party : PI.glove, null, 20) + (g ? 'Fissa' : 'Lancia') + '</button></div></div>';
 }
 function viewGCounter(o, cls) {
@@ -2240,7 +2296,7 @@ function gangTick() {
       if (!c.acc[fid] && h % 4 !== 0 && now - c.t > 8000 + (h % 3) * 4000) { c.acc[fid] = 1; dirty = true; }
       if (c.acc[fid] && !c.mem[fid] && h % 3 !== 0 && now - c.t > 20000 + (h % 5) * 9000) { c.mem[fid] = 1; dirty = true; }
     });
-    if (gangAccepted(c) && gangDone(c) >= gangNeed(g)) { c.st = 'passed'; dirty = true; letter('gang', null, g.name + ': obiettivo superato', chLabel(c) + ' · mezzo punto a tutta la Gang'); }
+    if (gangAccepted(c) && gangDone(c) >= gangNeed(g)) { c.st = 'passed'; dirty = true; letter('gang', null, g.name + ': obiettivo superato', chLabel(c) + ' · mezzo Punto Rango a tutta la Gang'); }
   });
   if (dirty) save();
 }
@@ -2288,13 +2344,13 @@ function viewGDone(o, cls) {
 function viewGWin(o, cls) {
   var c = chById(o.id), g = c.gang ? gangById(c.gang) : null, f = g ? null : friend(c.from === 'me' ? c.to : c.from), n = new Date(), ms = monthStats(n.getFullYear(), n.getMonth());
   var col = g ? g.col : PGOLD, pts, note;
-  if (g) { pts = c.st === 'passed' ? '+½' : 'in attesa'; note = (gangValid(c) ? 'Conta per il + del rango. ' : '') + (c.st === 'passed' ? 'Obiettivo superato: mezzo punto a tutta la Gang' + (gangPassed(null, ymKey(n.getFullYear(), n.getMonth())) > GANG_CAP ? ' (tetto di 3 al mese già raggiunto per i punti).' : '.') : (gangAccepted(c) ? '' : 'Serve ancora che qualcuno accetti. ') + 'Quando lo completano ' + gangNeed(g) + ' su ' + (g.mem.length + 1) + ', mezzo punto a tutti.'); }
-  else if (c.to === 'me') { pts = '+½'; note = ms.plus ? 'Sei in ' + ms.rank + '+ questo mese.' : 'Sei in ' + ms.rank + ': con la prossima quest social passi a ' + ms.rank + '+.'; }
-  else { pts = '+½'; note = 'Quest condivisa con ' + f.n + ': mezzo punto a testa a chi la completa.'; }
+  if (g) { pts = c.st === 'passed' ? '+½' : 'in attesa'; note = (gangValid(c) ? 'Conta per il + del rango. ' : '') + (c.st === 'passed' ? 'Obiettivo superato: mezzo Punto Rango a tutta la Gang' + (gangPassed(null, ymKey(n.getFullYear(), n.getMonth())) > GANG_CAP ? ' (tetto di 3 al mese già raggiunto per i Punti Rango).' : '.') : (gangAccepted(c) ? '' : 'Serve ancora che qualcuno accetti. ') + 'Quando lo completano ' + gangNeed(g) + ' su ' + (g.mem.length + 1) + ', mezzo Punto Rango a tutti.'); }
+  else if (c.to === 'me') { pts = '+½'; note = ms.held ? 'Oggi sei già salito: il prossimo gradino scatta domani, alla prima sessione.' : ms.plus ? 'Sei in ' + ms.rank + '+ questo mese.' : 'Sei in ' + ms.rank + ': con la prossima quest social passi a ' + ms.rank + '+.'; }
+  else { pts = '+½'; note = 'Quest condivisa con ' + f.n + ': mezzo Punto Rango a testa a chi la completa.'; }
   return '<div class="' + cls + ' gold" style="border-color:' + col + '">' + '<div class="whead"><span class="mark" style="border-color:' + col + ';color:' + col + '">!</span><span class="wlabel" style="color:' + col + '">' + (g ? 'Obiettivo Gang' : 'Guanto vinto') + '</span><span class="rule"></span></div>' +
     '<div style="display:flex;justify-content:center">' + svg(g ? PI.party : PI.glove, col, 64) + '</div><span class="badge" style="text-align:center">' + (g ? 'Fatto per la Gang' : 'Raccolto e vinto') + '</span>' +
     '<p class="wtext">' + esc(chLabel(c)) + '.</p>' +
-    '<div class="g2"><div class="fld" style="align-items:center"><span style="font:700 22px/26px var(--fd);color:var(--glow)">+' + GXP + ' XP</span><span class="hint">extra</span></div><div class="fld" style="align-items:center"><span style="font:700 22px/26px var(--fd);color:var(--rew)">' + pts + '</span><span class="hint">punto quest</span></div></div>' +
+    '<div class="g2"><div class="fld" style="align-items:center"><span style="font:700 17px/22px var(--fd);color:var(--glow)">+' + GXP + '</span><span class="hint">Punti XP extra</span></div><div class="fld" style="align-items:center"><span style="font:700 17px/22px var(--fd);color:var(--rew)">' + pts + '</span><span class="hint">Punto Rango</span></div></div>' +
     '<div class="row" style="padding:0 2px"><span class="hint">' + note + '</span>' + (!g && c.to === 'me' ? rkHex('S', 30, true) : '') + '</div>' +
     '<div class="acts one"><button class="btn main" data-a="close">Continua</button></div></div>';
 }
@@ -2319,7 +2375,7 @@ function viewGang() {
     return friendRow(f, ' ');
   }).join('') + '</div>';
   h += '<button class="btn main" data-a="launchGang" data-v="' + g.id + '" style="display:flex;align-items:center;justify-content:center;gap:8px"' + (c ? ' disabled' : '') + '>' + svg(PI.party, null, 20) + 'Fissa l’obiettivo</button>';
-  h += '<span class="hint" style="text-align:center;font-size:11px">' + (c ? 'Un obiettivo al giorno per Gang: oggi è già fissato.' : 'Superato se lo completano ' + gangNeed(g) + ' su ' + (mem.length + 1) + ': mezzo punto a tutti, fino a 3 al mese.') + '</span>';
+  h += '<span class="hint" style="text-align:center;font-size:11px">' + (c ? 'Un obiettivo al giorno per Gang: oggi è già fissato.' : 'Superato se lo completano ' + gangNeed(g) + ' su ' + (mem.length + 1) + ': mezzo Punto Rango a tutti, fino a 3 al mese.') + '</span>';
   return h;
 }
 function viewFNote(o, cls) {
@@ -2344,7 +2400,7 @@ function viewGObj(o, cls) {
     '<div style="display:flex;align-items:center;gap:12px">' + gangBadge(g, 40) + '<span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font:700 16px/21px var(--fd);letter-spacing:1px;text-transform:uppercase">' + esc(g.name) + '</span><span class="hint">' + f.n + ' ha fissato l’obiettivo di oggi</span></span></div>' +
     '<div style="border-radius:12px;border:1px solid ' + g.col + '8C;background:#14120A;padding:10px 14px;display:flex;align-items:center;gap:12px">' + sportIc(c.sp, 28, true) + '<span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="lbl" style="color:' + g.col + ';font-size:11px">' + SPORTS[c.sp].name + (S.profile.sports.indexOf(c.sp) < 0 ? ' · sport bonus' : '') + '</span><span style="font:700 20px/24px var(--fd);letter-spacing:1px;text-transform:uppercase;color:var(--rew)">' + esc(c.q) + '</span></span></div>' +
     (c.msg ? '<div style="border-radius:12px 12px 12px 4px;background:#13203A;padding:8px 12px;font:500 14px/20px var(--fb);color:var(--soft);align-self:flex-start;max-width:92%">“' + esc(c.msg) + '”</div>' : '') +
-    '<p class="wtext">Superato se lo completano ' + gangNeed(g) + ' su ' + (g.mem.length + 1) + ': mezzo punto a tutti. Se lo completi tu, conta anche per il + del rango.</p>' +
+    '<p class="wtext">Superato se lo completano ' + gangNeed(g) + ' su ' + (g.mem.length + 1) + ': mezzo Punto Rango a tutti. Se lo completi tu, conta anche per il + del rango.</p>' +
     '<div class="acts"><button class="btn" data-a="goNo" data-v="' + c.id + '">Non oggi</button><button class="btn main" data-a="goYes" data-v="' + c.id + '" style="background:' + g.col + ';border-color:' + g.col + '">Accetto</button></div></div>';
 }
 function viewSfide() {
@@ -2357,7 +2413,7 @@ function viewSfide() {
   var pt = chPoints(ym);
   function box(n, l, c) { return '<div class="fld" style="align-items:center;padding:8px 6px"><span style="font:700 24px/28px var(--fd);color:' + c + '">' + n + '</span><span class="hint">' + l + '</span></div>'; }
   h += '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">' + box(live.length, 'in corso', PGOLD) + box(won.length, 'vinte', '#9BE15D') + box(lost.length, 'perse', '#FF8A80') + '</div>';
-  h += '<span class="hint" style="text-align:center;font-size:11.5px">Questo mese: ' + (pt.pts >= 0 ? '+' : '−') + num(Math.abs(pt.pts)) + ' punti rango dalle sfide. Si azzera ogni mese.</span>';
+  h += '<span class="hint" style="text-align:center;font-size:11.5px">Questo mese: ' + (pt.pts >= 0 ? '+' : '−') + num(Math.abs(pt.pts)) + ' Punti Rango dalle sfide. Si azzera ogni mese.</span>';
   function row(c) {
     var right = c.gang ? (c.st === 'passed' ? 'Gang: superato' : c.st === 'void' ? 'Nessuno ha accettato' : c.st === 'open' ? gangDone(c) + ' / ' + gangNeed(gangById(c.gang)) : 'Gang: non superato') : (c.from === 'me' ? 'Da te' : 'Da ' + friend(c.from).n) + (c.shared ? ' · condivisa' : '');
     return '<div class="card" style="padding:8px 12px;display:flex;flex-direction:column;gap:4px"><span class="row"><span style="display:flex;align-items:center;gap:6px;min-width:0">' + chTag(c) + '<span class="hint" style="font-size:11px">' + niceDate(c.day) + '</span></span><span class="hint" style="font-size:11px;white-space:nowrap">' + right + '</span></span><span style="display:flex;align-items:center;gap:8px;font:600 14px/19px var(--fb)">' + sportIc(c.sp, 16, true) + esc(chLabel(c)) + '</span></div>';
@@ -2377,7 +2433,7 @@ var PA3 = {
   launchGang: function (gid) { if (gangToday(gid)) { toast('Oggi la Gang ha già un obiettivo.'); return; } var sp = S.profile.sports.filter(function (s) { return s !== 'bon'; })[0] || 'run'; ui.ov = { t: 'launch', gid: gid, sp: sp, q: '', sh: true, msg: '' }; ding('open'); render(); },
   gWin: function (id) {
     var c = chById(id); c.me = true;
-    if (c.gang) { var g = gangById(c.gang); if (c.st === 'open' && gangDone(c) >= gangNeed(g)) { c.st = 'passed'; letter('gang', null, g.name + ': obiettivo superato', chLabel(c) + ' · mezzo punto a tutta la Gang'); } }
+    if (c.gang) { var g = gangById(c.gang); if (c.st === 'open' && gangDone(c) >= gangNeed(g)) { c.st = 'passed'; letter('gang', null, g.name + ': obiettivo superato', chLabel(c) + ' · mezzo Punto Rango a tutta la Gang'); } }
     else if (c.to === 'me' && (!c.shared || c.done)) c.st = 'won';
     save(); ui.ov = { t: 'gwin', id: id }; medalSound(); render();
   }
@@ -2675,7 +2731,8 @@ function render() {
   if (!S) { lastAnim = {}; h = viewOnboarding() + (ui.ov && ui.ov.t === 'login' ? '<div class="veil">' + viewLogin(ui.ov, 'win') + '</div>' : ''); }
   else {
     partyTick();
-    if (medalDirty) { noteMid(); checkMedals(); }
+    if (medalDirty) { noteMid(); rankCheck(); checkMedals(); }
+    if (!ui.ov && ui.rkq) { ui.ov = { t: 'rankup', r: ui.rkq.r, plus: ui.rkq.plus, k: ui.rkq.r + ui.rkq.plus }; ui.rkq = null; rankSound(); buzz([40, 50, 40, 50, 140]); }
     if (!ui.ov && ui.mq && ui.mq.length) { if (!ui.mqTot || ui.mqN >= ui.mqTot) { ui.mqTot = ui.mq.length; ui.mqN = 0; } var q = ui.mq.shift(); ui.mqN++; ui.ov = { t: 'medal', id: q.id, tr: q.t, n: ui.mqN, tot: ui.mqTot }; if (!ui.mq.length) { ui.mqTot = 0; } medalSound(); }
     gloveQueue();
     var body = ui.screen === 'party' ? viewParty() : ui.screen === 'friend' ? viewFriend() : ui.screen === 'letters' ? viewLetters() : ui.screen === 'psettings' ? viewPSettings() : ui.screen === 'gang' ? viewGang() : ui.screen === 'sfide' ? viewSfide() : ui.screen === 'stato' ? viewStato() : ui.screen === 'settings' ? viewSettings() : ui.screen === 'bacheca' ? viewBacheca() : viewHome();
