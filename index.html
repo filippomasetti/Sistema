@@ -434,6 +434,8 @@ function recapDue() {
   if (!monthKeys(p.y, p.m).length) { S.seen.recap = pk; save(); return null; }
   return p;
 }
+/* aperta nel browser e non dall'icona sulla Home? */
+function inBrowser() { try { if (location.protocol === 'file:' || /localhost|127\.0\.0\.1/.test(location.hostname)) return false; return !(window.navigator.standalone || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)); } catch (e) { return false; } }
 function startupNotice() {
   if (!S || ui.ov) return;
   S.seen = S.seen || {};
@@ -443,6 +445,7 @@ function startupNotice() {
   if (cloudOn() && !cauth && pendingInvite()) { ui.ov = { t: 'notice', kind: 'mail', inv: true }; inviteName(function (n) { if (ui.ov && ui.ov.kind === 'mail') { ui.ov.invName = n; render(); } }); return; }
   if (cloudOn() && !cauth && !S.seen.mail) { ui.ov = { t: 'notice', kind: 'mail' }; return; }
   if (!S.seen.edit && editWindow() > 7) { ui.ov = { t: 'notice', kind: 'edit' }; return; }
+  if (inBrowser() && (!S.seen.inst || todayKey() >= S.seen.inst)) { ui.ov = { t: 'notice', kind: 'install' }; return; }
   if (backupDue() && (!S.backupSnooze || todayKey() >= S.backupSnooze)) ui.ov = { t: 'notice', kind: 'backup' };
 }
 function sessions(k) { return (S.days[k] || []); }
@@ -753,6 +756,7 @@ var A = {
   month: function (dir) { var m = ui.vm.m + +dir, y = ui.vm.y; if (m < 0) { m = 11; y--; } if (m > 11) { m = 0; y++; } var n = new Date(); if (y > n.getFullYear() || (y === n.getFullYear() && m > n.getMonth())) return; ui.vm = { y: y, m: m }; ding('tap'); render(); },
   sound: function () { S.settings.sound = !S.settings.sound; save(); render(); if (S.settings.sound) ding('tap'); },
   close: function () { if (ui.ov && ui.ov.back) { var b = ui.ov.back; ui.ov = b; lastAnim.ov = null; render(); return; } close(); },
+  instOk: function () { S.seen = S.seen || {}; S.seen.inst = addDays(todayKey(), 3); save(); ui.ov = null; startupNotice(); render(); },
   mailSkip: function () { S.seen = S.seen || {}; S.seen.mail = true; save(); ui.ov = null; startupNotice(); render(); },
   mailYes: function () { S.seen = S.seen || {}; S.seen.mail = true; save(); ui.ov = { t: 'login', step: 'email', email: '' }; ding('open'); render(); },
   noticeOk: function () { var o = ui.ov; if (o && o.kind === 'edit') { S.seen = S.seen || {}; S.seen.edit = true; save(); } ui.ov = null; startupNotice(); render(); },
@@ -1063,7 +1067,7 @@ function viewStato() {
   var n = new Date(), ms = monthStats(n.getFullYear(), n.getMonth()), li = levelInfo(totalXp()), lv = li.lv, inLv = li.inLv, pj = projection(n.getFullYear(), n.getMonth(), ms);
   var h = header('Stato', '<button class="icon-btn" data-a="go" data-v="settings" aria-label="Impostazioni" style="position:relative">' + svg(IC.gear) + (backupDue() ? '<i style="position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:4px;background:#FFC94D;box-shadow:0 0 6px #FFC94D"></i>' : '') + '</button>');
   h += '<div style="border-radius:14px;border:1px solid rgba(59,167,255,.6);background:#0B1424;box-shadow:0 0 22px rgba(59,167,255,.22),inset 0 0 22px rgba(59,167,255,.08);padding:16px;display:flex;gap:16px;align-items:center">' +
-    '<div style="width:76px;height:84px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;position:relative"><svg width="76" height="84" viewBox="0 0 76 84" aria-hidden="true" style="position:absolute;inset:0"><path d="M38 3l33 19v40L38 81 5 62V22z" fill="' + (ms.plus && ms.rank === 'S' ? '#14120A' : '#0E1A30') + '" stroke="' + (ms.plus && ms.rank === 'S' ? '#F4F1E6' : '#3BA7FF') + '" stroke-width="2" stroke-linejoin="round"/>' + (ms.plus ? '<path d="M38 12l25 14.5v31L38 72 13 57.5v-31z" fill="none" stroke="#FFC94D" stroke-width="1.6" stroke-linejoin="round"/>' : '') + '</svg><span style="position:relative;font:700 ' + (ms.plus ? 32 : 44) + 'px/1 var(--fd);text-shadow:0 0 16px ' + (ms.plus ? 'rgba(255,201,77,.9)' : 'rgba(59,167,255,.9)') + '">' + ms.rank + (ms.plus ? '+' : '') + '</span></div>' +
+    rkHex(ms.rank, 76, ms.plus) +
     '<div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:6px"><span style="font:700 24px/28px var(--fd);letter-spacing:2px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(S.profile.name) + '</span><span style="font:500 14px/18px var(--fb);color:var(--soft)">Rango ' + ms.rank + (ms.plus ? '+' : '') + ' · Livello ' + lv + '</span>' + (pj ? '<span style="font:600 12px/16px var(--fd);letter-spacing:1px;color:' + (pj.early ? 'var(--mut)' : '#D9B04A') + '">' + (pj.early ? 'Proiezione dalla seconda settimana' : pj.rank === ms.rank ? 'Al tuo ritmo resti ' + ms.rank : 'Al tuo ritmo chiudi in ' + pj.rank) + '</span>' : '') + '<div class="track"><div class="fill" style="width:' + Math.round(inLv / li.need * 100) + '%"></div></div><span class="hint">' + inLv + ' / ' + li.need + ' XP al livello ' + (lv + 1) + '</span></div></div>';
   h += '<div style="border-radius:14px;border:1px solid rgba(255,201,77,.55);background:#14120A;box-shadow:0 0 18px rgba(255,201,77,.16);padding:14px 16px;display:flex;flex-direction:column;gap:2px"><span class="lbl" style="color:#D9B04A">Titolo di ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span class="fit1 t28" style="color:var(--rew);text-shadow:0 0 14px rgba(255,201,77,.45);letter-spacing:1px;text-transform:uppercase">' + esc(ms.title) + '</span><div style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px"><span style="font:500 13px/18px var(--fb);color:#C9BFA0;min-width:0;text-wrap:balance">' + titleWhy(ms) + '</span><span style="font:500 13px/18px var(--fb);color:#C9BFA0;white-space:nowrap;flex:0 0 auto">' + ms.weeksOk + '/' + ms.weeksTot + ' settimane</span></div></div>';
   var mtc = monthTraits(n.getFullYear(), n.getMonth());
@@ -1105,7 +1109,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">XP, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.3.5</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.4</span>';
   return h;
 }
 
@@ -1171,6 +1175,10 @@ function viewOverlay() {
       '<p><b>Niente penalità.</b> Un giorno saltato non toglie niente: Gesta premia solo quello che fai.</p></div>' +
       '<div class="acts"><button class="btn" data-a="introRules">Tutte le regole</button><button class="btn main" data-a="introOk">Inizia</button></div></div>';
     else if (o.kind === 'gender') h = '<div class="' + cls + '">' + whead('Notifica', false) + '<p class="wtitle">Nuovi titoli del mese</p><p class="wtext">I titoli ora si declinano. Maschile o femminile?</p><div class="g2"><button class="opt pick" style="justify-content:center" data-a="gender" data-v="m">M</button><button class="opt pick" style="justify-content:center" data-a="gender" data-v="f">F</button></div><p class="wtext" style="font-size:12px">Puoi cambiarlo quando vuoi dal profilo.</p></div>';
+    else if (o.kind === 'install') { var andr = /android/i.test(navigator.userAgent);
+      h = '<div class="' + cls + '">' + whead('Notifica', false) + '<p class="wtitle">Mettila sulla Home</p><p class="wtext">Gesta è aperta nel browser. Aggiungila alla schermata Home: si apre a tutto schermo come un’app, con la sua icona.</p>' +
+        '<div class="card" style="padding:10px 14px;display:flex;flex-direction:column;gap:6px;text-align:left"><span style="font:600 14px/20px var(--fb)">' + (andr ? 'In Chrome tocca i tre puntini ⋮ e poi «Aggiungi a schermata Home» o «Installa app».' : 'In Safari tocca Condividi (il quadrato con la freccia ⬆️) e poi «Aggiungi alla schermata Home».') + '</span><span class="hint" style="font-size:12px">Poi aprila dall’icona ed entra con la tua email: ritrovi tutto.</span></div>' +
+        '<div class="acts one"><button class="btn main" data-a="instOk">Ho capito</button></div></div>'; }
     else if (o.kind === 'mail') h = '<div class="' + cls + '">' + whead('Notifica', false) + '<div style="display:flex;justify-content:center">' + svg(PI.party, '#7CC4FF', 44) + '</div><p class="wtitle">' + (o.inv ? (o.invName ? esc(o.invName) + ' ti ha invitato' : 'Hai un invito') : 'Collega la tua email') + '</p><p class="wtext">' + (o.inv ? 'Entra con la tua email e diventate amici subito: potrete lanciarvi il guanto e fare Gang insieme. I tuoi dati restano al sicuro nel cloud.' : 'Serve per il Party: lanciare il guanto agli amici, ricevere le loro sfide, entrare in una Gang. E i tuoi dati restano al sicuro nel cloud, anche se cambi telefono.') + '</p><p class="hint" style="text-align:center;margin:0">Niente password: ti arriva un codice. Puoi farlo anche dopo, da Stato → ingranaggio.</p><div class="acts"><button class="btn" data-a="mailSkip">Più tardi</button><button class="btn main" data-a="mailYes">' + (o.inv ? 'Entra' : 'Collega') + '</button></div></div>';
     else if (o.kind === 'edit') h = '<div class="' + cls + '">' + whead('Notifica', false) + '<p class="wtitle">Recupera il mese</p><p class="wtext">Per i primi 14 giorni puoi segnare anche gli allenamenti dell’ultimo mese: tocca i giorni passati sul calendario. Così parti dal tuo rango vero.</p><div class="acts one"><button class="btn main" data-a="noticeOk">Ricevuto</button></div></div>';
     else h = '<div class="' + cls + '">' + whead('Notifica', false) + '<p class="wtitle">È ora di un backup</p><p class="wtext">I tuoi dati vivono solo su questo telefono. ' + (ANDROID ? 'Tocca Backup e scegli Drive, oppure salvalo nei file del telefono: bastano due tocchi.' : 'Tocca Backup e scegli “Salva in File” → iCloud Drive: bastano due tocchi.') + '</p><div class="acts"><button class="btn" data-a="noticeLater">Più tardi</button><button class="btn main" data-a="noticeBackup">Backup</button></div></div>';
@@ -2109,8 +2117,10 @@ function sendBlock(fid) { return sendGap(fid) >= 2; }
 function chById(id) { var l = myCh(); for (var i = 0; i < l.length; i++) if (l[i].id === id) return l[i]; return null; }
 /* esagono rango piccolo */
 function rkHex(r, s, plus) {
-  s = s || 36; var h = Math.round(s * 1.1), gold = r === 'S', st = plus && gold ? '#F4F1E6' : gold ? PGOLD : '#3BA7FF', label = r + (plus ? '+' : '');
-  return '<span style="width:' + s + 'px;height:' + h + 'px;flex:0 0 auto;position:relative;display:flex;align-items:center;justify-content:center"><svg width="' + s + '" height="' + h + '" viewBox="0 0 76 84" aria-hidden="true" style="position:absolute;inset:0' + (plus ? ';filter:drop-shadow(0 0 6px rgba(255,201,77,.7))' : '') + '"><path d="M38 3l33 19v40L38 81 5 62V22z" fill="' + (gold ? '#14120A' : '#0E1A30') + '" stroke="' + st + '" stroke-width="' + (plus ? 3 : 2) + '" stroke-linejoin="round"/>' + (plus ? '<path d="M38 12l25 14.5v31L38 72 13 57.5v-31z" fill="none" stroke="' + PGOLD + '" stroke-width="1.6" stroke-linejoin="round"/>' : '') + '</svg><span style="position:relative;font:700 ' + Math.round(s * (plus ? 0.42 : 0.5)) + 'px/1 var(--fd);color:' + (gold ? '#FFF4D6' : 'var(--ink)') + ';text-shadow:0 0 10px ' + (gold ? 'rgba(255,201,77,.8)' : 'rgba(59,167,255,.9)') + '">' + label + '</span></span>';
+  /* esagono del rango: blu, oro per la S; l'anello d'oro interno arriva da B+ in su; il + è un piccolo apice che non sposta la lettera dal centro */
+  s = s || 36; var h = Math.round(s * 1.1), gold = r === 'S', ring = rStep(r, plus) >= 7, fs = Math.round(s * 0.5);
+  var ink = gold ? '#FFF4D6' : 'var(--ink)', pc = ring ? PGOLD : ink;
+  return '<span style="width:' + s + 'px;height:' + h + 'px;flex:0 0 auto;position:relative;display:flex;align-items:center;justify-content:center"><svg width="' + s + '" height="' + h + '" viewBox="0 0 76 84" aria-hidden="true" style="position:absolute;inset:0"><path d="M38 3l33 19v40L38 81 5 62V22z" fill="' + (gold ? '#14120A' : '#0E1A30') + '" stroke="' + (gold ? PGOLD : '#3BA7FF') + '" stroke-width="2" stroke-linejoin="round"/>' + (ring ? '<path d="M38 11l26 15v32L38 73 12 58V26z" fill="none" stroke="' + PGOLD + '" stroke-width="1.5" stroke-linejoin="round" opacity=".9"/>' : '') + '</svg><span style="position:relative;font:700 ' + fs + 'px/1 var(--fd);color:' + ink + ';text-shadow:0 0 8px ' + (gold ? 'rgba(255,201,77,.55)' : 'rgba(59,167,255,.6)') + '">' + r + (plus ? '<span style="position:absolute;left:100%;top:-.12em;margin-left:.02em;font-size:.52em;line-height:1;color:' + pc + '">+</span>' : '') + '</span></span>';
 }
 function pDot(c) { return '<i style="display:block;width:8px;height:8px;border-radius:4px;background:' + c + ';box-shadow:0 0 6px ' + c + ';flex:0 0 auto"></i>'; }
 function pPill(t, c) { return '<span style="font:600 11px/14px var(--fd);letter-spacing:1px;text-transform:uppercase;color:' + c + ';border:1px solid ' + c + '66;border-radius:6px;padding:3px 7px;white-space:nowrap">' + t + '</span>'; }
@@ -2978,7 +2988,7 @@ window.addEventListener('popstate', function () {
     if (o.t === 'recap') { A.recapOk(); return; }
     if (o.t === 'story') { A.storyClose(); return; }
     if (o.t === 'medal') { A.medalNext(); return; }
-    if (o.t === 'notice') { if (o.kind === 'mail') A.mailSkip(); else if (o.kind === 'backup') A.noticeLater(); else if (o.kind === 'intro') A.introOk(); else A.noticeOk(); return; }
+    if (o.t === 'notice') { if (o.kind === 'install') A.instOk(); else if (o.kind === 'mail') A.mailSkip(); else if (o.kind === 'backup') A.noticeLater(); else if (o.kind === 'intro') A.introOk(); else A.noticeOk(); return; }
     if (o.t === 'details' && o.form && o.form.adding) { o.form.adding = null; render(); return; }
     ui.ov = null;
   } else if (ui.arrange) ui.arrange = false;
@@ -3114,7 +3124,7 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v3.3.5';
+var APP_V = 'gesta-v3.4.0';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
@@ -3127,7 +3137,7 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     go();
   });
 }
-window.__sistema = { get state() { return S; }, ui: ui, A: A };
+window.__sistema = { get state() { return S; }, ui: ui, A: A, rkHex: rkHex };
 })();
 </script>
 </body>
