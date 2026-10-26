@@ -1105,7 +1105,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">XP, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.2</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.3</span>';
   return h;
 }
 
@@ -1928,7 +1928,10 @@ function partyInit() {
   };
   save();
 }
-function friend(id) { for (var i = 0; i < DEMO.length; i++) if (DEMO[i].id === id) return DEMO[i]; for (var j = 0; j < RF.length; j++) if (RF[j].id === id) return RF[j]; return null; }
+function friend(id) { for (var i = 0; i < DEMO.length; i++) if (DEMO[i].id === id) return DEMO[i]; for (var j = 0; j < RF.length; j++) if (RF[j].id === id) return RF[j]; for (var k2 = 0; k2 < GM.length; k2++) if (GM[k2].id === id) return GM[k2]; return null; }
+var GM = []; try { GM = JSON.parse(localStorage.getItem('gesta.gm') || '[]') || []; } catch (e) { GM = []; }
+function setGM(list) { GM = list; try { localStorage.setItem('gesta.gm', JSON.stringify(list)); } catch (e) {} }
+function isFriend(id) { return RF.some(function (f) { return f.id === id; }); }
 /* amici veri (3.1): arrivano dal cloud, restano in copia sul telefono per aprirsi anche senza rete */
 var RF = []; try { RF = JSON.parse(localStorage.getItem('gesta.rf') || '[]') || []; } catch (e) { RF = []; }
 var rfAt = 0;
@@ -1947,11 +1950,42 @@ function chPull(force) {
   if (!force && Date.now() - chAt < 5000) return Promise.resolve();
   chAt = Date.now(); chBusy = true;
   var since = addDays(todayKey(), -40), mon = mondayOf(todayKey());
-  return authFresh().then(function () { return Promise.all([sbFetch('/rest/v1/challenges?select=*&gang_id=is.null&day=gte.' + since + '&order=created_at.desc'), sbFetch('/rest/v1/fives?select=from_id,week&to_id=eq.' + cauth.uid + '&week=gte.' + addDays(mon, -7))]); }).then(function (res) {
+  var G = { gangs: [], mem: [], cm: [] };
+  return authFresh().then(function () { return Promise.all([sbFetch('/rest/v1/challenges?select=*&day=gte.' + since + '&order=created_at.desc'), sbFetch('/rest/v1/fives?select=from_id,week&to_id=eq.' + cauth.uid + '&week=gte.' + addDays(mon, -7)), sbFetch('/rest/v1/gang_members?select=gang_id&user_id=eq.' + cauth.uid)]); }).then(function (res) {
+    var gids = (res[2] || []).map(function (x) { return x.gang_id; }), gch = (res[0] || []).filter(function (r) { return r.gang_id; }).map(function (r) { return r.id; });
+    if (!gids.length) return res;
+    return Promise.all([sbFetch('/rest/v1/gangs?select=*&id=in.(' + gids.join(',') + ')'), sbFetch('/rest/v1/gang_members?select=gang_id,user_id&gang_id=in.(' + gids.join(',') + ')'), gch.length ? sbFetch('/rest/v1/challenge_members?select=*&challenge_id=in.(' + gch.join(',') + ')') : Promise.resolve([])]).then(function (g2) {
+      G.gangs = g2[0] || []; G.mem = g2[1] || []; G.cm = g2[2] || [];
+      var need = G.mem.map(function (m) { return m.user_id; }).filter(function (id, i, a) { return id !== cauth.uid && a.indexOf(id) === i && !isFriend(id); });
+      if (!need.length) { setGM([]); return res; }
+      return sbFetch('/rest/v1/profiles?select=id,name,gender,summary&id=in.(' + need.join(',') + ')').then(function (ps) { setGM((ps || []).map(function (x) { var f = realFriend(x); f.gm = 1; return f; })); return res; });
+    });
+  }).then(function (res) {
     chBusy = false;
     var rows = res[0] || [], p = P(), t = todayKey(), prev = {}, out = [], dirty = false, patches = [];
     p.ch.forEach(function (c) { prev[c.id] = c; });
+    /* gang: elenco e membri dal cloud */
+    var ng = G.gangs.map(function (g) { var og = gangById(g.id) || {}; return { id: g.id, real: 1, name: g.name, col: g.color, code: g.code, owner: g.owner_id === cauth.uid ? 'me' : g.owner_id, t: Date.parse(g.created_at) || 0, mem: G.mem.filter(function (m) { return m.gang_id === g.id && m.user_id !== cauth.uid; }).map(function (m) { return m.user_id; }), lp: og.lp }; });
+    if (JSON.stringify(ng) !== JSON.stringify(p.gangs)) { p.gangs = ng; dirty = true; }
     rows.forEach(function (r) {
+      if (r.gang_id) {
+        var g = gangById(r.gang_id); if (!g) return;
+        var gpv = prev[r.id], gc = gpv ? cp(gpv) : {};
+        gc.id = r.id; gc.real = 1; gc.gang = r.gang_id; gc.from = r.from_id === cauth.uid ? 'me' : r.from_id; gc.to = 'gang'; gc.sp = r.sport; gc.q = r.quest; gc.msg = r.msg || ''; gc.st = r.status; gc.day = r.day; gc.t = Date.parse(r.created_at) || gc.t || Date.now();
+        gc.acc = {}; gc.mem = {}; gc.me = false; delete gc.myAcc;
+        G.cm.filter(function (m) { return m.challenge_id === r.id; }).forEach(function (m) {
+          if (m.user_id === cauth.uid) { if (m.accepted === true || m.accepted === false) gc.myAcc = m.accepted; gc.me = !!m.done; }
+          else { if (m.accepted && m.user_id !== r.from_id) gc.acc[m.user_id] = 1; if (m.done) gc.mem[m.user_id] = 1; }
+        });
+        if (gpv && gpv.myAcc !== undefined && gc.myAcc === undefined) gc.myAcc = gpv.myAcc;
+        if (gpv && gpv.me) gc.me = true;
+        var setter = friend(r.from_id);
+        if (!gpv && gc.from !== 'me' && r.day === t) letter('gang', r.from_id, (setter ? setter.n : 'Un membro') + ' ha fissato l’obiettivo della Gang ' + g.name, SPORTS[gc.sp] ? SPORTS[gc.sp].name + ' · ' + gc.q : gc.q, gc.id);
+        if (gc.st === 'open' && r.day === t && gangValid(gc) && gangDone(gc) >= gangNeed(g)) { gc.st = 'passed'; patches.push([r.id, { status: 'passed' }]); }
+        if (gc.st === 'passed' && !gc.lp && (!gpv || gpv.st !== 'passed' || !gpv.lp)) { gc.lp = 1; if (gpv) letter('gang', null, g.name + ': obiettivo superato', chLabel(gc) + ' · mezzo Punto Rango a tutta la Gang', gc.id); }
+        if (gc.day < t && gc.st === 'open') { gc.st = gangValid(gc) ? 'over' : 'void'; patches.push([r.id, { status: gc.st }]); if (gc.st === 'void' && gc.from === 'me' && !gc.lv) { gc.lv = 1; letter('none', null, g.name + ': nessuno ha accettato', chLabel(gc), gc.id); } }
+        out.push(gc); return;
+      }
       var mine = r.from_id === cauth.uid, other = mine ? r.to_id : r.from_id, f = friend(other), pv = prev[r.id], c = pv ? cp(pv) : { seen: false };
       c.id = r.id; c.real = 1; c.from = mine ? 'me' : r.from_id; c.to = mine ? r.to_id : 'me'; c.sp = r.sport; c.q = r.quest; c.shared = !!r.shared; c.msg = r.msg || ''; c.reply = r.reply || '';
       c.st = r.status; c.day = r.day; c.t = Date.parse(r.created_at) || c.t || Date.now(); c.me = !!(mine ? r.from_done : r.to_done); c.done = !!(mine ? r.to_done : r.from_done);
@@ -2193,9 +2227,10 @@ function viewGangNew(o, cls) {
   return '<div class="' + cls + '">' + whead('Crea una Gang', true) + '<div class="wbody" data-keep>' +
     '<div class="fld"><span class="lbl" style="font-size:11px">Nome</span><input class="inp" data-f="gname" maxlength="24" value="' + esc(o.name) + '" placeholder="Es. Lunedì Padel"></div>' +
     '<div class="fld"><span class="lbl" style="font-size:11px">Colore</span><div style="display:flex;gap:10px;flex-wrap:wrap">' + GANG_COLS.map(function (c, i) { return '<button data-a="gCol" data-v="' + i + '" aria-label="Colore ' + (i + 1) + '" style="width:34px;height:34px;border-radius:17px;border:none;background:' + c + ';' + (o.col === i ? 'outline:2px solid var(--ink);outline-offset:3px' : '') + '"></button>'; }).join('') + '</div></div>' +
-    '<div class="fld"><span class="lbl" style="font-size:11px">Chi entra · da 2 a 7 amici</span>' + DEMO.map(function (f) { return '<button class="toggle" data-a="gMem" data-v="' + f.id + '" style="min-height:42px"><span style="display:flex;align-items:center;gap:10px">' + rkHex(f.r, 26) + '<span style="font:600 15px/20px var(--fb)">' + f.n + '</span></span><span class="sw' + (o.mem[f.id] ? ' on' : '') + '"></span></button>'; }).join('') + '</div>' +
-    '</div><div class="acts one"><button class="btn main" data-a="gangCreate"' + (o.name.trim() && Object.keys(o.mem).filter(function (k) { return o.mem[k]; }).length >= 2 ? '' : ' disabled') + '>Crea</button></div></div>';
+    '<div class="fld"><span class="lbl" style="font-size:11px">Chi entra · ' + (P().demo ? 'da 2 a 7 amici' : 'da 1 a 7 amici') + '</span>' + (P().demo ? DEMO : RF).map(function (f) { return '<button class="toggle" data-a="gMem" data-v="' + f.id + '" style="min-height:42px"><span style="display:flex;align-items:center;gap:10px">' + rkHex(f.r, 26) + '<span style="font:600 15px/20px var(--fb)">' + f.n + '</span></span><span class="sw' + (o.mem[f.id] ? ' on' : '') + '"></span></button>'; }).join('') + '</div>' +
+    '</div><div class="acts one"><button class="btn main" data-a="gangCreate"' + (o.name.trim() && Object.keys(o.mem).filter(function (k) { return o.mem[k]; }).length >= (P().demo ? 2 : 1) && !o.busy ? '' : ' disabled') + '>' + (o.busy ? 'Creo…' : 'Crea') + '</button></div></div>';
 }
+function cmUp(cid, body) { body.challenge_id = cid; body.user_id = cauth.uid; return authFresh().then(function () { return sbFetch('/rest/v1/challenge_members?on_conflict=challenge_id,user_id', { method: 'POST', prefer: 'resolution=merge-duplicates,return=minimal', body: body }); }).then(function () { chPull(true); }).catch(function () { toast('Non riesco a raggiungere il cloud: riprova tra poco.'); }); }
 /* azioni */
 var PA = {
   fOpen: function (id) { ui.fid = id; ui.screen = 'friend'; var q = P().letters.filter(function (l) { return l.f === id && !l.rd; }).reverse(); q.forEach(function (l) { l.rd = true; }); if (q.length) { save(); ui.ov = { t: 'fnote', fid: id, list: q.map(function (l) { return l.id; }), i: 0 }; } ding('open'); render(); },
@@ -2229,6 +2264,9 @@ var PA = {
   lSh: function () { ui.ov.sh = !ui.ov.sh; render(); },
   lGo: function () {
     var o = ui.ov, t = todayKey(), now = Date.now();
+    if (o.gid && gangById(o.gid) && gangById(o.gid).real) { if (gangToday(o.gid)) { toast('Oggi la Gang ha già un obiettivo.'); return; } var gg2 = gangById(o.gid); P().ch.unshift({ id: 'tmp-' + uid(), real: 1, gang: o.gid, from: 'me', to: 'gang', sp: o.sp, q: o.q.trim(), msg: o.msg, st: 'open', day: t, t: now, mem: {}, acc: {} }); save(); ui.ov = null; ding('ok'); render();
+      chAct(authFresh().then(function () { return sbFetch('/rest/v1/challenges', { method: 'POST', prefer: 'return=minimal', body: { from_id: cauth.uid, gang_id: o.gid, day: t, sport: o.sp, quest: o.q.trim(), shared: true, msg: o.msg || null, status: 'open' } }); }), function () { toast('Hai fissato l’obiettivo della Gang ' + gg2.name + '.'); }, 'Non riesco a fissarlo: forse qualcuno l’ha appena fatto. Riprova.');
+      return; }
     if (o.gid) { if (!gangToday(o.gid)) P().ch.unshift({ id: uid(), gang: o.gid, from: 'me', to: 'gang', sp: o.sp, q: o.q.trim(), msg: o.msg, st: 'open', day: t, t: now, mem: {}, acc: {} }); save(); ui.ov = null; ding('ok'); toast('Hai fissato l’obiettivo della Gang ' + gangById(o.gid).name + '.'); return; }
     if (o.fid && friend(o.fid) && friend(o.fid).real) { if (chOpenToday(o.fid)) { toast('Oggi tra voi c’è già un guanto aperto.'); return; } var fr0 = friend(o.fid), loc = { id: 'tmp-' + uid(), real: 1, from: 'me', to: o.fid, sp: o.sp, q: o.q.trim(), shared: o.sh, msg: o.msg, st: 'pending', day: t, t: now };
       P().ch.unshift(loc); save(); ui.ov = null; ding('ok'); render();
@@ -2265,11 +2303,26 @@ var PA = {
   },
   pTg: function (k) { var p = P(); if (k === 'demo') p.demo = !p.demo; else p.set[k] = !p.set[k]; save(); ding('tap'); render(); },
   pReset: function () { delete S.party; partyInit(); ding('tap'); toast('Prova ricominciata: Marco ti ha appena lanciato un guanto.'); },
-  gangNew: function () { if (!P().demo) { toast('Le Gang con gli amici veri arrivano con il prossimo aggiornamento.'); return; } ui.ov = { t: 'gangNew', name: '', col: 0, mem: {} }; ding('open'); render(); },
+  gangNew: function () { if (!P().demo && !RF.length) { A.gangNoFr(); return; } ui.ov = { t: 'gangNew', name: '', col: 0, mem: {} }; ding('open'); render(); },
   gCol: function (i) { ui.ov.col = +i; render(); },
   gMem: function (id) { ui.ov.mem[id] = !ui.ov.mem[id]; render(); },
-  gangCreate: function () { var o = ui.ov, g = { id: uid(), name: o.name.trim(), col: GANG_COLS[o.col], mem: Object.keys(o.mem).filter(function (k) { return o.mem[k]; }), code: 'GNG-' + uid().slice(-4).toUpperCase(), t: Date.now() }; P().gangs.push(g); save(); ui.ov = null; ui.gid = g.id; ui.screen = 'gang'; ding('ok'); render(); },
-  gangOpen: function (id) { ui.gid = id; ui.screen = 'gang'; ding('open'); render(); }
+  gangCreate: function () { var o = ui.ov;
+    if (!P().demo) { var nm = o.name.trim(), col = GANG_COLS[o.col], mem = Object.keys(o.mem).filter(function (k) { return o.mem[k]; }); if (!nm || !mem.length) return; o.busy = true; render();
+      authFresh().then(function () { return sbFetch('/rest/v1/gangs', { method: 'POST', prefer: 'return=representation', body: { name: nm, color: col, owner_id: cauth.uid } }); }).then(function (rows) {
+        var g = rows && rows[0]; if (!g) throw new Error('gang');
+        return sbFetch('/rest/v1/gang_members', { method: 'POST', prefer: 'return=minimal', body: [cauth.uid].concat(mem).map(function (u) { return { gang_id: g.id, user_id: u }; }) }).then(function () { return g; });
+      }).then(function (g) { P().gangs.push({ id: g.id, real: 1, name: nm, col: col, code: g.code, owner: 'me', t: Date.now(), mem: mem }); save(); ui.ov = null; ui.gid = g.id; ui.screen = 'gang'; ding('ok'); render(); chPull(true); })
+        .catch(function () { o.busy = false; toast('Non riesco a creare la Gang: controlla la connessione e riprova.'); render(); });
+      return; }
+    var g = { id: uid(), name: o.name.trim(), col: GANG_COLS[o.col], mem: Object.keys(o.mem).filter(function (k) { return o.mem[k]; }), code: 'GNG-' + uid().slice(-4).toUpperCase(), t: Date.now() }; P().gangs.push(g); save(); ui.ov = null; ui.gid = g.id; ui.screen = 'gang'; ding('ok'); render(); },
+  gangOpen: function (id) { ui.gid = id; ui.leave = null; ui.screen = 'gang'; ding('open'); render(); },
+  gangLeave: function (id) {
+    if (ui.leave !== id) { ui.leave = id; ding('tap'); render(); return; }
+    ui.leave = null; var g = gangById(id);
+    authFresh().then(function () { return sbFetch('/rest/v1/gang_members?gang_id=eq.' + id + '&user_id=eq.' + cauth.uid, { method: 'DELETE', prefer: 'return=minimal' }); }).then(function () {
+      P().gangs = P().gangs.filter(function (x) { return x.id !== id; }); P().ch = P().ch.filter(function (c) { return c.gang !== id; }); save(); ui.screen = 'party'; toast('Sei uscito dalla Gang ' + (g ? g.name : '') + '.'); render(); chPull(true);
+    }).catch(function () { toast('Non riesco a uscire adesso: riprova tra poco.'); });
+  }
 };
 function homeGloves() {
   if (!partyLive()) return '';
@@ -2299,6 +2352,7 @@ function viewFriend() {
   h += '<div class="card" style="padding:10px 12px;display:flex;flex-direction:column;gap:8px"><div class="row"><span class="lbl" style="font-size:11px">Vetrina</span><span class="hint" style="font-size:11px">' + f.med + ' medaglie in bacheca</span></div>' + (sh.length ? '' : '<span class="hint" style="font-size:12px">Nessuna medaglia scelta per la vetrina.</span>') + '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px' + (sh.length ? '' : ';display:none') + '">' + sh.map(function (x) { var dm = MBYID[x[0]]; return dm ? '<span style="display:flex;flex-direction:column;align-items:center;gap:2px">' + medalHex(dm, x[1], 44, false) + '<span style="font:600 10px/13px var(--fd);color:var(--ink);text-align:center;white-space:nowrap">' + dm.name + '</span><span style="font:700 8px/11px var(--fd);letter-spacing:1.5px;text-transform:uppercase;color:' + tierCol(dm, x[1]) + '">' + tierName(dm, x[1]) + '</span></span>' : ''; }).join('') + '</div></div>';
   var sc = fScore(f.id), hist = chWith(f.id);
   h += '<button class="card" data-a="fCh" data-v="' + f.id + '" style="padding:10px 14px;display:flex;align-items:center;gap:12px;text-align:left;color:var(--ink);width:100%"><span style="flex:1 1 auto;display:flex;flex-direction:column;gap:2px;min-width:0"><span class="lbl" style="font-size:11px;white-space:nowrap">Sfide · ' + hist.length + '</span><span class="hint" style="font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis' + (sendBlock(f.id) ? ';color:#FFB27A' : '') + '">' + (sendBlock(f.id) ? 'Guanto in pausa' : hist[0] ? esc(niceDate(hist[0].day) + ' · ' + chLabel(hist[0])) : 'Ancora nessuna sfida') + '</span></span><span style="display:flex;align-items:baseline;gap:8px;font:700 26px/1 var(--fd)"><span style="font:600 10px/12px var(--fd);letter-spacing:1px;color:var(--mut)">TU</span><span style="color:var(--ink)">' + sc[0] + '</span><span style="color:var(--mut)">–</span><span style="color:var(--ink)">' + sc[1] + '</span><span style="font:600 10px/12px var(--fd);letter-spacing:1px;color:var(--mut)">' + f.n.toUpperCase() + '</span></span>' + svg(IC.right, 'var(--mut)', 18) + '</button>';
+  if (f.gm && !isFriend(f.id)) { h += '<div class="card" style="padding:12px 14px;display:flex;flex-direction:column;gap:8px"><span class="hint">Siete nella stessa Gang ma non ancora amici: aggiungilo col suo codice per lanciargli il guanto.</span><button class="btn sm main" data-a="fAdd">Aggiungi</button></div>'; return h; }
   var open = chOpenToday(f.id) || sendBlock(f.id), five = P().fives[f.id] === mondayOf(t);
   h += '<div class="g2"><button class="btn" data-a="five" data-v="' + f.id + '" style="display:flex;align-items:center;justify-content:center;gap:8px' + (five ? ';opacity:.5' : '') + '">' + svg(PI.five, null, 20) + 'Cinque</button><button class="btn main" data-a="launch" data-v="' + f.id + '" style="display:flex;align-items:center;justify-content:center;gap:8px' + (open ? ';opacity:.5' : '') + '">' + svg(PI.glove, null, 20) + 'Guanto</button></div>';
   return h;
@@ -2544,6 +2598,7 @@ function viewGang() {
   }).join('') + '</div>';
   h += '<button class="btn main" data-a="launchGang" data-v="' + g.id + '" style="display:flex;align-items:center;justify-content:center;gap:8px"' + (c ? ' disabled' : '') + '>' + svg(PI.party, null, 20) + 'Fissa l’obiettivo</button>';
   h += '<span class="hint" style="text-align:center;font-size:11px">' + (c ? 'Un obiettivo al giorno per Gang: oggi è già fissato.' : 'Superato se lo completano ' + gangNeed(g) + ' su ' + (mem.length + 1) + ': mezzo Punto Rango a tutti, fino a 3 al mese.') + '</span>';
+  if (g.real) h += '<button class="mlink" data-a="gangLeave" data-v="' + g.id + '" style="align-self:center;color:' + (ui.leave === g.id ? '#FF8A80' : 'var(--mut)') + '">' + (ui.leave === g.id ? 'Tocca ancora per uscire dalla Gang' : 'Esci dalla Gang') + '</button>';
   return h;
 }
 function viewFNote(o, cls) {
@@ -2609,13 +2664,14 @@ var PA3 = {
   qYes: function () { var o = ui.ov; ui.ov = { t: 'pick', k: o.k, skipAsk: true }; A.pick(o.sport); },
   qNo: function () { var o = ui.ov, bb = addSession(o.k, { sport: o.sport, d: null, star: false }); rewardAfter(o.k, bb, 'Sessione segnata', 10, 'Niente quest personale oggi. Ora puoi chiudere la quest social dalla home.'); },
   goOpen: function (id) { ui.ov = { t: 'gobj', id: id }; ding('open'); render(); },
-  goYes: function (id) { var c = chById(id); c.myAcc = true; save(); ui.ov = null; ding('ok'); toast('Accettato: lo trovi in home tra le quest.'); },
-  goNo: function (id) { var c = chById(id); c.myAcc = false; save(); ui.ov = null; ding('tap'); toast('Non oggi. La Gang può farcela anche senza di te.'); },
+  goYes: function (id) { var c = chById(id); c.myAcc = true; if (c.real) cmUp(c.id, { accepted: true }); save(); ui.ov = null; ding('ok'); toast('Accettato: lo trovi in home tra le quest.'); },
+  goNo: function (id) { var c = chById(id); c.myAcc = false; if (c.real) cmUp(c.id, { accepted: false }); save(); ui.ov = null; ding('tap'); toast('Non oggi. La Gang può farcela anche senza di te.'); },
   launchGang: function (gid) { if (gangToday(gid)) { toast('Oggi la Gang ha già un obiettivo.'); return; } var sp = S.profile.sports.filter(function (s) { return s !== 'bon'; })[0] || 'run'; ui.ov = { t: 'launch', gid: gid, sp: sp, q: '', sh: true, msg: '' }; ding('open'); render(); },
   gWin: function (id) {
     var c = chById(id);
     if (c && c.real && !c.gang) { c.me = true; var bw = c.from === 'me' ? { from_done: true } : { to_done: true }; if (c.to === 'me' && (!c.shared || c.done)) { bw.status = 'won'; c.st = 'won'; } else if (c.from === 'me' && c.done) { bw.status = 'won'; c.st = 'won'; } chAct(chPatch(c.id, bw)); save(); ui.ov = { t: 'gwin', id: id }; medalSound(); render(); return; }
     c.me = true;
+    if (c.gang && c.real) { cmUp(c.id, { done: true, accepted: true }); var gg = gangById(c.gang); if (c.st === 'open' && gangValid(c) && gangDone(c) >= gangNeed(gg)) { c.st = 'passed'; c.lp = 1; chAct(chPatch(c.id, { status: 'passed' })); letter('gang', null, gg.name + ': obiettivo superato', chLabel(c) + ' · mezzo Punto Rango a tutta la Gang', c.id); } save(); ui.ov = { t: 'gwin', id: id }; medalSound(); render(); return; }
     if (c.gang) { var g = gangById(c.gang); if (c.st === 'open' && gangDone(c) >= gangNeed(g)) { c.st = 'passed'; letter('gang', null, g.name + ': obiettivo superato', chLabel(c) + ' · mezzo Punto Rango a tutta la Gang', c.id); } }
     else if (c.to === 'me' && (!c.shared || c.done)) c.st = 'won';
     save(); ui.ov = { t: 'gwin', id: id }; medalSound(); render();
@@ -3047,7 +3103,7 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v3.2.0';
+var APP_V = 'gesta-v3.3.0';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
