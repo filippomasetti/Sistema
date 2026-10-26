@@ -440,6 +440,7 @@ function startupNotice() {
   var rp = recapDue(); if (rp) { ui.ov = { t: 'story', y: rp.y, m: rp.m, i: 0, first: true, D: storyData(rp.y, rp.m) }; return; }
   if (!S.profile.g) { ui.ov = { t: 'notice', kind: 'gender' }; return; }
   if (S.seen.intro === false) { ui.ov = { t: 'notice', kind: 'intro' }; return; }
+  if (cloudOn() && !cauth && !S.seen.mail) { ui.ov = { t: 'notice', kind: 'mail' }; return; }
   if (!S.seen.edit && editWindow() > 7) { ui.ov = { t: 'notice', kind: 'edit' }; return; }
   if (backupDue() && (!S.backupSnooze || todayKey() >= S.backupSnooze)) ui.ov = { t: 'notice', kind: 'backup' };
 }
@@ -751,6 +752,8 @@ var A = {
   month: function (dir) { var m = ui.vm.m + +dir, y = ui.vm.y; if (m < 0) { m = 11; y--; } if (m > 11) { m = 0; y++; } var n = new Date(); if (y > n.getFullYear() || (y === n.getFullYear() && m > n.getMonth())) return; ui.vm = { y: y, m: m }; ding('tap'); render(); },
   sound: function () { S.settings.sound = !S.settings.sound; save(); render(); if (S.settings.sound) ding('tap'); },
   close: function () { if (ui.ov && ui.ov.back) { var b = ui.ov.back; ui.ov = b; lastAnim.ov = null; render(); return; } close(); },
+  mailSkip: function () { S.seen = S.seen || {}; S.seen.mail = true; save(); ui.ov = null; startupNotice(); render(); },
+  mailYes: function () { S.seen = S.seen || {}; S.seen.mail = true; save(); ui.ov = { t: 'login', step: 'email', email: '' }; ding('open'); render(); },
   noticeOk: function () { var o = ui.ov; if (o && o.kind === 'edit') { S.seen = S.seen || {}; S.seen.edit = true; save(); } ui.ov = null; startupNotice(); render(); },
   noticeLater: function () { S.backupSnooze = addDays(todayKey(), 3); save(); close(); },
   noticeBackup: function () { ui.ov = null; render(); exportBackup(); },
@@ -1101,7 +1104,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">XP, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.0.2</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.0.3</span>';
   return h;
 }
 
@@ -1167,6 +1170,7 @@ function viewOverlay() {
       '<p><b>Niente penalità.</b> Un giorno saltato non toglie niente: Gesta premia solo quello che fai.</p></div>' +
       '<div class="acts"><button class="btn" data-a="introRules">Tutte le regole</button><button class="btn main" data-a="introOk">Inizia</button></div></div>';
     else if (o.kind === 'gender') h = '<div class="' + cls + '">' + whead('Notifica', false) + '<p class="wtitle">Nuovi titoli del mese</p><p class="wtext">I titoli ora si declinano. Maschile o femminile?</p><div class="g2"><button class="opt pick" style="justify-content:center" data-a="gender" data-v="m">M</button><button class="opt pick" style="justify-content:center" data-a="gender" data-v="f">F</button></div><p class="wtext" style="font-size:12px">Puoi cambiarlo quando vuoi dal profilo.</p></div>';
+    else if (o.kind === 'mail') h = '<div class="' + cls + '">' + whead('Notifica', false) + '<div style="display:flex;justify-content:center">' + svg(PI.party, '#7CC4FF', 44) + '</div><p class="wtitle">Collega la tua email</p><p class="wtext">Serve per il Party: lanciare il guanto agli amici, ricevere le loro sfide, entrare in una Gang. E i tuoi dati restano al sicuro nel cloud, anche se cambi telefono.</p><p class="hint" style="text-align:center;margin:0">Niente password: ti arriva un codice. Puoi farlo anche dopo, da Stato → ingranaggio.</p><div class="acts"><button class="btn" data-a="mailSkip">Più tardi</button><button class="btn main" data-a="mailYes">Collega</button></div></div>';
     else if (o.kind === 'edit') h = '<div class="' + cls + '">' + whead('Notifica', false) + '<p class="wtitle">Recupera il mese</p><p class="wtext">Per i primi 14 giorni puoi segnare anche gli allenamenti dell’ultimo mese: tocca i giorni passati sul calendario. Così parti dal tuo rango vero.</p><div class="acts one"><button class="btn main" data-a="noticeOk">Ricevuto</button></div></div>';
     else h = '<div class="' + cls + '">' + whead('Notifica', false) + '<p class="wtitle">È ora di un backup</p><p class="wtext">I tuoi dati vivono solo su questo telefono. ' + (ANDROID ? 'Tocca Backup e scegli Drive, oppure salvalo nei file del telefono: bastano due tocchi.' : 'Tocca Backup e scegli “Salva in File” → iCloud Drive: bastano due tocchi.') + '</p><div class="acts"><button class="btn" data-a="noticeLater">Più tardi</button><button class="btn main" data-a="noticeBackup">Backup</button></div></div>';
   } else if (o.t === 'rules') {
@@ -2750,7 +2754,7 @@ window.addEventListener('popstate', function () {
     if (o.t === 'recap') { A.recapOk(); return; }
     if (o.t === 'story') { A.storyClose(); return; }
     if (o.t === 'medal') { A.medalNext(); return; }
-    if (o.t === 'notice') { if (o.kind === 'backup') A.noticeLater(); else if (o.kind === 'intro') A.introOk(); else A.noticeOk(); return; }
+    if (o.t === 'notice') { if (o.kind === 'mail') A.mailSkip(); else if (o.kind === 'backup') A.noticeLater(); else if (o.kind === 'intro') A.introOk(); else A.noticeOk(); return; }
     if (o.t === 'details' && o.form && o.form.adding) { o.form.adding = null; render(); return; }
     ui.ov = null;
   } else if (ui.arrange) ui.arrange = false;
