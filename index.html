@@ -1110,7 +1110,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">XP, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.4.1</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.4.2</span>';
   return h;
 }
 
@@ -2120,7 +2120,7 @@ function chById(id) { var l = myCh(); for (var i = 0; i < l.length; i++) if (l[i
 function rkHex(r, s, plus) {
   /* esagono del rango: blu, oro per la S; l'anello d'oro interno arriva da B+ in su; il + è un piccolo apice che non sposta la lettera dal centro */
   s = s || 36; var h = Math.round(s * 1.1), gold = r === 'S', ring = rStep(r, plus) >= 7, fs = Math.round(s * 0.5);
-  var ink = gold ? '#FFF4D6' : 'var(--ink)', pc = ring ? PGOLD : ink;
+  var ink = gold ? '#FFF4D6' : 'var(--ink)', pc = ink;
   return '<span style="width:' + s + 'px;height:' + h + 'px;flex:0 0 auto;position:relative;display:flex;align-items:center;justify-content:center"><svg width="' + s + '" height="' + h + '" viewBox="0 0 76 84" aria-hidden="true" style="position:absolute;inset:0"><path d="M38 3l33 19v40L38 81 5 62V22z" fill="' + (gold ? '#14120A' : '#0E1A30') + '" stroke="' + (gold ? PGOLD : '#3BA7FF') + '" stroke-width="2" stroke-linejoin="round"/>' + (ring ? '<path d="M38 11l26 15v32L38 73 12 58V26z" fill="none" stroke="' + PGOLD + '" stroke-width="1.5" stroke-linejoin="round" opacity=".9"/>' : '') + '</svg><span style="position:relative;font:700 ' + fs + 'px/1 var(--fd);color:' + ink + ';text-shadow:0 0 8px ' + (gold ? 'rgba(255,201,77,.55)' : 'rgba(59,167,255,.6)') + '">' + r + (plus ? '<span style="position:absolute;left:100%;top:-.12em;margin-left:.02em;font-size:.52em;line-height:1;color:' + pc + '">+</span>' : '') + '</span></span>';
 }
 function pDot(c) { return '<i style="display:block;width:8px;height:8px;border-radius:4px;background:' + c + ';box-shadow:0 0 6px ' + c + ';flex:0 0 auto"></i>'; }
@@ -3125,7 +3125,7 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v3.4.1';
+var APP_V = 'gesta-v3.4.2';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
