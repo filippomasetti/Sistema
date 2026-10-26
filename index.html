@@ -457,7 +457,7 @@ function monthStats(y, m) {
     });
     if (dq) { qDays++; qSum += best; }
   });
-  var cp = S.party ? chPoints(ymKey(y, m)) : { recv: 0, both: 0, gang: 0, splus: 0 }, gw = cp.splus; qSum += (cp.recv + cp.both + cp.gang) * GPTS;
+  var cp = S.party ? chPoints(ymKey(y, m)) : { splus: 0, pts: 0 }, gw = cp.splus; qSum = Math.max(0, qSum + cp.pts);
   var pts = monthPts(keys.length, qSum), sportPts = {};
   Object.keys(counts).forEach(function (sp) { sportPts[sp] = Math.min(counts[sp], SPORT_CAP) * 2 + (sportQ[sp] || 0); });
   var rk = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a] || ORDER.indexOf(a) - ORDER.indexOf(b); });
@@ -1129,7 +1129,7 @@ function viewOverlay() {
       '<div class="fld"><span class="lbl" style="font-size:11px">Hard Study/Work</span><p>Un segno sul calendario per le giornate di testa. Non è sport e non dà punti: è solo un modo per ricordarle.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Tratto del mese</span><p>Ogni sport allena uno o più tratti: <b>Forza</b>, <b>Agilità</b>, <b>Resistenza</b>, <b>Equilibrio</b>. Il tratto del mese è quello che hai allenato di più; il rombo ne mostra la forma, e la sua grandezza segue il rango.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Bacheca</span><p>Medaglie che non si azzerano mai e salgono di lega: Legno, Bronzo, Argento, Oro, Platino, Diamante, Challenger. Molte sono <b>segrete</b>: le scopri facendo.</p></div>' +
-      '<div class="fld"><span class="lbl" style="font-size:11px">Party e guanto di sfida</span><p>Un amico ti lancia il <b>guanto</b>: uno sport e una quest precisa. Puoi accettare, dire non oggi o modificarla e rimandarla. Scade a mezzanotte. Se lo completi vale <b>+15 XP</b> e <b>mezzo punto</b> per il rango del mese. Se chi lancia sceglie “la faccio anch’io”, diventa una <b>quest condivisa</b>: se la completate tutti e due, mezzo punto anche a chi l’ha lanciata.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Party e guanto di sfida</span><p>Un amico ti lancia il <b>guanto</b>: uno sport e una quest precisa. Puoi accettare, dire non oggi o modificarla e rimandarla. Scade a mezzanotte. Se lo completi vale <b>+15 XP</b> e <b>mezzo punto</b> per il rango del mese. Se chi lancia sceglie “la faccio anch’io”, diventa una <b>quest condivisa</b>: <b>un punto a testa</b> a chi la completa, anche a chi l’ha lanciata. Se accetti e non la chiudi entro mezzanotte, <b>−0,5</b> sul rango; nel punteggio tra amici nessuna penalità.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Gang</span><p>Un membro <b>fissa l’obiettivo</b> della Gang, uno al giorno, uguale per tutti. Vale se almeno un altro membro accetta, ed è superato se lo completano almeno 2 membri su 3: mezzo punto a tutti, fino a 3 al mese. Se lo completi anche tu, vale per S+. Il <b>rango della Gang</b> sale solo con gli obiettivi superati: D a 1, C a 2, B a 4, A a 6, S a 8.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Rango S+</span><p>Il gradino sopra S: tutti i requisiti di S più almeno un guanto di un amico completato nel mese. Vale anche un obiettivo Gang che hai completato tu, se almeno un altro membro l’ha accettato.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Cinque</span><p>Un applauso a un amico, uno a settimana per amico. Non dà punti: fa solo piacere.</p></div>' +
@@ -1840,7 +1840,7 @@ function partyTick() {
     var f = friend(c.from === 'me' ? c.to : c.from); if (!f) return;
     if (c.day < t) {
       if (c.st === 'pending' || c.st === 'countered') { c.st = 'expired'; dirty = true; if (c.from === 'me') letter('none', f.id, f.n + ': nessuna risposta', chLabel(c) + ' · è scaduta a mezzanotte'); }
-      else if (c.st === 'accepted' && !c.done && !c.me) { c.st = 'over'; dirty = true; }
+      else if (c.st === 'accepted' && !c.me) { c.st = 'over'; dirty = true; }
       return;
     }
     if (c.from === 'me' && c.st === 'pending' && now - c.t > 8000) {
@@ -1944,7 +1944,7 @@ function viewGloveWin(o) {
   var win = '<div class="win gold mwin" style="gap:12px">' + '<div class="whead"><span class="mark" style="border-color:' + PGOLD + ';color:' + PGOLD + '">!</span><span class="wlabel" style="color:' + PGOLD + '">' + (c.counter ? 'Guanto rimandato' : 'Guanto di sfida') + '</span><span class="rule"></span><button class="x" data-a="close" aria-label="Chiudi">' + svg(IC.close, null, 20) + '</button></div>' +
     '<div style="display:flex;align-items:center;gap:12px">' + rkHex(f.r, 36) + '<span style="display:flex;flex-direction:column;gap:2px"><span style="font:700 17px/22px var(--fd);letter-spacing:1px;text-transform:uppercase">' + f.n + '</span><span class="hint">' + (c.counter ? 'ti propone una modifica' : 'ti lancia il guanto') + ' · scade a mezzanotte</span></span></div>' +
     '<div style="border-radius:12px;border:1px solid ' + PGOLD + '8C;background:#14120A;padding:10px 14px;display:flex;align-items:center;gap:12px">' + sportIc(c.sp, 28, true) + '<span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="lbl" style="color:#D9B04A;font-size:11px">' + SPORTS[c.sp].name + (S.profile.sports.indexOf(c.sp) < 0 ? ' · sport bonus' : '') + '</span><span style="font:700 20px/24px var(--fd);letter-spacing:1px;text-transform:uppercase;color:var(--rew)">' + esc(c.q) + '</span></span></div>' +
-    '<div class="row" style="padding:0 2px">' + (c.shared ? pPill('Quest condivisa', '#7CC4FF') : '<span></span>') + '<span class="hint">+' + GXP + ' XP · ½ punto</span></div>' +
+    '<div class="row" style="padding:0 2px">' + (c.shared ? pPill('Quest condivisa', '#7CC4FF') : '<span></span>') + '<span class="hint">+' + GXP + ' XP · ' + (c.shared ? '1 punto' : '½ punto') + '</span></div>' +
     (c.msg ? '<div style="border-radius:12px 12px 12px 4px;background:#13203A;padding:8px 12px;font:500 14px/20px var(--fb);color:var(--soft);align-self:flex-start;max-width:92%">“' + esc(c.msg) + '”</div>' : '') +
     '<textarea class="inp" data-f="greply" style="height:48px" placeholder="Rispondi a ' + f.n + ' (facoltativo)">' + esc(o.reply || '') + '</textarea>' +
     '<div class="acts"><button class="btn" data-a="gNo" data-v="' + c.id + '">Non oggi</button><button class="btn main" data-a="gYes" data-v="' + c.id + '" style="background:' + PGOLD + ';border-color:' + PGOLD + ';box-shadow:0 0 14px rgba(255,201,77,.4)">Accetto</button></div>' +
@@ -1964,7 +1964,7 @@ function viewLaunch(o, cls) {
     '<div class="fld"><span class="lbl" style="font-size:11px">' + (g ? 'L’obiettivo' : 'La sfida') + '</span><input class="inp" data-f="lq" maxlength="60" value="' + esc(o.q) + '" placeholder="' + (g ? 'Scrivi qui l’obiettivo' : 'Scrivi qui la sfida') + '">' + (pre.length ? '<span style="font:600 10px/13px var(--fd);letter-spacing:2px;text-transform:uppercase;color:#5A6B88">Predefiniti</span><div class="chips" style="gap:5px">' + pre.map(function (t) { return '<button class="chip" data-a="lPre" data-v="' + esc(t) + '" style="height:26px;padding:0 10px;font-size:11.5px;color:var(--mut);border-color:var(--line)">' + esc(t) + '</button>'; }).join('') + '</div>' : '') + '</div>' +
     (g ? '' : '<button class="toggle" data-a="lSh" style="min-height:44px"><span style="display:flex;flex-direction:column;gap:2px"><span style="font:600 15px/20px var(--fb)">La faccio anch’io</span><span class="hint" style="font-size:11.5px">Diventa una quest condivisa</span></span><span class="sw' + (o.sh ? ' on' : '') + '"></span></button>') +
     '<div class="fld"><span class="lbl" style="font-size:11px">Messaggio</span><textarea class="inp" data-f="lmsg" maxlength="120" style="height:56px" placeholder="Facoltativo">' + esc(o.msg) + '</textarea></div>' +
-    '<span class="hint" style="padding:0 2px">' + (g ? 'Condiviso con tutta la Gang. Superato se lo completano ' + gangNeed(g) + ' su ' + (g.mem.length + 1) + ': mezzo punto a tutti. Serve che almeno uno accetti.' : 'Premio per chi la completa: +' + GXP + ' XP e mezzo punto quest. Vale per S+.') + '</span></div>' +
+    '<span class="hint" style="padding:0 2px">' + (g ? 'Condiviso con tutta la Gang. Superato se lo completano ' + gangNeed(g) + ' su ' + (g.mem.length + 1) + ': mezzo punto a tutti. Serve che almeno uno accetti.' : 'Premio per chi la completa: +' + GXP + ' XP e mezzo punto, un punto intero se condivisa. Chi accetta e non la chiude perde mezzo punto. Vale per S+.') + '</span></div>' +
     '<div class="acts one"><button class="btn main" data-a="lGo" style="display:flex;align-items:center;justify-content:center;gap:8px"' + (o.q.trim() ? '' : ' disabled') + '>' + svg(g ? PI.party : PI.glove, null, 20) + (g ? 'Fissa' : 'Lancia') + '</button></div></div>';
 }
 function viewGCounter(o, cls) {
@@ -2056,15 +2056,24 @@ function viewFCal(o, cls) {
   var leg = '<div style="display:flex;flex-wrap:wrap;gap:8px 16px">' + Object.keys(used).map(function (s) { return '<span style="display:flex;align-items:center;gap:6px;font:500 13px/18px var(--fb);color:var(--soft)">' + sportIc(s, 16, true) + SPORTS[s].name + '</span>'; }).join('') + '</div>';
   return '<div class="' + cls + '">' + whead(f.n + ' · ' + MONTHS[m], true) + '<div class="card" style="padding:8px 10px">' + g + '</div>' + leg + '<p class="hint" style="margin:0">Solo gli sport, niente prestazioni.</p></div>';
 }
+function chMark(c) {
+  var t = todayKey();
+  if (c.me) return '<span title="Vinta" style="width:22px;height:22px;flex:0 0 auto;border-radius:11px;background:#9BE15D22;border:1px solid #9BE15D;display:flex;align-items:center;justify-content:center">' + svg(IC.check, '#9BE15D', 14) + '</span>';
+  var mineToDo = (c.to === 'me' && ['accepted', 'over'].indexOf(c.st) >= 0) || (c.from === 'me' && c.shared && ['accepted', 'over'].indexOf(c.st) >= 0);
+  if (mineToDo && c.day < t) return '<span title="Persa" style="width:22px;height:22px;flex:0 0 auto;border-radius:11px;background:#FF6B6B22;border:1px solid #FF6B6B;display:flex;align-items:center;justify-content:center">' + svg(IC.close, '#FF6B6B', 13) + '</span>';
+  if (c.day === t && ['pending', 'accepted', 'countered'].indexOf(c.st) >= 0) return '<span title="In corso" style="width:22px;height:22px;flex:0 0 auto;display:flex;align-items:center;justify-content:center"><i style="display:block;width:8px;height:8px;border-radius:4px;background:' + PGOLD + ';box-shadow:0 0 6px ' + PGOLD + '"></i></span>';
+  return '<span title="Non giocata" style="width:22px;height:22px;flex:0 0 auto;display:flex;align-items:center;justify-content:center"><i style="display:block;width:10px;height:2px;border-radius:1px;background:#3A4866"></i></span>';
+}
+function chLine(c, tag) { return '<div style="display:flex;align-items:center;gap:10px;min-height:38px;border-bottom:1px solid var(--line)"><span class="hint" style="font-size:11px;width:44px;flex:0 0 auto">' + niceDate(c.day) + '</span>' + sportIc(c.sp, 16, true) + '<span style="flex:1 1 auto;min-width:0;font:600 13px/18px var(--fb);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(c.q) + '</span>' + (tag || '') + chMark(c) + '</div>'; }
 function viewFCh(o, cls) {
   var f = friend(o.fid), sc = fScore(f.id), hist = chWith(f.id);
-  var rows = hist.map(function (c) {
+  var rows = '<div style="display:flex;flex-direction:column">' + hist.map(function (c) { return chLine(c); }).join('') + '</div>', _old = hist.map(function (c) {
     var mine = c.from === 'me', st = c.me && c.done ? ['Vinta da tutti e due', '#9BE15D'] : c.me ? ['Vinta da te', 'var(--glow)'] : c.done ? ['Vinta da ' + f.n, 'var(--rew)'] : c.st === 'declined' || c.st === 'over' ? ['Non oggi', 'var(--mut)'] : c.st === 'expired' ? ['Nessuna risposta', 'var(--mut)'] : c.st === 'countered' ? ['Rimandata', '#7CC4FF'] : ['Aperta', PGOLD];
     return '<div class="card" style="padding:8px 12px;display:flex;flex-direction:column;gap:2px"><span class="row"><span class="hint" style="font-size:11px">' + niceDate(c.day) + ' · ' + (mine ? 'da te' : 'da ' + f.n) + (c.shared ? ' · quest condivisa' : '') + '</span><span style="font:600 11px/14px var(--fd);letter-spacing:.5px;color:' + st[1] + '">' + st[0] + '</span></span><span style="display:flex;align-items:center;gap:8px;font:600 14px/19px var(--fb)">' + sportIc(c.sp, 16, true) + esc(chLabel(c)) + '</span></div>';
   }).join('');
   return '<div class="' + cls + '">' + whead('Sfide con ' + f.n, true) +
     '<div style="display:flex;align-items:center;justify-content:center;gap:16px;padding:4px 0"><span style="display:flex;flex-direction:column;align-items:center;gap:2px"><span style="font:700 44px/1 var(--fd);color:var(--glow);text-shadow:0 0 14px rgba(59,167,255,.6)">' + sc[0] + '</span><span class="lbl" style="font-size:11px">Tu</span></span><span style="font:700 30px/1 var(--fd);color:var(--mut)">–</span><span style="display:flex;flex-direction:column;align-items:center;gap:2px"><span style="font:700 44px/1 var(--fd);color:var(--rew);text-shadow:0 0 14px rgba(255,201,77,.5)">' + sc[1] + '</span><span class="lbl" style="font-size:11px">' + f.n + '</span></span></div>' +
-    '<p class="hint" style="margin:0;text-align:center">Sfide vinte da ognuno: chi completa il guanto ricevuto, o la quest condivisa.</p>' +
+    '<p class="hint" style="margin:0;text-align:center">Sfide vinte da ognuno. Qui sotto solo le tue: ✓ vinta, ✗ persa.</p>' +
     '<div class="wbody" data-keep style="gap:6px">' + (rows || '<span class="hint">Ancora nessuna sfida tra voi.</span>') + '</div></div>';
 }
 /* vetrina */
@@ -2159,10 +2168,14 @@ function gangToday(gid) { var t = todayKey(); return myCh().filter(function (c) 
 function gangPassed(gid, ym) { return myCh().filter(function (c) { return c.gang && (!gid || c.gang === gid) && c.st === 'passed' && (!ym || c.day.indexOf(ym) === 0); }).length; }
 function gangRank(gid, ym) { return rankOf(gangPassed(gid, ym), GANG_RANKS); }
 function chPoints(ym) {
-  var recv = 0, both = 0;
-  myCh().forEach(function (c) { if (c.gang || (ym && c.day.indexOf(ym) !== 0)) return; if (c.to === 'me' && c.me) recv++; else if (c.from === 'me' && c.shared && c.me && c.done) both++; });
-  var gs = myCh().filter(function (c) { return c.gang && c.me && gangValid(c) && (!ym || c.day.indexOf(ym) === 0); }).length;
-  return { recv: recv, both: both, gang: Math.min(GANG_CAP, gangPassed(null, ym)), splus: recv + gs };
+  var recv = 0, half = 0, full = 0, lost = 0;
+  myCh().forEach(function (c) {
+    if (c.gang || (ym && c.day.indexOf(ym) !== 0)) return;
+    if (c.me) { if (c.shared) full++; else if (c.to === 'me') half++; if (c.to === 'me') recv++; }
+    else if (c.to === 'me' && c.st === 'over') lost++;
+  });
+  var gs = myCh().filter(function (c) { return c.gang && c.me && gangValid(c) && (!ym || c.day.indexOf(ym) === 0); }).length, gang = Math.min(GANG_CAP, gangPassed(null, ym));
+  return { recv: recv, half: half, full: full, lost: lost, gang: gang, splus: recv + gs, pts: half * GPTS + full - lost * GPTS + gang * GPTS };
 }
 function gangAccepted(c) { return gangValid(c); }
 function gangTick() {
@@ -2226,8 +2239,8 @@ function viewGWin(o, cls) {
   var c = chById(o.id), g = c.gang ? gangById(c.gang) : null, f = g ? null : friend(c.from === 'me' ? c.to : c.from), n = new Date(), ms = monthStats(n.getFullYear(), n.getMonth());
   var col = g ? g.col : PGOLD, pts, note;
   if (g) { pts = c.st === 'passed' ? '+½' : 'in attesa'; note = (gangValid(c) ? 'Vale per S+. ' : '') + (c.st === 'passed' ? 'Obiettivo superato: mezzo punto a tutta la Gang' + (gangPassed(null, ymKey(n.getFullYear(), n.getMonth())) > GANG_CAP ? ' (tetto di 3 al mese già raggiunto per i punti).' : '.') : (gangAccepted(c) ? '' : 'Serve ancora che qualcuno accetti. ') + 'Quando lo completano ' + gangNeed(g) + ' su ' + (g.mem.length + 1) + ', mezzo punto a tutti.'); }
-  else if (c.to === 'me') { pts = '+½'; note = ms.plus ? 'Sei in S+ questo mese.' : ms.rank === 'S' ? 'Con questo guanto sei in S+.' : 'Questo mese S+ è alla tua portata, se arrivi in S.'; }
-  else { pts = c.done ? '+½' : 'in attesa'; note = c.done ? f.n + ' l’ha completata anche ' + (f.g === 'f' ? 'lei' : 'lui') + ': mezzo punto a tutti e due.' : 'Se la completa anche ' + f.n + ', mezzo punto a tutti e due.'; }
+  else if (c.to === 'me') { pts = c.shared ? '+1' : '+½'; note = ms.plus ? 'Sei in S+ questo mese.' : ms.rank === 'S' ? 'Con questo guanto sei in S+.' : 'Questo mese S+ è alla tua portata, se arrivi in S.'; }
+  else { pts = '+1'; note = 'Quest condivisa con ' + f.n + ': un punto a testa a chi la completa.'; }
   return '<div class="' + cls + ' gold" style="border-color:' + col + '">' + '<div class="whead"><span class="mark" style="border-color:' + col + ';color:' + col + '">!</span><span class="wlabel" style="color:' + col + '">' + (g ? 'Obiettivo Gang' : 'Guanto vinto') + '</span><span class="rule"></span></div>' +
     '<div style="display:flex;justify-content:center">' + svg(g ? PI.party : PI.glove, col, 64) + '</div><span class="badge" style="text-align:center">' + (g ? 'Fatto per la Gang' : 'Raccolto e vinto') + '</span>' +
     '<p class="wtext">' + esc(chLabel(c)) + '.</p>' +
@@ -2274,14 +2287,17 @@ function viewSfide() {
   var live = list.filter(function (c) { return c.day === t && !c.me && (c.gang ? c.st === 'open' : ['pending', 'accepted', 'countered'].indexOf(c.st) >= 0); });
   var won = list.filter(function (c) { return c.me || (c.gang && c.st === 'passed'); });
   var pt = chPoints(ym);
-  h += '<div class="g2"><div class="fld" style="align-items:center"><span style="font:700 24px/28px var(--fd);color:var(--rew)">' + won.length + '</span><span class="hint">vinte</span></div><div class="fld" style="align-items:center"><span style="font:700 24px/28px var(--fd);color:var(--glow)">+' + num((pt.recv + pt.both + pt.gang) * GPTS) + '</span><span class="hint">punti rango</span></div></div>';
+  h += '<div class="g2"><div class="fld" style="align-items:center"><span style="font:700 24px/28px var(--fd);color:var(--rew)">' + won.length + '</span><span class="hint">vinte</span></div><div class="fld" style="align-items:center"><span style="font:700 24px/28px var(--fd);color:var(--glow)">' + (pt.pts >= 0 ? '+' : '−') + num(Math.abs(pt.pts)) + '</span><span class="hint">punti rango</span></div></div>';
   function row(c) {
     var res = c.gang ? (c.st === 'passed' ? ['Superato', '#9BE15D'] : c.st === 'void' ? ['Nessuno ha accettato', 'var(--mut)'] : c.me ? ['Fatto, in attesa', '#7CC4FF'] : c.st === 'open' ? [gangDone(c) + ' / ' + gangNeed(gangById(c.gang)), PGOLD] : ['Non superato', 'var(--mut)']) :
       c.me ? [c.done ? 'Vinta da tutti e due' : 'Vinta', '#9BE15D'] : c.st === 'accepted' ? ['In corso', PGOLD] : c.st === 'pending' ? [c.from === 'me' ? 'In attesa' : 'Da rispondere', PGOLD] : c.st === 'countered' ? ['Rimandata', '#7CC4FF'] : ['Non oggi', 'var(--mut)'];
+    if (!c.gang) return '<div class="card" style="padding:8px 12px;display:flex;flex-direction:column;gap:4px"><span class="row"><span style="display:flex;align-items:center;gap:6px;min-width:0">' + chTag(c) + '<span class="hint" style="font-size:11px">' + niceDate(c.day) + '</span></span>' + chMark(c) + '</span><span style="display:flex;align-items:center;gap:8px;font:600 14px/19px var(--fb)">' + sportIc(c.sp, 16, true) + esc(chLabel(c)) + '</span></div>';
     return '<div class="card" style="padding:8px 12px;display:flex;flex-direction:column;gap:4px"><span class="row"><span style="display:flex;align-items:center;gap:6px;min-width:0">' + chTag(c) + '<span class="hint" style="font-size:11px">' + niceDate(c.day) + '</span></span><span style="font:600 11px/14px var(--fd);letter-spacing:.5px;color:' + res[1] + ';white-space:nowrap">' + res[0] + '</span></span><span style="display:flex;align-items:center;gap:8px;font:600 14px/19px var(--fb)">' + sportIc(c.sp, 16, true) + esc(chLabel(c)) + '</span></div>';
   }
   h += pSec('In corso', String(live.length)) + '<div style="display:flex;flex-direction:column;gap:6px">' + (live.length ? live.map(row).join('') : '<span class="hint">Niente in corso oggi.</span>') + '</div>';
   h += pSec('Vinte', String(won.length)) + '<div style="display:flex;flex-direction:column;gap:6px">' + (won.length ? won.map(row).join('') : '<span class="hint">Ancora nessuna vittoria questo mese.</span>') + '</div>';
+  var lost = list.filter(function (c) { return !c.gang && !c.me && c.st === 'over' && (c.to === 'me' || c.shared); });
+  if (lost.length) h += pSec('Perse', String(lost.length)) + '<div style="display:flex;flex-direction:column;gap:6px">' + lost.map(row).join('') + '</div><span class="hint" style="font-size:11px;padding:0 2px">Accettate e non chiuse: −0,5 sul rango per quelle ricevute.</span>';
   return h;
 }
 var PA3 = {
