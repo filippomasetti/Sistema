@@ -1,9 +1,9 @@
-// Sistema — service worker: l'app funziona anche offline (palestra senza campo).
-const VERSION = 'gesta-v3.0.4';
+// Gesta — service worker: l'app funziona anche offline (palestra senza campo).
+const VERSION = 'gesta-v3.0.5';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {
@@ -22,7 +22,7 @@ self.addEventListener('fetch', (e) => {
   // Pagina: prima la rete (così arrivano gli aggiornamenti), poi la copia salvata.
   if (req.mode === 'navigate') {
     e.respondWith(
-      fetch(req).then((res) => {
+      fetch(req, { cache: 'no-cache' }).then((res) => {
         const copy = res.clone();
         caches.open(VERSION).then((c) => c.put('./index.html', copy));
         return res;
