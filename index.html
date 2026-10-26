@@ -1101,7 +1101,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">XP, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.0</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.0.1</span>';
   return h;
 }
 
@@ -2598,7 +2598,7 @@ document.addEventListener('visibilitychange', function () { if (!document.hidden
 function viewLogin(o, cls) {
   var h = '<div class="' + cls + '">' + whead(o.step === 'code' ? 'Codice' : 'Entra in Gesta', true);
   if (o.step === 'code') {
-    h += '<p class="wtext">Scrivi il codice di 6 cifre che ti è arrivato a<br><b style="color:var(--ink)">' + esc(o.email) + '</b></p>' +
+    h += '<p class="wtext">Scrivi il codice di 8 cifre che ti è arrivato a<br><b style="color:var(--ink)">' + esc(o.email) + '</b></p>' +
       '<input class="inp" data-f="ccode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" value="' + esc(o.code || '') + '" placeholder="Codice" style="text-align:center;letter-spacing:8px;font:700 24px/1 var(--fd)">' +
       (o.err ? '<p class="wtext" style="color:#FF8A80">' + esc(o.err) + '</p>' : '') +
       '<div class="acts"><button class="btn" data-a="cBack">Indietro</button><button class="btn main" data-a="cVerify"' + (o.busy ? ' disabled' : '') + '>' + (o.busy ? 'Un attimo…' : 'Entra') + '</button></div>';
@@ -2606,7 +2606,7 @@ function viewLogin(o, cls) {
     h += '<p class="wtext" style="text-align:left">Con un account i tuoi dati si salvano da soli nel cloud e li ritrovi su un telefono nuovo. Il tuo storico resta tutto.</p>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Email</span><input class="inp" data-f="cemail" type="email" inputmode="email" autocomplete="email" value="' + esc(o.email || '') + '" placeholder="nome@esempio.it"></div>' +
       (o.err ? '<p class="wtext" style="color:#FF8A80">' + esc(o.err) + '</p>' : '') +
-      '<div class="acts one"><button class="btn main" data-a="cSend"' + (o.busy ? ' disabled' : '') + '>' + (o.busy ? 'Invio…' : 'Mandami il codice') + '</button></div><span class="hint" style="text-align:center">Niente password: ti arriva un codice di 6 cifre.</span>';
+      '<div class="acts one"><button class="btn main" data-a="cSend"' + (o.busy ? ' disabled' : '') + '>' + (o.busy ? 'Invio…' : 'Mandami il codice') + '</button></div><span class="hint" style="text-align:center">Niente password: ti arriva un codice via email.</span>';
   }
   return h + '</div>';
 }
@@ -2628,7 +2628,7 @@ var PAC = {
   cBack: function () { ui.ov.step = 'email'; ui.ov.err = null; render(); },
   cVerify: function () {
     var o = ui.ov, code = (o.code || '').replace(/\D/g, '');
-    if (code.length < 6) { o.err = 'Il codice ha 6 cifre.'; render(); return; }
+    if (code.length < 6) { o.err = 'Scrivi tutte le cifre del codice.'; render(); return; }
     o.busy = true; o.err = null; render();
     otpVerify(o.email, code).then(function () { return cloudPull(true); }).then(function () {
       ui.ov = null; ding('ok'); toast('Sei dentro: i tuoi dati ora si salvano nel cloud.');
