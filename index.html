@@ -1104,7 +1104,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">XP, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.0.5</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.0.6</span>';
   return h;
 }
 
@@ -2020,17 +2020,19 @@ function viewParty() {
   var p = P(), n = unreadLetters();
   var top = '<button class="icon-btn" data-a="go" data-v="letters" aria-label="Letterine' + (n ? ', ' + n + ' nuove' : '') + '" style="position:relative">' + svg(PI.letter) + (n ? '<i style="position:absolute;top:6px;right:6px;min-width:16px;height:16px;border-radius:8px;background:#FFC94D;color:#14120A;font:700 10px/16px var(--fd);font-style:normal;text-align:center">' + n + '</i>' : '') + '</button><button class="icon-btn" data-a="go" data-v="psettings" aria-label="Impostazioni del Party">' + svg(IC.gear) + '</button>';
   var h = header('Party', top);
-  if (!p.demo) return h + '<div class="card" style="padding:18px 16px;display:flex;flex-direction:column;gap:10px;border-color:rgba(255,201,77,.45);background:#14120A"><span style="display:flex;align-items:center;gap:10px">' + svg(PI.glove, PGOLD, 26) + '<span class="lbl kick" style="color:' + PGOLD + '">Party in arrivo</span></span><p style="margin:0;font:500 14px/21px var(--fb);color:var(--soft)">Presto aggiungi gli amici con il loro codice, lanci il guanto di sfida, crei una Gang e vi date il cinque. ' + (cauth ? 'Il tuo account è già pronto.' : 'Per giocare serve l’account: collega la tua email da Stato → ingranaggio.') + '</p></div>';
+  var FR = p.demo ? DEMO : [], myCode = p.demo ? p.code : (cmeta.code || null);
   var t = todayKey();
   var ym0 = ymKey(new Date().getFullYear(), new Date().getMonth()), mch = myCh().filter(function (c) { return c.day.indexOf(ym0) === 0; }), mwon = mch.filter(function (c) { return c.me; }).length, mlive = mch.filter(function (c) { return c.day === t && !c.me && !c.myNo && (c.gang ? ['open', 'passed'].indexOf(c.st) >= 0 && c.myAcc !== false : ['pending', 'accepted', 'countered'].indexOf(c.st) >= 0); }).length;
   h += '<button class="card" data-a="go" data-v="sfide" style="' + (mlive ? 'border-color:' + PGOLD + '8C;background:#14120A;box-shadow:0 0 14px ' + PGOLD + '24;' : '') + 'padding:10px 14px;display:flex;align-items:center;gap:12px;text-align:left;color:var(--ink);width:100%">' + svg(PI.glove, mlive ? PGOLD : 'var(--glow)', 22) + '<span style="flex:1 1 auto;display:flex;flex-direction:column;gap:2px"><span class="lbl" style="font-size:11px' + (mlive ? ';color:' + PGOLD : '') + '">Sfide di ' + MONTHS[new Date().getMonth()].toLowerCase() + '</span><span class="hint" style="font-size:11.5px">' + mlive + ' in corso · ' + mwon + ' vinte</span></span>' + svg(IC.right, 'var(--mut)', 18) + '</button>';
-  h += pSec('Amici', DEMO.length + ' · in ordine alfabetico') + '<div style="display:flex;flex-direction:column;gap:8px">' + DEMO.slice().sort(function (a, b) { return a.n.localeCompare(b.n); }).map(function (f) { return friendRow(f); }).join('') + '</div>';
+  h += pSec('Amici', FR.length ? FR.length + ' · in ordine alfabetico' : '') + (FR.length ? '<div style="display:flex;flex-direction:column;gap:8px">' + FR.slice().sort(function (a, b) { return a.n.localeCompare(b.n); }).map(function (f) { return friendRow(f); }).join('') + '</div>' :
+    '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:4px;border-style:dashed"><span style="font:600 15px/20px var(--fb)">Ancora nessun amico</span><span class="hint">Gira il tuo codice amico: chi entra in Gesta con il tuo codice comparirà qui, pronto per il primo guanto.</span></div>');
   h += pSec('Gang', '') + p.gangs.map(function (g) {
     var on = g.mem.filter(function (id) { return weekTrained(friend(id)); }).length + (weekCount(t) ? 1 : 0);
     return '<button class="card" data-a="gangOpen" data-v="' + g.id + '" style="display:flex;align-items:center;gap:12px;padding:10px 12px;color:var(--ink);text-align:left;border-color:' + g.col + '66">' + gangBadge(g, 36) + '<span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font:700 15px/20px var(--fd);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(g.name) + '</span><span class="hint">' + (g.mem.length + 1) + ' membri · ' + on + ' allenati questa settimana</span></span>' + rkHex(gangRank(g.id, ymKey(new Date().getFullYear(), new Date().getMonth())), 30) + '</button>';
-  }).join('') + '<button class="hwbtn" style="min-height:44px" data-a="gangNew">' + svg(PI.plus, null, 18) + 'Crea una Gang</button>';
-  h += '<div class="card" style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px"><span style="display:flex;flex-direction:column;gap:2px"><span class="lbl" style="font-size:11px">Il tuo codice amico</span><span style="font:700 17px/22px var(--fd);letter-spacing:2px">' + p.code + '</span></span><button class="btn sm" data-a="pInvite">Invita</button></div>';
-  h += '<span class="hint" style="text-align:center;padding:0 10px 6px;font-size:11px">Modalità prova: amici finti che rispondono da soli, tutto resta sul telefono.</span>';
+  }).join('') + (FR.length ? '<button class="hwbtn" style="min-height:44px" data-a="gangNew">' + svg(PI.plus, null, 18) + 'Crea una Gang</button>' : '<button class="hwbtn" style="min-height:44px;opacity:.55" data-a="gangNoFr">' + svg(PI.plus, null, 18) + 'Crea una Gang</button><span class="hint" style="font-size:11.5px;padding:0 2px">Per creare una Gang serve almeno un amico.</span>');
+  h += myCode ? '<div class="card" style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px"><span style="display:flex;flex-direction:column;gap:2px"><span class="lbl" style="font-size:11px">Il tuo codice amico</span><span style="font:700 17px/22px var(--fd);letter-spacing:2px">' + esc(myCode) + '</span></span><button class="btn sm" data-a="pInvite">Invita</button></div>' :
+    '<div class="card" style="padding:12px 14px;display:flex;flex-direction:column;gap:8px"><span class="lbl" style="font-size:11px">Il tuo codice amico</span><span class="hint">' + (cauth ? 'Lo sto prendendo dal cloud…' : 'Collega la tua email per avere il tuo codice e giocare con gli amici.') + '</span>' + (cauth ? '' : '<button class="btn sm main" data-a="cLogin">Collega l’email</button>') + '</div>';
+  if (p.demo) h += '<span class="hint" style="text-align:center;padding:0 10px 6px;font-size:11px">Modalità prova: amici finti che rispondono da soli, tutto resta sul telefono.</span>';
   return h;
 }
 function weekTrained(f) { var mon = mondayOf(todayKey()); for (var i = 0; i < 7; i++) { var k = addDays(mon, i); if (trainedOn(f, k)) return true; } return false; }
@@ -2142,7 +2144,12 @@ var PA = {
     toast(sent ? (o.fid ? 'Guanto lanciato a ' + friend(o.fid).n + '.' : 'Guanto lanciato a ' + sent + (sent === 1 ? ' amico' : ' amici') + ' della Gang.') : 'Oggi con loro c’è già un guanto aperto.');
   },
   five: function (fid) { var f = friend(fid), w = mondayOf(todayKey()); if (P().fives[fid] === w) { toast('Il cinque a ' + f.n + ' l’hai già dato questa settimana.'); return; } P().fives[fid] = w; P().nfive = (P().nfive || 0) + 1; save(); ding('ok'); toast('Cinque a ' + f.n + '!'); },
-  pInvite: function () { toast('Gli inviti veri arrivano con il cloud.'); },
+  gangNoFr: function () { toast('Aggiungi prima un amico: poi crei la Gang con lui.'); },
+  pInvite: function () {
+    var code = P().demo ? P().code : cmeta.code, url = 'https://filippomasetti.github.io/gesta/', txt = 'Sfidiamoci su Gesta: ' + url + ' · il mio codice amico è ' + code;
+    if (navigator.share) { navigator.share({ title: 'Gesta', text: txt }).catch(function () {}); return; }
+    try { navigator.clipboard.writeText(txt).then(function () { toast('Invito copiato: incollalo dove vuoi.'); }, function () { toast(txt); }); } catch (e) { toast(txt); }
+  },
   pTg: function (k) { var p = P(); if (k === 'demo') p.demo = !p.demo; else p.set[k] = !p.set[k]; save(); ding('tap'); render(); },
   pReset: function () { delete S.party; partyInit(); ding('tap'); toast('Prova ricominciata: Marco ti ha appena lanciato un guanto.'); },
   gangNew: function () { ui.ov = { t: 'gangNew', name: '', col: 0, mem: {} }; ding('open'); render(); },
@@ -2592,9 +2599,13 @@ function cloudPush() {
   }).then(function () { syncBusy = false; cloudMeta({ ok: Date.now(), err: null }); if (syncPending) { syncPending = false; cloudDirty(); } if (ui.screen === 'settings') render(); })
     .catch(function (e) { syncBusy = false; cloudMeta({ err: e.message || String(e) }); if (e.status === 401 || e.status === 403) { /* sessione scaduta */ } if (ui.screen === 'settings') render(); });
 }
+function fetchCode() {
+  if (!cauth || (cmeta.code && cmeta.codeUid === cauth.uid)) return;
+  sbFetch('/rest/v1/profiles?id=eq.' + cauth.uid + '&select=friend_code').then(function (pr) { if (pr && pr[0] && pr[0].friend_code) { cloudMeta({ code: pr[0].friend_code, codeUid: cauth.uid }); render(); } }).catch(function () {});
+}
 function cloudPull(quiet) {
   if (!cloudOn() || !cauth) return Promise.resolve(false);
-  return authFresh().then(function () { return sbFetch('/rest/v1/user_state?user_id=eq.' + cauth.uid + '&select=data,updated_at'); }).then(function (rows) {
+  return authFresh().then(function () { fetchCode(); return sbFetch('/rest/v1/user_state?user_id=eq.' + cauth.uid + '&select=data,updated_at'); }).then(function (rows) {
     var r = rows && rows[0];
     if (!r || !r.data) { if (S) return cloudPush().then(function () { return false; }); return false; }
     var m = mergeState(S, r.data);
@@ -2651,7 +2662,7 @@ var PAC = {
     }).catch(function (e) { if (ui.ov !== o) return; o.busy = false; o.err = 'Codice non valido o scaduto.'; render(); });
   },
   cSync: function () { ding('tap'); cloudPull(true).then(function () { return cloudPush(); }).then(function () { toast(cmeta.err ? 'Non riesco a salvare: ' + cmeta.err : 'Salvato nel cloud.'); }); },
-  cLogout: function () { cauth = null; authStore(); ding('tap'); toast('Sei uscito. I dati restano su questo telefono.'); render(); }
+  cLogout: function () { cauth = null; authStore(); cloudMeta({ code: null, codeUid: null }); ding('tap'); toast('Sei uscito. I dati restano su questo telefono.'); render(); }
 };
 for (var pkc in PAC) A[pkc] = PAC[pkc];
 /* ---------- render ---------- */

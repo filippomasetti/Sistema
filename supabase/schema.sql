@@ -8,7 +8,7 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   name text not null default '',
   gender text check (gender in ('m', 'f')),
-  friend_code text unique not null default ('SIS-' || upper(substr(md5(gen_random_uuid()::text), 1, 4))),
+  friend_code text unique not null default ('GES-' || upper(substr(md5(gen_random_uuid()::text), 1, 4))),
   summary jsonb not null default '{}'::jsonb,      -- rango, livello, titolo, tratto, giorni del mese, vetrina
   updated_at timestamptz not null default now()
 );
