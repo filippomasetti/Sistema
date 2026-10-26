@@ -72,7 +72,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .rlets{position:relative;height:14px;margin-top:-4px}.rlets .rlet{position:absolute;transform:translateX(-50%);font:700 10px/14px var(--fd);color:var(--mut)}.rlets .rlet.on{color:var(--ink)}.rlets .rlet:last-child{transform:translateX(-100%)}
 .tcard{padding:10px 12px 10px 16px;display:flex;align-items:center;gap:12px}
 .bachbtn{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 14px;cursor:pointer;text-align:left;border-color:#7A6430!important;background:#14120A!important;box-shadow:0 0 14px rgba(255,201,77,.12)}
-.qitem>*{flex:1 1 auto}.qinl{animation:qinl .24s cubic-bezier(.2,.8,.2,1) both}.qinr{animation:qinr .24s cubic-bezier(.2,.8,.2,1) both}@keyframes qinl{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}@keyframes qinr{from{transform:translateX(-40px);opacity:0}to{transform:none;opacity:1}}.mlink{background:none;border:0;padding:2px 0 0;font:600 12px/16px var(--fd);letter-spacing:1px;color:#D9B04A;cursor:pointer;text-align:center}.mcount{white-space:nowrap;flex:0 0 auto;font:700 14px/18px var(--fd);color:var(--rew);border:1px solid #7A6430;border-radius:6px;padding:2px 10px}
+.qslot{height:112px}.qitem{height:112px}.qitem>*{flex:1 1 auto;min-height:0;box-sizing:border-box;justify-content:center}.qtxt{margin:0;flex:1 1 auto;min-width:0;font:600 14px/20px var(--fb);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.qinl{animation:qinl .24s cubic-bezier(.2,.8,.2,1) both}.qinr{animation:qinr .24s cubic-bezier(.2,.8,.2,1) both}@keyframes qinl{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}@keyframes qinr{from{transform:translateX(-40px);opacity:0}to{transform:none;opacity:1}}.mlink{background:none;border:0;padding:2px 0 0;font:600 12px/16px var(--fd);letter-spacing:1px;color:#D9B04A;cursor:pointer;text-align:center}.mcount{white-space:nowrap;flex:0 0 auto;font:700 14px/18px var(--fd);color:var(--rew);border:1px solid #7A6430;border-radius:6px;padding:2px 10px}
 .msec{display:flex;flex-direction:column;gap:10px}
 .mgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px 4px}
 .mcell{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--ink);cursor:pointer;padding:0;min-width:0}
@@ -732,6 +732,8 @@ var A = {
       var badge = (weekCount(k) > b.beforeWeek && k >= mondayOf(t)) ? ' · ' + badgeOf(weekCount(k), k) : '';
       toast(SPORTS[s].name + ' segnato il ' + niceDate(k) + '. +10 XP' + badge); return;
     }
+    var qt0 = qType(s);
+    if (!ui.ov.skipAsk && partyOn() && qt0 !== 'bon' && qt0 !== 'none' && qt0 !== 'sat' && (activeGloves().length || gangActive().filter(function (c) { return c.from === 'me' || c.myAcc; }).length)) { ding('open'); open({ t: 'qask', k: k, sport: s }); return; }
     if (s === 'gym') { ding('open'); open({ t: 'group', k: k }); return; }
     if (qt === 'ex') { ding('open'); open({ t: 'quest', k: k, sport: s, group: defGroup(s), diff: null }); return; }
     if (qt === 'bon' || qt === 'none' || qt === 'sat') {
@@ -961,21 +963,22 @@ function soundBtn() { return '<button class="icon-btn" data-a="sound" aria-label
 function viewHome() {
   var t = todayKey(), y = ui.vm.y, m = ui.vm.m, h = '';
   h += header(MONTHS[m] + ' ' + y, soundBtn());
-  var hl = h.length;
+  var hl = h.length, dailyNone = false;
   var ao = activeOpen(), act = ao ? ao.s : null, todayS = sessions(t), yest = ao && ao.k !== t;
   if (act && act.assess) {
-    h += '<div class="win' + animCls('card-assess-' + act.id, 'card') + '" style="gap:12px;padding:14px 16px 16px"><div class="whead"><span class="mark">!</span><span class="wlabel">' + (yest ? 'Da ieri · prima sessione' : 'Prima sessione') + '</span><span class="rule"></span></div><p style="margin:0;font:600 16px/23px var(--fb)">' + SPORTS[act.sport].name + ': a fine allenamento segna i dati, saranno il tuo punto di partenza.</p><button class="btn main" data-a="finish">Sessione finita</button></div>';
+    h += '<div class="win' + animCls('card-assess-' + act.id, 'card') + '" style="gap:8px;padding:10px 16px 12px"><div class="whead"><span class="mark">!</span><span class="wlabel">' + (yest ? 'Da ieri · prima sessione' : 'Prima sessione') + '</span><span class="rule"></span></div><div style="display:flex;align-items:center;gap:12px"><p class="qtxt">' + SPORTS[act.sport].name + ': a fine allenamento segna i dati di partenza.</p><button class="btn sm main" data-a="finish" style="flex:0 0 auto">Finita</button></div></div>';
   } else if (act) {
     var dd = DIFF[act.quest.diff];
-    h += '<div class="win' + animCls('card-' + act.id, 'card') + '" style="gap:12px;padding:14px 16px 16px"><div class="whead"><span class="mark">!</span><span class="wlabel">' + (yest ? 'Quest di ieri' : 'Quest in corso') + '</span><span class="rule"></span><span style="font:600 11px/14px var(--fd);letter-spacing:2px;text-transform:uppercase;color:' + dd.c + '">' + dd.label + '</span></div><p style="margin:0;font:600 17px/24px var(--fb)">' + esc(goalText(act)) + '</p><button class="btn main" data-a="finish">' + (yest ? 'Com’è andata?' : 'Sessione finita') + '</button></div>';
+    h += '<div class="win' + animCls('card-' + act.id, 'card') + '" style="gap:8px;padding:10px 16px 12px"><div class="whead"><span class="mark">!</span><span class="wlabel">' + (yest ? 'Quest di ieri' : 'Quest in corso') + '</span><span class="rule"></span><span style="font:600 11px/14px var(--fd);letter-spacing:2px;text-transform:uppercase;color:' + dd.c + '">' + dd.label + '</span></div><div style="display:flex;align-items:center;gap:12px"><p class="qtxt" style="font-size:16px">' + esc(goalText(act)) + '</p><button class="btn sm main" data-a="finish" style="flex:0 0 auto">' + (yest ? 'Com’è andata?' : 'Finita') + '</button></div></div>';
   } else if (todayS.length) {
     var ls = todayS[todayS.length - 1];
     var kick = ls.quest ? (ls.quest.done ? 'Quest completata' : 'Sessione registrata') : 'Giorno segnato';
     h += '<div class="card' + (animCls('done-' + ls.id, 'card') ? ' fade' : '') + '" style="padding:12px 16px;display:flex;align-items:center;gap:14px"><div style="width:38px;height:38px;flex:0 0 auto;border-radius:10px;border:1px solid var(--sysl);display:flex;align-items:center;justify-content:center;color:var(--glow);box-shadow:0 0 12px rgba(59,167,255,.35)">' + svg(IC.check) + '</div><div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px"><span class="lbl kick">' + kick + '</span><span style="font:500 14px/20px var(--fb)">' + esc(SPORTS[ls.sport].name + (sessSummary(ls) ? ' · ' + sessSummary(ls) : '')) + '</span></div><button class="btn sm" data-a="day" data-v="' + t + '">Giorno</button></div>';
   } else {
+    dailyNone = true;
     h += '<div class="' + (animCls('none', 'card') ? 'fade' : '') + '" style="border:1px dashed var(--line2);border-radius:14px;background:#0A101C;padding:14px 16px;display:flex;flex-direction:column;gap:4px"><span class="lbl">Nessuna quest attiva</span><span style="font:500 14px/20px var(--fb);color:var(--soft)">Tocca oggi sul calendario per ricevere la quest del giorno.</span></div>';
   }
-  var daily = h.slice(hl); h = h.slice(0, hl) + questSlot([daily].concat(homeGloveItems()));
+  var daily = h.slice(hl), soc = homeGloveItems(); h = h.slice(0, hl) + questSlot((dailyNone && soc.length ? [] : [daily]).concat(soc));
   // calendario
   var first = new Date(y, m, 1), lead = (first.getDay() + 6) % 7, nd = new Date(y, m + 1, 0).getDate(), n = new Date();
   var isCur = y === n.getFullYear() && m === n.getMonth();
@@ -1137,6 +1140,10 @@ function viewOverlay() {
       '<div class="fld"><span class="lbl" style="font-size:11px">Cinque</span><p>Un applauso a un amico, uno a settimana per amico. Non dà punti: fa solo piacere.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">XP e livello</span><p>Ogni sessione dà 10 XP, una quest riuscita da 5 a 20 in più, una stella 5, un guanto completato 15. Il livello cresce e non si perde mai.</p></div>' +
       '</div><button class="btn main" data-a="close">Ho capito</button></div>';
+  } else if (o.t === 'qask') {
+    var soc = activeGloves().concat(gangActive().filter(function (c) { return c.from === 'me' || c.myAcc; })), c0 = soc[0];
+    var who = c0.gang ? 'l’obiettivo della Gang ' + gangById(c0.gang).name : c0.from === 'me' ? 'la quest condivisa con ' + friend(c0.to).n : 'il guanto di ' + friend(c0.from).n;
+    h = '<div class="' + cls + '">' + whead('Notifica', true) + '<p class="wtitle">Hai già una quest social</p><p class="wtext">Oggi hai attivo ' + who + ': <b style="color:var(--rew)">' + esc(chLabel(c0)) + '</b>' + (soc.length > 1 ? ' (e altre ' + (soc.length - 1) + ')' : '') + '. Vuoi aggiungerne anche una personale?</p><div class="acts"><button class="btn" data-a="qNo">No</button><button class="btn main" data-a="qYes">Sì</button></div></div>';
   } else if (o.t === 'gobj') { h = viewGObj(o, cls);
   } else if (o.t === 'fcal') { h = viewFCal(o, cls);
   } else if (o.t === 'fch') { h = viewFCh(o, cls);
@@ -1829,7 +1836,7 @@ function myCh() { return P() ? P().ch : []; }
 function chWith(fid) { return myCh().filter(function (c) { return c.from === fid || c.to === fid; }).sort(function (a, b) { return b.t - a.t; }); }
 function chOpenToday(fid) { var t = todayKey(); return myCh().filter(function (c) { return c.day === t && (c.from === fid || c.to === fid) && ['pending', 'accepted', 'countered'].indexOf(c.st) >= 0; })[0] || null; }
 function incomingPending() { var t = todayKey(); return myCh().filter(function (c) { return c.to === 'me' && c.day === t && c.st === 'pending'; }); }
-function activeGloves() { var t = todayKey(); return myCh().filter(function (c) { return c.day === t && c.st === 'accepted' && !c.me && (c.to === 'me' || c.shared); }); }
+function activeGloves() { var t = todayKey(); return myCh().filter(function (c) { return c.day === t && c.st === 'accepted' && !c.me && !c.myNo && (c.to === 'me' || c.shared); }); }
 function gloveWonCount(ym) { return myCh().filter(function (c) { return c.to === 'me' && c.me && (!ym || c.day.indexOf(ym) === 0); }).length; }
 function gloveXp() { return myCh().filter(function (c) { return c.me; }).length * GXP; }
 function unreadLetters() { return P() ? P().letters.filter(function (l) { return !l.rd; }).length : 0; }
@@ -1986,7 +1993,7 @@ function viewGangNew(o, cls) {
 }
 /* azioni */
 var PA = {
-  fOpen: function (id) { ui.fid = id; ui.screen = 'friend'; ding('open'); render(); },
+  fOpen: function (id) { ui.fid = id; ui.screen = 'friend'; var seen = false; P().letters.forEach(function (l) { if (l.f === id && !l.rd) { l.rd = true; seen = true; } }); if (seen) save(); ding('open'); render(); },
   gOpen: function (id) { var c = chById(id); if (!c) return; c.seen = true; lastAnim.ov = 'glove' + id; ui.ov = { t: 'glove', id: id }; render(); },
   gYes: function (id) { var c = chById(id); c.st = 'accepted'; c.ta = Date.now(); c.reply = (ui.ov && ui.ov.reply) || ''; save(); ui.ov = null; ding('ok'); toast('Guanto raccolto: lo trovi in home come quest bonus.'); },
   gNo: function (id) { var c = chById(id); c.st = 'declined'; c.reply = (ui.ov && ui.ov.reply) || ''; save(); ui.ov = null; ding('tap'); toast('Non oggi. ' + friend(c.from).n + ' lo vedrà nelle letterine.'); },
@@ -2213,7 +2220,7 @@ function gangTick() {
   });
   if (dirty) save();
 }
-function gangActive() { var t = todayKey(); return myCh().filter(function (c) { return c.gang && c.day === t && !c.me && c.myAcc !== false && ['open', 'passed'].indexOf(c.st) >= 0 && gangById(c.gang); }); }
+function gangActive() { var t = todayKey(); return myCh().filter(function (c) { return c.gang && c.day === t && !c.me && !c.myNo && c.myAcc !== false && ['open', 'passed'].indexOf(c.st) >= 0 && gangById(c.gang); }); }
 function chTag(c) {
   if (c.gang) { var g = gangById(c.gang); return '<span style="font:600 10px/13px var(--fd);letter-spacing:1px;text-transform:uppercase;color:' + (g ? g.col : '#B98CFF') + ';border:1px solid ' + (g ? g.col : '#B98CFF') + '66;border-radius:5px;padding:2px 6px;white-space:nowrap">Gang' + (g ? ' · ' + esc(g.name) : '') + '</span>'; }
   return '<span style="font:600 10px/13px var(--fd);letter-spacing:1px;text-transform:uppercase;color:#7CC4FF;border:1px solid #7CC4FF66;border-radius:5px;padding:2px 6px;white-space:nowrap">Amici · ' + friend(c.from === 'me' ? c.to : c.from).n + '</span>';
@@ -2231,7 +2238,7 @@ function gCardHome(c, kick, sub, col, act) {
   return '<button class="card" data-a="' + (act || 'gHome') + '" data-v="' + c.id + '" style="border-color:' + col + '8C;background:#14120A;box-shadow:0 0 14px ' + col + '24;padding:12px 16px;display:flex;align-items:center;gap:12px;text-align:left;color:var(--ink);width:100%">' + svg(c.gang ? PI.party : PI.glove, col, 26) + '<span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px"><span class="lbl" style="color:' + col + ';font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(kick) + '</span><span style="font:700 16px/21px var(--fd);letter-spacing:1px;text-transform:uppercase;color:var(--rew)">' + esc(chLabel(c)) + '</span><span class="hint" style="font-size:11.5px">' + esc(sub) + '</span></span>' + svg(IC.right, col, 18) + '</button>';
 }
 function questSlot(items) {
-  var n = items.length; if (!n) return ''; if (n === 1) { ui.hq = 0; return items[0]; }
+  var n = items.length; if (!n) return ''; if (n === 1) { ui.hq = 0; return '<div class="qslot" style="display:grid;grid-template-columns:minmax(0,1fr)"><div class="qitem on" style="grid-area:1/1;min-width:0;display:flex;flex-direction:column">' + items[0] + '</div></div>'; }
   var i = (((ui.hq || 0) % n) + n) % n; ui.hq = i;
   var dir = ui.hqDir; ui.hqDir = null;
   return '<div class="qslot" style="position:relative;touch-action:pan-y;display:grid;grid-template-columns:minmax(0,1fr)">' + items.map(function (it, j) { return '<div class="qitem' + (j === i ? ' on' + (dir ? ' qin' + dir : '') : '') + '" style="grid-area:1/1;min-width:0;display:flex;flex-direction:column' + (j === i ? '' : ';visibility:hidden;pointer-events:none') + '"' + (j === i ? '' : ' aria-hidden="true"') + '>' + it + '</div>'; }).join('') +
@@ -2243,8 +2250,8 @@ function viewGDone(o, cls) {
   var ctx = g ? 'Obiettivo della Gang ' + esc(g.name) + ': ' + gangDone(c) + ' su ' + (g.mem.length + 1) + ' fatto, ne servono ' + gangNeed(g) + '.' : c.from === 'me' ? 'La quest condivisa con ' + f.n + '.' : 'Il guanto di ' + f.n + (c.shared ? ', quest condivisa.' : '.');
   return '<div class="' + cls + ' gold" style="border-color:' + col + '">' + '<div class="whead"><span class="mark" style="border-color:' + col + ';color:' + col + '">!</span><span class="wlabel" style="color:' + col + '">' + (g ? 'Obiettivo Gang' : 'Quest bonus') + '</span><span class="rule"></span><button class="x" data-a="close" aria-label="Chiudi">' + svg(IC.close, null, 20) + '</button></div>' +
     '<p class="wtitle">' + esc(chLabel(c)) + '</p><p class="wtext">' + ctx + '</p>' +
-    (has ? '<p class="wtext" style="color:var(--ink)">Ce l’hai fatta?</p><div class="acts"><button class="btn" data-a="close">Non ancora</button><button class="btn main" data-a="gWin" data-v="' + c.id + '" style="background:' + col + ';border-color:' + col + '">Fatta</button></div>' :
-      '<p class="wtext">Prima segna la sessione di oggi dal calendario' + (extra ? ': ' + SPORTS[c.sp].name.toLowerCase() + ' non è tra i tuoi sport, segnala come Bonus' : ' (' + SPORTS[c.sp].name.toLowerCase() + ')') + ', poi torna qui.</p><div class="acts one"><button class="btn main" data-a="close">Ok</button></div>') + '</div>';
+    (has ? '<p class="wtext" style="color:var(--ink)">Ce l’hai fatta?</p><div class="acts"><button class="btn" data-a="gLose" data-v="' + c.id + '">No</button><button class="btn main" data-a="gWin" data-v="' + c.id + '" style="background:' + col + ';border-color:' + col + '">Sì</button></div><p class="hint" style="margin:0;text-align:center">Non hai ancora finito? Chiudi con la X.</p>' :
+      '<p class="wtext">Prima segna la sessione di oggi dal calendario' + (extra ? ': ' + SPORTS[c.sp].name.toLowerCase() + ' non è tra i tuoi sport, segnala come Bonus' : ' (' + SPORTS[c.sp].name.toLowerCase() + ')') + ', poi torna qui.</p><div class="acts"><button class="btn" data-a="gLose" data-v="' + c.id + '">Non ce l’ho fatta</button><button class="btn main" data-a="close">Ok</button></div>') + '</div>';
 }
 function viewGWin(o, cls) {
   var c = chById(o.id), g = c.gang ? gangById(c.gang) : null, f = g ? null : friend(c.from === 'me' ? c.to : c.from), n = new Date(), ms = monthStats(n.getFullYear(), n.getMonth());
@@ -2312,6 +2319,9 @@ function viewSfide() {
 }
 var PA3 = {
   noop: function () {},
+  gLose: function (id) { var c = chById(id); c.myNo = true; if (c.to === 'me' && !c.gang) c.st = 'over'; save(); ui.ov = null; ding('tap'); toast(c.gang ? 'Va bene: la Gang può farcela anche senza di te.' : 'Segnata come non riuscita. ' + (c.to === 'me' ? '−0,5 sul rango, ci si rifà.' : 'Nessuna penalità.')); },
+  qYes: function () { var o = ui.ov; ui.ov = { t: 'pick', k: o.k, skipAsk: true }; A.pick(o.sport); },
+  qNo: function () { var o = ui.ov, bb = addSession(o.k, { sport: o.sport, d: null, star: false }); rewardAfter(o.k, bb, 'Sessione segnata', 10, 'Niente quest personale oggi. Ora puoi chiudere la quest social dalla home.'); },
   goOpen: function (id) { ui.ov = { t: 'gobj', id: id }; ding('open'); render(); },
   goYes: function (id) { var c = chById(id); c.myAcc = true; save(); ui.ov = null; ding('ok'); toast('Accettato: lo trovi in home tra le quest.'); },
   goNo: function (id) { var c = chById(id); c.myAcc = false; save(); ui.ov = null; ding('tap'); toast('Non oggi. La Gang può farcela anche senza di te.'); },
@@ -2338,7 +2348,7 @@ function qShow(step) {
   var b = q.querySelector('[data-a="hqNext"]');
   if (b) { var d = ''; for (var j = 0; j < n; j++) d += '<i style="display:block;width:5px;height:5px;border-radius:3px;background:' + (j === i ? 'var(--glow)' : '#3A4866') + '"></i>'; b.innerHTML = d + '<span>' + (i + 1) + '/' + n + '</span>'; b.setAttribute('aria-label', 'Quest ' + (i + 1) + ' di ' + n + ', tocca per la prossima'); }
 }
-setInterval(function () { if (!S || ui.ov || ui.screen !== 'home' || qHold || gs || document.hidden || Date.now() - qLast < 2000) return; qShow(1); }, 250);
+setInterval(function () { if (!S || ui.ov || ui.screen !== 'home' || qHold || gs || document.hidden || Date.now() - qLast < 5000) return; qShow(1); }, 250);
 function qDown(t) { if (t && t.closest && t.closest('.qslot')) { qHold = true; qLast = Date.now(); } }
 function qUp() { if (qHold) { qHold = false; qLast = Date.now(); } }
 document.addEventListener('touchstart', function (e) { qDown(e.target); }, { passive: true });
