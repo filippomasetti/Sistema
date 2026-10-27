@@ -1006,8 +1006,8 @@ function importBackup(file) {
 function header(title, extra) {
   var li = levelInfo(totalXp()), lv = li.lv, inLv = li.inLv;
   return '<div class="top"><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="lbl kick">[ Gesta ]</span><h1>' + title + '</h1></div>' +
-    '<div style="display:flex;align-items:flex-end;gap:10px">' +
-    '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><span class="lv">LV ' + lv + '</span><div class="track" style="width:104px"><div class="fill" style="width:' + Math.round(inLv / li.need * 100) + '%"></div></div><span style="font:600 11px/14px var(--fd);color:var(--mut)">' + inLv + '/' + li.need + '</span></div>' +
+    '<div style="display:flex;align-items:center;gap:12px">' +
+    '<div style="display:flex;flex-direction:column;align-items:stretch;gap:6px;width:112px;align-self:center"><span style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:600 11px/14px var(--fd);color:var(--mut);font-variant-numeric:tabular-nums">' + inLv + '/' + li.need + '</span><span class="lv">LV ' + lv + '</span></span><div class="track"><div class="fill" style="width:' + Math.round(inLv / li.need * 100) + '%"></div></div></div>' +
     (extra || '') + '</div></div>';
 }
 function soundBtn() { return '<button class="icon-btn" data-a="sound" aria-label="' + (S.settings.sound ? 'Disattiva suoni' : 'Attiva suoni') + '">' + svg(S.settings.sound ? IC.snd : IC.mute) + '</button>'; }
@@ -1076,7 +1076,7 @@ function viewStato() {
   if (mtc) {
     var tc = TRAITS[mtc.top].c;
     var dv = mtc.v[mtc.top] - (mtc.pv[mtc.top] || 0), tr = Math.abs(dv) < 0.001 ? ['=', 'var(--mut)', 'come il mese scorso'] : dv > 0 ? ['▲', '#9BE15D', 'più del mese scorso'] : ['▼', '#FFB27A', 'meno del mese scorso'];
-    h += '<button class="card" data-a="traitOpen" style="padding:9px 14px;display:flex;align-items:center;gap:10px;border-color:' + tc + '66;text-align:left;color:var(--ink);width:100%"><span class="lbl" style="font-size:11px;flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Tratto del mese</span>' + svg(TRAITS[mtc.top].ic, tc, 18) + '<span style="font:700 15px/20px var(--fd);letter-spacing:1.5px;text-transform:uppercase;color:' + tc + '">' + TRAITS[mtc.top].name + '</span><span aria-label="' + tr[2] + '" style="font:700 11px/1 var(--fd);color:' + tr[1] + '">' + tr[0] + '</span>' + svg(IC.right, 'var(--mut)', 16) + '</button>';
+    h += '<button class="card" data-a="traitOpen" style="padding:9px 14px;display:flex;align-items:center;gap:10px;border-color:' + tc + '66;text-align:left;color:var(--ink);width:100%"><span class="lbl" style="font-size:11px;flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Tratto del mese</span>' + svg(TRAITS[mtc.top].ic, tc, 18) + '<span style="font:700 15px/20px var(--fd);letter-spacing:1.5px;text-transform:uppercase;color:' + tc + '">' + TRAITS[mtc.top].name + '</span>' + svg(IC.right, 'var(--mut)', 16) + '</button>';
   } else h += '<div class="card" style="padding:9px 14px;display:flex;align-items:center;gap:10px"><span class="lbl" style="font-size:11px;flex:1 1 auto">Tratto del mese</span><span class="hint" style="font-size:12px">Si accende col primo allenamento</span></div>';
   h += '<div style="display:flex;flex-direction:column;gap:10px;padding-top:4px"><div style="padding:0 2px;display:flex;flex-direction:column;gap:2px"><span class="lbl">Parametri · ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span class="hint">' + pfmt(ms.pts) + ' · ' + nextGoal(ms) + '</span></div><div class="g2" id="tiles" style="gap:10px">';
   S.profile.sports.forEach(function (s) {
@@ -1108,7 +1108,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">XP, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.5</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.5.1</span>';
   return h;
 }
 
@@ -1405,7 +1405,7 @@ function traitPhrase(mt, cap) {
 function traitPlain(mt) { return traitPhrase(mt).replace(/<[^>]+>/g, ''); }
 // Rombo a 4 anelli (D, C, B, A); il tratto principale arriva all'anello del rango, con la S l'esterno diventa oro
 var RSCALE = { E: 0.17, D: 0.25, C: 0.5, B: 0.75, A: 1, S: 1 };
-function rombo(v, rank, size, labels) {
+function rombo(v, rank, size, labels, trend) {
   var c = size / 2, R = size / 2 - (labels ? 34 : 8), pos = { F: [0, -1], A: [1, 0], R: [0, 1], E: [-1, 0] };
   function P(k, x) { return (c + pos[k][0] * R * x).toFixed(1) + ',' + (c + pos[k][1] * R * x).toFixed(1); }
   var h = '', gold = rank === 'S';
@@ -1417,8 +1417,10 @@ function rombo(v, rank, size, labels) {
   h += '<polygon points="' + TKEYS.map(function (k) { return P(k, v[k] / m * sc); }).join(' ') + '" fill="' + (gold ? 'rgba(255,201,77,.22)' : 'rgba(59,167,255,.22)') + '" stroke="' + (gold ? '#FFC94D' : '#7CC4FF') + '" stroke-width="2" stroke-linejoin="round"/>';
   TKEYS.forEach(function (k) { var p = P(k, v[k] / m * sc).split(','); h += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="' + (size > 150 ? 4.5 : 3) + '" fill="' + TRAITS[k].c + '"/>'; });
   if (labels) {
-    var L = { F: [c, 16, 'middle'], A: [size - 2, c + 5, 'end'], R: [c, size - 6, 'middle'], E: [2, c + 5, 'start'] };
-    TKEYS.forEach(function (k) { h += '<text x="' + L[k][0] + '" y="' + L[k][1] + '" text-anchor="' + L[k][2] + '" font-family="Exo 2, sans-serif" font-weight="600" font-size="12" letter-spacing="2" fill="' + TRAITS[k].c + '">' + TRAITS[k].name.toUpperCase() + '</text>'; });
+    /* etichette fuori dal rombo: sopra e sotto dritte, ai lati ruotate (Equilibrio 90°, Agilità -90°) così non entrano mai nel grafico */
+    var L = { F: [c, 16, 0], A: [size - 10, c, -90], R: [c, size - 6, 0], E: [10, c, 90] }, TC = { up: ['▲', '#9BE15D'], eq: ['=', '#8FA3C2'], down: ['▼', '#FFB27A'] };
+    TKEYS.forEach(function (k) { var x = L[k][0], y = L[k][1], rot = L[k][2], tr = trend && TC[trend[k]];
+      h += '<text x="' + x + '" y="' + y + '" text-anchor="middle" dominant-baseline="' + (rot ? 'middle' : 'auto') + '"' + (rot ? ' transform="rotate(' + rot + ' ' + x + ' ' + y + ')"' : '') + ' font-family="Exo 2, sans-serif" font-weight="600" font-size="12" letter-spacing="2" fill="' + TRAITS[k].c + '">' + TRAITS[k].name.toUpperCase() + (tr ? '<tspan dx="6" letter-spacing="0" fill="' + tr[1] + '">' + tr[0] + '</tspan>' : '') + '</text>'; });
   }
   return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 ' + size + ' ' + size + '" role="img" aria-label="Tratto del mese" style="flex:0 0 auto;display:block">' + h + '</svg>';
 }
@@ -2673,11 +2675,13 @@ function viewFNote(o, cls) {
 }
 function viewTrait(o, cls) {
   var n = new Date(), ms = monthStats(n.getFullYear(), n.getMonth()), mt = monthTraits(n.getFullYear(), n.getMonth()); if (!mt) return '';
-  var tc = TRAITS[mt.top].c, pm = MONTHS[prevMonth(n.getFullYear(), n.getMonth()).m].toLowerCase(), dv = mt.v[mt.top] - (mt.pv[mt.top] || 0);
+  var tc = TRAITS[mt.top].c, pm = MONTHS[prevMonth(n.getFullYear(), n.getMonth()).m].toLowerCase(), dv = mt.v[mt.top] - (mt.pv[mt.top] || 0), hasPrev = !!(mt.pv.F + mt.pv.A + mt.pv.R + mt.pv.E), trd = {};
+  TKEYS.forEach(function (k) { var d = mt.v[k] - (mt.pv[k] || 0); trd[k] = Math.abs(d) < 0.001 ? 'eq' : d > 0 ? 'up' : 'down'; });
   var cmp = !(mt.pv.F + mt.pv.A + mt.pv.R + mt.pv.E) ? 'Il primo mese con un tratto: da qui si parte.' : Math.abs(dv) < 0.001 ? 'Tanta ' + TRAITS[mt.top].name + ' quanta a ' + pm + '.' : dv > 0 ? '<span style="color:#9BE15D">▲</span> Più ' + TRAITS[mt.top].name + ' che a ' + pm + '.' : '<span style="color:#FFB27A">▼</span> Meno ' + TRAITS[mt.top].name + ' che a ' + pm + ': il mese è ancora lungo.';
   return '<div class="' + cls + '" style="text-align:center;align-items:stretch">' + whead('Tratto di ' + MONTHS[n.getMonth()].toLowerCase(), true) +
     '<span style="display:flex;align-items:center;justify-content:center;gap:10px">' + svg(TRAITS[mt.top].ic, tc, 26) + '<span style="font:700 26px/30px var(--fd);letter-spacing:2px;text-transform:uppercase;color:' + tc + ';text-shadow:0 0 12px ' + tc + '73">' + TRAITS[mt.top].name + '</span></span>' +
-    '<p class="wtext" style="text-align:center">' + traitPhrase(mt, true) + '</p><div style="align-self:center">' + rombo(mt.v, ms.rank, 200, true) + '</div>' +
+    '<p class="wtext" style="text-align:center">' + traitPhrase(mt, true) + '</p><div style="align-self:center">' + rombo(mt.v, ms.rank, 220, true, hasPrev ? trd : null) + '</div>' +
+    (hasPrev ? '<p class="hint" style="text-align:center;margin:0;font-size:12px"><span style="color:#9BE15D">▲</span> più di ' + pm + ' · <span style="color:#8FA3C2">=</span> uguale · <span style="color:#FFB27A">▼</span> meno</p>' : '') +
     '<p class="hint" style="text-align:center;margin:0">' + cmp + (mt.grow && mt.grow !== mt.top ? ' Quello cresciuto di più: <span style="color:' + TRAITS[mt.grow].c + '">' + TRAITS[mt.grow].name + '</span>.' : '') + '</p></div>';
 }
 function viewAddF(o, cls) {
@@ -3165,7 +3169,7 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v3.5.0';
+var APP_V = 'gesta-v3.5.1';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
