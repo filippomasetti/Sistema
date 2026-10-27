@@ -72,7 +72,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .rlets{position:relative;height:14px;margin-top:-4px}.rlets .rlet{position:absolute;transform:translateX(-50%);font:700 10px/14px var(--fd);color:var(--mut)}.rlets .rlet.on{color:var(--ink)}.rlets .rlet:last-child{transform:translateX(-100%)}
 .tcard{padding:10px 12px 10px 16px;display:flex;align-items:center;gap:12px}
 .bachbtn{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 14px;cursor:pointer;text-align:left;border-color:#7A6430!important;background:#14120A!important;box-shadow:0 0 14px rgba(255,201,77,.12)}
-.frhex>span{width:100%!important;height:100%!important}.frfit.fz .frx{display:none}.qslot{height:68px}.qitem{height:68px}.qitem .lbl{line-height:13px}.qitem .qtxt{flex:0 0 auto}.qitem>.win,.qitem>.card{display:flex}.qitem>*{flex:1 1 auto;min-height:0;box-sizing:border-box;justify-content:center}.qtxt{margin:0;min-width:0;font:600 13.5px/18px var(--fb);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.qinl{animation:qinl .24s cubic-bezier(.2,.8,.2,1) both}.qinr{animation:qinr .24s cubic-bezier(.2,.8,.2,1) both}@keyframes qinl{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}@keyframes qinr{from{transform:translateX(-40px);opacity:0}to{transform:none;opacity:1}}.mlink{background:none;border:0;padding:2px 0 0;font:600 12px/16px var(--fd);letter-spacing:1px;color:#D9B04A;cursor:pointer;text-align:center}.mcount{white-space:nowrap;flex:0 0 auto;font:700 14px/18px var(--fd);color:var(--rew);border:1px solid #7A6430;border-radius:6px;padding:2px 10px}
+.frhex>span,.frhex>svg{width:100%!important;height:100%!important}.frfit.fz .frx{display:none}.qslot{height:68px}.qitem{height:68px}.qitem .lbl{line-height:13px}.qitem .qtxt{flex:0 0 auto}.qitem>.win,.qitem>.card{display:flex}.qitem>*{flex:1 1 auto;min-height:0;box-sizing:border-box;justify-content:center}.qtxt{margin:0;min-width:0;font:600 13.5px/18px var(--fb);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.qinl{animation:qinl .24s cubic-bezier(.2,.8,.2,1) both}.qinr{animation:qinr .24s cubic-bezier(.2,.8,.2,1) both}@keyframes qinl{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}@keyframes qinr{from{transform:translateX(-40px);opacity:0}to{transform:none;opacity:1}}.mlink{background:none;border:0;padding:2px 0 0;font:600 12px/16px var(--fd);letter-spacing:1px;color:#D9B04A;cursor:pointer;text-align:center}.mcount{white-space:nowrap;flex:0 0 auto;font:700 14px/18px var(--fd);color:var(--rew);border:1px solid #7A6430;border-radius:6px;padding:2px 10px}
 .msec{display:flex;flex-direction:column;gap:10px}
 .mgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px 4px}
 .mcell{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--ink);cursor:pointer;padding:0;min-width:0}
@@ -1014,7 +1014,8 @@ function soundBtn() { return '<button class="icon-btn" data-a="sound" aria-label
 
 function viewHome() {
   var t = todayKey(), y = ui.vm.y, m = ui.vm.m, h = '';
-  h += header(MONTHS[m] + ' ' + y, soundBtn());
+  var nn = new Date(), msH = monthStats(nn.getFullYear(), nn.getMonth());
+  h += header(MONTHS[m] + ' ' + y, '<button data-a="go" data-v="stato" aria-label="Rango ' + msH.rank + (msH.plus ? '+' : '') + ', apri Stato" style="border:0;background:none;padding:0;margin:0 -2px -2px 0;display:flex;cursor:pointer;filter:drop-shadow(0 0 8px rgba(59,167,255,.28))">' + rkHex(msH.rank, 50, msH.plus) + '</button>');
   var hl = h.length, dailyNone = false;
   var ao = activeOpen(), act = ao ? ao.s : null, todayS = sessions(t), yest = ao && ao.k !== t;
   function qrow(cls, anim, mark, kick, kc, text, btn) { return '<div class="' + cls + anim + '" style="flex-direction:row;align-items:center;gap:12px;padding:7px 14px">' + mark + '<span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px"><span class="lbl" style="font-size:10.5px;letter-spacing:2px;color:' + kc + '">' + kick + '</span><span class="qtxt">' + text + '</span></span>' + (btn || '') + '</div>'; }
@@ -1074,12 +1075,9 @@ function viewStato() {
   var mtc = monthTraits(n.getFullYear(), n.getMonth());
   if (mtc) {
     var tc = TRAITS[mtc.top].c;
-    h += '<div class="card tcard" style="border-color:' + tc + '8C;box-shadow:0 0 18px ' + tc + '29;background:#0C1320;background:color-mix(in srgb, ' + tc + ' 6%, #0A0F1A)">' +
-      '<div style="display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 auto"><span class="lbl" style="font-size:11px;white-space:nowrap;color:' + tc + '">Tratto di ' + MONTHS[n.getMonth()].toLowerCase() + '</span>' +
-      '<span style="display:flex;align-items:center;gap:8px;min-width:0">' + svg(TRAITS[mtc.top].ic, tc, 22) + '<span class="fit1 t24" style="min-width:0;letter-spacing:1.5px;text-transform:uppercase;color:' + tc + ';text-shadow:0 0 12px ' + tc + '73">' + TRAITS[mtc.top].name + '</span></span>' +
-      '<span style="font:500 13px/18px var(--fb);color:var(--soft)">' + traitPhrase(mtc, true) + '</span></div><div style="flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:0">' + rombo(mtc.v, ms.rank, mtc.grow ? 68 : 78, false) +
-      (mtc.grow ? '<span style="font:600 10px/12px var(--fd);letter-spacing:.5px;color:#9BE15D;white-space:nowrap">↑ ' + TRAITS[mtc.grow].name + '</span>' : '') + '</div></div>';
-  } else h += '<div class="card tcard"><div style="display:flex;flex-direction:column;gap:3px"><span class="lbl" style="font-size:11px">Tratto del mese</span><span class="hint">Si accende con il primo allenamento del mese.</span></div></div>';
+    var dv = mtc.v[mtc.top] - (mtc.pv[mtc.top] || 0), tr = Math.abs(dv) < 0.001 ? ['=', 'var(--mut)', 'come il mese scorso'] : dv > 0 ? ['▲', '#9BE15D', 'più del mese scorso'] : ['▼', '#FFB27A', 'meno del mese scorso'];
+    h += '<button class="card" data-a="traitOpen" style="padding:9px 14px;display:flex;align-items:center;gap:10px;border-color:' + tc + '66;text-align:left;color:var(--ink);width:100%"><span class="lbl" style="font-size:11px;flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Tratto del mese</span>' + svg(TRAITS[mtc.top].ic, tc, 18) + '<span style="font:700 15px/20px var(--fd);letter-spacing:1.5px;text-transform:uppercase;color:' + tc + '">' + TRAITS[mtc.top].name + '</span><span aria-label="' + tr[2] + '" style="font:700 11px/1 var(--fd);color:' + tr[1] + '">' + tr[0] + '</span>' + svg(IC.right, 'var(--mut)', 16) + '</button>';
+  } else h += '<div class="card" style="padding:9px 14px;display:flex;align-items:center;gap:10px"><span class="lbl" style="font-size:11px;flex:1 1 auto">Tratto del mese</span><span class="hint" style="font-size:12px">Si accende col primo allenamento</span></div>';
   h += '<div style="display:flex;flex-direction:column;gap:10px;padding-top:4px"><div style="padding:0 2px;display:flex;flex-direction:column;gap:2px"><span class="lbl">Parametri · ' + MONTHS[n.getMonth()].toLowerCase() + '</span><span class="hint">' + pfmt(ms.pts) + ' · ' + nextGoal(ms) + '</span></div><div class="g2" id="tiles" style="gap:10px">';
   S.profile.sports.forEach(function (s) {
     var sp = SPORTS[s], p = ms.sportPts[s] || 0, val, pct;
@@ -1093,7 +1091,7 @@ function viewStato() {
   allKeysSorted().reverse().forEach(function (k) { sessions(k).slice().reverse().forEach(function (s) { if (last.length < 2 && s.quest && s.quest.done !== null) last.push({ k: k, s: s }); }); });
   h += '<div class="card" style="padding:10px 14px;display:flex;flex-direction:column;gap:2px"><span class="lbl" style="font-size:11px">Ultime quest</span>';
   if (!last.length) h += '<span class="hint" style="padding:4px 0">Ancora nessuna quest conclusa.</span>';
-  last.forEach(function (e) { var s = e.s; h += '<div class="logrow"><span class="dot" style="background:' + SPORTS[s.sport].c + '"></span><span class="d">' + niceDate(e.k) + '</span><span class="t">' + esc(SPORTS[s.sport].name + ' · ' + DIFF[s.quest.diff].label + ' · ' + s.quest.label) + (s.quest.done ? '' : ' · non oggi') + '</span><span class="x2">+' + sessXp(s) + ' XP</span></div>'; });
+  last.forEach(function (e) { var s = e.s; h += '<div class="logrow"><span class="dot" style="background:' + SPORTS[s.sport].c + '"></span><span class="d">' + niceDate(e.k) + '</span><span class="t">' + esc(SPORTS[s.sport].name + ' · ' + DIFF[s.quest.diff].label + (s.quest.label ? ' · ' + s.quest.label : '')) + (s.quest.done ? '' : ' · non oggi') + '</span><span class="x2">+' + sessXp(s) + ' XP</span></div>'; });
   h += '</div>';
   var mst = medalState(), mvis = MEDALS.filter(function (d) { return mvisible(d, 'mine'); }), mgot = mvis.filter(function (d) { return mst[d.id].t >= 0; }).length;
   h += '<div class="g2" style="gap:10px"><button class="card" data-a="archive" style="display:flex;align-items:center;gap:10px;min-height:48px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.box, '#BDEBFF', 20) + '<span class="lbl" style="flex:1 1 auto;color:var(--ink)">Archivio</span></button><button class="card bachbtn" data-a="bacheca">' + '<svg class="i" viewBox="0 0 100 100" aria-hidden="true" style="width:20px;height:20px;stroke:#FFC94D;stroke-width:8"><path d="M50 4l40 23v46L50 96 10 73V27z"/></svg>' + '<span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:1px"><span class="lbl" style="color:#FFC94D">Bacheca</span><span style="font:600 11px/14px var(--fd);color:#D9B04A;white-space:nowrap">' + mgot + ' / ' + mvis.length + ' medaglie</span></span></button></div>';
@@ -1110,7 +1108,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">XP, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.4.2</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.5</span>';
   return h;
 }
 
@@ -1125,6 +1123,7 @@ function viewOverlay() {
   if (o.t === 'story') return viewStory(o);
   if (o.t === 'glove') return viewGloveWin(o);
   if (o.t === 'login') return '<div class="veil' + (animCls('login' + o.step) ? ' fade' : '') + '">' + viewLogin(o, 'win') + '</div>';
+  if (o.t === 'newtitle') { var ta = animCls('tt' + o.k); return '<div class="veil' + (ta ? ' fade' : '') + '"><div class="win gold' + ta + '" style="text-align:center">' + whead('Nuovo titolo', true) + '<span class="lbl" style="color:#D9B04A;text-align:center">Titolo di ' + MONTHS[new Date().getMonth()].toLowerCase() + '</span><span class="pop fit1 t28" style="color:var(--rew);text-shadow:0 0 14px rgba(255,201,77,.45);letter-spacing:1px;text-transform:uppercase;text-align:center">' + esc(o.tt) + '</span><p class="wtext" style="text-align:center">' + o.why + (o.was ? '<br><span class="hint">Prima eri ' + esc(o.was) + '.</span>' : '') + '</p><div class="acts one"><button class="btn main" data-a="close">Continua</button></div></div></div>'; }
   if (o.t === 'rankup') { var ra = animCls('rk' + o.k); return '<div class="veil' + (ra ? ' fade' : '') + '">' + viewRankUp(o, 'win' + ra) + '</div>'; }
   if (o.t === 'medal') return '<div class="veil' + (animCls('medal' + o.id + o.tr) ? ' fade' : '') + '">' + viewMedalWin(o, 'win') + '</div>';
   var key = o.t + (o.sport || '') + (o.group || '') + (o.k || '') + (o.id || ''), cls = 'win' + animCls(key), h = '';
@@ -1207,6 +1206,7 @@ function viewOverlay() {
     h = '<div class="' + cls + '">' + whead('Notifica', true) + '<p class="wtitle">Hai già una quest social</p><p class="wtext">Oggi hai attivo ' + who + ': <b style="color:var(--rew)">' + esc(chLabel(c0)) + '</b>' + (soc.length > 1 ? ' (e altre ' + (soc.length - 1) + ')' : '') + '. Vuoi aggiungerne anche una personale?</p><div class="acts"><button class="btn" data-a="qNo">No</button><button class="btn main" data-a="qYes">Sì</button></div></div>';
   } else if (o.t === 'fnote') { h = viewFNote(o, cls);
   } else if (o.t === 'addf') { h = viewAddF(o, cls);
+  } else if (o.t === 'trait') { h = viewTrait(o, cls);
   } else if (o.t === 'gobj') { h = viewGObj(o, cls);
   } else if (o.t === 'fcal') { h = viewFCal(o, cls);
   } else if (o.t === 'fch') { h = viewFCh(o, cls);
@@ -1389,7 +1389,7 @@ function monthTraits(y, m) {
   else kind = 'spalla';
   var grow = null, best = 0;
   if (pv.F + pv.A + pv.R + pv.E) TKEYS.forEach(function (t) { var d = v[t] - pv[t]; if (d > best + 0.001) { best = d; grow = t; } });
-  return { v: v, top: t1, sec: t2, third: t3, kind: kind, grow: grow };
+  return { v: v, pv: pv, top: t1, sec: t2, third: t3, kind: kind, grow: grow };
 }
 function tw(t) { return '<span style="color:' + TRAITS[t].c + '">' + TRAITS[t].name + '</span>'; }
 function traitPhrase(mt, cap) {
@@ -1598,6 +1598,11 @@ function noteMid() {
   if (!S) return; var n = new Date(); if (n.getDate() < 15) return; S.mid = S.mid || {}; var ym = ymKey(n.getFullYear(), n.getMonth());
   if (S.mid[ym]) return; var ms = monthStats(n.getFullYear(), n.getMonth()), pj = projection(n.getFullYear(), n.getMonth(), ms);
   if (pj && pj.rank) { S.mid[ym] = pj.rank; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+}
+function titleCheck() {
+  var n = new Date(), ym = ymKey(n.getFullYear(), n.getMonth()), ms = monthStats(n.getFullYear(), n.getMonth()), tt = ms.title || '', seen = S.ttSeen;
+  if (!seen || seen.ym !== ym) { if (!seen || seen.t !== tt || seen.ym !== ym) { var first = !seen; S.ttSeen = { ym: ym, t: tt }; save(); if (!first && tt) ui.tq = { t: tt, why: titleWhy(ms) }; } return; }
+  if (tt && tt !== seen.t) { S.ttSeen = { ym: ym, t: tt }; ui.tq = { t: tt, why: titleWhy(ms), was: seen.t }; save(); }
 }
 function rankCheck() {
   var n = new Date(), ym = ymKey(n.getFullYear(), n.getMonth()), ms = monthStats(n.getFullYear(), n.getMonth()), L = rStep(ms.rank, ms.plus), seen = S.rkSeen;
@@ -2117,11 +2122,35 @@ function sendGap(fid) {
 function sendBlock(fid) { return sendGap(fid) >= 2; }
 function chById(id) { var l = myCh(); for (var i = 0; i < l.length; i++) if (l[i].id === id) return l[i]; return null; }
 /* esagono rango piccolo */
+/* esagono del rango (laboratorio 01): lettera al centro esatto, misurata sui pixel veri del font sul telefono; il + sta sempre nello stesso punto */
+var RKF = 35, RKM = null;
+function rkMeasure() {
+  try {
+    var Z = 200, F = 100, cv = document.createElement('canvas'); cv.width = Z; cv.height = Z; var g = cv.getContext('2d'), out = {};
+    g.font = '700 ' + F + 'px "Exo 2", sans-serif';
+    'EDCBAS'.split('').forEach(function (l) {
+      g.clearRect(0, 0, Z, Z); g.fillStyle = '#fff'; g.fillText(l, 50, 150);
+      var d = g.getImageData(0, 0, Z, Z).data, x0 = Z, x1 = -1, y0 = Z, y1 = -1;
+      for (var y = 0; y < Z; y++) for (var x = 0; x < Z; x++) if (d[(y * Z + x) * 4 + 3] > 40) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+      var k = RKF / F; out[l] = { l: (50 - x0) * k, r: (x1 + 1 - 50) * k, a: (150 - y0) * k, d: (y1 + 1 - 150) * k }; out[l].w = out[l].l + out[l].r; out[l].h = out[l].a + out[l].d;
+    });
+    if (out.B.w > 5) RKM = out;
+  } catch (e) {}
+}
+if (document.fonts && document.fonts.load) document.fonts.load('700 35px "Exo 2"').then(function () { rkMeasure(); if (S) render(); }, function () {});
 function rkHex(r, s, plus) {
-  /* esagono del rango: blu, oro per la S; l'anello d'oro interno arriva da B+ in su; il + è un piccolo apice che non sposta la lettera dal centro */
-  s = s || 36; var h = Math.round(s * 1.1), gold = r === 'S', ring = rStep(r, plus) >= 7, fs = Math.round(s * 0.5);
-  var ink = gold ? '#FFF4D6' : 'var(--ink)', pc = ink;
-  return '<span style="width:' + s + 'px;height:' + h + 'px;flex:0 0 auto;position:relative;display:flex;align-items:center;justify-content:center"><svg width="' + s + '" height="' + h + '" viewBox="0 0 76 84" aria-hidden="true" style="position:absolute;inset:0"><path d="M38 3l33 19v40L38 81 5 62V22z" fill="' + (gold ? '#14120A' : '#0E1A30') + '" stroke="' + (gold ? PGOLD : '#3BA7FF') + '" stroke-width="2" stroke-linejoin="round"/>' + (ring ? '<path d="M38 11l26 15v32L38 73 12 58V26z" fill="none" stroke="' + PGOLD + '" stroke-width="1.5" stroke-linejoin="round" opacity=".9"/>' : '') + '</svg><span style="position:relative;font:700 ' + fs + 'px/1 var(--fd);color:' + ink + ';text-shadow:0 0 8px ' + (gold ? 'rgba(255,201,77,.55)' : 'rgba(59,167,255,.6)') + '">' + r + (plus ? '<span style="position:absolute;left:100%;top:-.12em;margin-left:.02em;font-size:.52em;line-height:1;color:' + pc + '">+</span>' : '') + '</span></span>';
+  s = s || 36; var h = Math.round(s * 84 / 76), gold = r === 'S', ring = rStep(r, plus) >= 7, ink = gold ? '#FFF4D6' : '#EAF3FF', sw = s < 40 ? 1.3 : s < 70 ? 1.7 : 2.2;
+  var m = RKM && RKM[r], tx, ty, anchor = '';
+  if (m) { tx = 38 - m.w / 2 + m.l + (r === 'C' ? -0.6 : 0); ty = 42 + (m.a - m.d) / 2; }
+  else { tx = 38; ty = 42 + RKF * 0.35; anchor = ' text-anchor="middle"'; }
+  var o = '<svg width="' + s + '" height="' + h + '" viewBox="0 0 76 84" aria-hidden="true" style="flex:0 0 auto;display:block"><path d="M38 3l33 19v40L38 81 5 62V22z" fill="' + (gold ? '#14120A' : '#0E1A30') + '" stroke="' + (gold ? PGOLD : '#3BA7FF') + '" stroke-width="' + sw + '" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>' +
+    (ring ? '<path d="M38 11l26 15v32L38 73 12 58V26z" fill="none" stroke="' + PGOLD + '" stroke-width="' + (sw * 0.75) + '" vector-effect="non-scaling-stroke" stroke-linejoin="round" opacity=".9"/>' : '') +
+    '<text x="' + tx.toFixed(2) + '" y="' + ty.toFixed(2) + '"' + anchor + ' font-family="Exo 2, sans-serif" font-weight="700" font-size="' + RKF + '" fill="' + ink + '">' + r + '</text>';
+  if (plus) {
+    var pr = 3.9, pw = 2.1, mw = RKM ? Math.max(RKM.E.w, RKM.D.w, RKM.C.w, RKM.B.w, RKM.S.w) : 24, px = Math.min(38 + mw / 2 + 2.6 + pr, 61.5 - pr) + (r === 'C' ? 0.8 : 0), py = 42 - (RKM ? RKM.B.h : 24.5) / 2 + pr * 0.9, b = pw / 2;
+    o += '<path d="M' + (px - b) + ' ' + (py - pr) + 'h' + pw + 'v' + (pr - b) + 'h' + (pr - b) + 'v' + pw + 'h' + (b - pr) + 'v' + (pr - b) + 'h' + (-pw) + 'v' + (b - pr) + 'h' + (b - pr) + 'v' + (-pw) + 'h' + (pr - b) + 'z" fill="' + ink + '"/>';
+  }
+  return o + '</svg>';
 }
 function pDot(c) { return '<i style="display:block;width:8px;height:8px;border-radius:4px;background:' + c + ';box-shadow:0 0 6px ' + c + ';flex:0 0 auto"></i>'; }
 function pPill(t, c) { return '<span style="font:600 11px/14px var(--fd);letter-spacing:1px;text-transform:uppercase;color:' + c + ';border:1px solid ' + c + '66;border-radius:6px;padding:3px 7px;white-space:nowrap">' + t + '</span>'; }
@@ -2306,6 +2335,7 @@ var PA = {
   },
   frAcc: function (id) { var q = (ui.inbox || []).filter(function (x) { return x.id === id; })[0]; authFresh().then(function () { return rpc('accept_friend', { req: id }); }).then(function () { ding('ok'); toast('Ora tu e ' + (q ? q.name : 'lui') + ' siete amici.'); ui.inbox = (ui.inbox || []).filter(function (x) { return x.id !== id; }); rfLoad(true); render(); }).catch(function () { toast('Non riesco ad accettare: riprova tra poco.'); }); },
   frDec: function (id) { authFresh().then(function () { return rpc('decline_friend', { req: id }); }).then(function () { ding('tap'); ui.inbox = (ui.inbox || []).filter(function (x) { return x.id !== id; }); render(); }).catch(function () { toast('Non riesco a rifiutare: riprova tra poco.'); }); },
+  traitOpen: function () { ui.ov = { t: 'trait' }; ding('open'); render(); },
   gangNoFr: function () { toast('Aggiungi prima un amico: poi crei la Gang con lui.'); },
   pInvite: function () {
     var code = P().demo ? P().code : cmeta.code, url = 'https://filippomasetti.github.io/gesta/' + (cmeta.inv && !P().demo ? '?invito=' + cmeta.inv : ''), txt = '🎮 Sfidiamoci su Gesta!\nApri il link ed entra con la tua email: diventiamo amici in automatico.\n👉 ' + url + '\n\n⚠️ Per averla come app sul telefono:\n• iPhone: apri il link in Safari, tocca Condividi (il quadrato con la freccia ⬆️) e poi «Aggiungi alla schermata Home»\n• Android: apri il link in Chrome, tocca i tre puntini ⋮ e poi «Aggiungi a schermata Home» o «Installa app»\nPoi aprila dall’icona ed entra con la stessa email: ritrovi tutto.\n\nHai già Gesta? Aggiungimi col codice ' + code;
@@ -2640,6 +2670,15 @@ function viewFNote(o, cls) {
     (score ? '<div style="display:flex;align-items:baseline;justify-content:center;gap:12px;font:700 34px/1 var(--fd)"><span style="font:600 11px/14px var(--fd);letter-spacing:1px;color:var(--mut)">TU</span><span>' + sc[0] + '</span><span style="color:var(--mut)">–</span><span>' + sc[1] + '</span><span style="font:600 11px/14px var(--fd);letter-spacing:1px;color:var(--mut)">' + f.n.toUpperCase() + '</span></div>' : '') +
     (cq ? '<button class="mlink" data-a="gView" data-v="' + cq.id + '" style="display:flex;align-items:center;justify-content:center;gap:6px">' + svg(cq.gang ? PI.party : PI.glove, col, 14) + 'Vedi la quest ›</button>' : '') +
     '<div class="acts' + (n > 1 && o.i + 1 < n ? '' : ' one') + '">' + (n > 1 && o.i + 1 < n ? '<button class="btn" data-a="close">Salta</button><button class="btn main" data-a="fnNext">Avanti</button>' : '<button class="btn main" data-a="fnNext">Ok</button>') + '</div></div>';
+}
+function viewTrait(o, cls) {
+  var n = new Date(), ms = monthStats(n.getFullYear(), n.getMonth()), mt = monthTraits(n.getFullYear(), n.getMonth()); if (!mt) return '';
+  var tc = TRAITS[mt.top].c, pm = MONTHS[prevMonth(n.getFullYear(), n.getMonth()).m].toLowerCase(), dv = mt.v[mt.top] - (mt.pv[mt.top] || 0);
+  var cmp = !(mt.pv.F + mt.pv.A + mt.pv.R + mt.pv.E) ? 'Il primo mese con un tratto: da qui si parte.' : Math.abs(dv) < 0.001 ? 'Tanta ' + TRAITS[mt.top].name + ' quanta a ' + pm + '.' : dv > 0 ? '<span style="color:#9BE15D">▲</span> Più ' + TRAITS[mt.top].name + ' che a ' + pm + '.' : '<span style="color:#FFB27A">▼</span> Meno ' + TRAITS[mt.top].name + ' che a ' + pm + ': il mese è ancora lungo.';
+  return '<div class="' + cls + '" style="text-align:center;align-items:stretch">' + whead('Tratto di ' + MONTHS[n.getMonth()].toLowerCase(), true) +
+    '<span style="display:flex;align-items:center;justify-content:center;gap:10px">' + svg(TRAITS[mt.top].ic, tc, 26) + '<span style="font:700 26px/30px var(--fd);letter-spacing:2px;text-transform:uppercase;color:' + tc + ';text-shadow:0 0 12px ' + tc + '73">' + TRAITS[mt.top].name + '</span></span>' +
+    '<p class="wtext" style="text-align:center">' + traitPhrase(mt, true) + '</p><div style="align-self:center">' + rombo(mt.v, ms.rank, 200, true) + '</div>' +
+    '<p class="hint" style="text-align:center;margin:0">' + cmp + (mt.grow && mt.grow !== mt.top ? ' Quello cresciuto di più: <span style="color:' + TRAITS[mt.grow].c + '">' + TRAITS[mt.grow].name + '</span>.' : '') + '</p></div>';
 }
 function viewAddF(o, cls) {
   return '<div class="' + cls + '">' + whead('Aggiungi un amico', true) +
@@ -3008,7 +3047,8 @@ function render() {
   else {
     if (S.party && S.party.demo && !DEMO_ON) purgeDemo();
     partyTick();
-    if (medalDirty) { noteMid(); rankCheck(); checkMedals(); }
+    if (medalDirty) { noteMid(); rankCheck(); titleCheck(); checkMedals(); }
+    if (!ui.ov && !ui.rkq && ui.tq) { ui.ov = { t: 'newtitle', tt: ui.tq.t, why: ui.tq.why, was: ui.tq.was, k: ui.tq.t }; ui.tq = null; ding('reward'); }
     if (!ui.ov && ui.rkq) { ui.ov = { t: 'rankup', r: ui.rkq.r, plus: ui.rkq.plus, k: ui.rkq.r + ui.rkq.plus }; ui.rkq = null; rankSound(); buzz([40, 50, 40, 50, 140]); }
     if (!ui.ov && ui.mq && ui.mq.length) { if (!ui.mqTot || ui.mqN >= ui.mqTot) { ui.mqTot = ui.mq.length; ui.mqN = 0; } var q = ui.mq.shift(); ui.mqN++; ui.ov = { t: 'medal', id: q.id, tr: q.t, n: ui.mqN, tot: ui.mqTot }; if (!ui.mq.length) { ui.mqTot = 0; } medalSound(); }
     gloveQueue();
@@ -3125,7 +3165,7 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v3.4.2';
+var APP_V = 'gesta-v3.5.0';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
