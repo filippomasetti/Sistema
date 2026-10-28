@@ -1,6 +1,6 @@
 // Gesta — service worker: l'app funziona anche offline (palestra senza campo).
-const VERSION = 'gesta-v3.7.2';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
+const VERSION = 'gesta-v3.7.3';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './fonts/exo2.woff', './fonts/manrope.woff'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
@@ -21,15 +21,15 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   // Il cloud (Supabase) passa sempre dalla rete e non si salva mai in copia.
   if (/\/(rest|auth|functions|realtime|storage)\/v1\//.test(req.url) || /\.supabase\.(co|in)$/.test(new URL(req.url).hostname)) return;
-  // Pagina: prima la rete (così arrivano gli aggiornamenti), poi la copia salvata.
+  // Pagina: subito la copia salvata (apertura istantanea), intanto si aggiorna dalla rete.
+  // Le versioni nuove arrivano col service worker nuovo, che ricarica la pagina una volta.
   if (req.mode === 'navigate') {
-    e.respondWith(
-      fetch(req, { cache: 'no-cache' }).then((res) => {
-        const copy = res.clone();
-        caches.open(VERSION).then((c) => c.put('./index.html', copy));
-        return res;
-      }).catch(() => caches.match('./index.html'))
-    );
+    const net = fetch(req, { cache: 'no-cache' }).then((res) => {
+      if (res && res.ok) { const copy = res.clone(); caches.open(VERSION).then((c) => c.put('./index.html', copy)); }
+      return res;
+    });
+    e.respondWith(caches.match('./index.html').then((hit) => hit || net).catch(() => net));
+    e.waitUntil(net.catch(() => {}));
     return;
   }
   // Tutto il resto (icone, font): prima la copia salvata, poi la rete.

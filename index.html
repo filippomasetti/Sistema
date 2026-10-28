@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="it">
+<html lang="it" style="background:#05080F">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
@@ -12,24 +12,38 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@500;600;700&family=Manrope:wght@500;600;700&display=swap">
+<meta name="color-scheme" content="dark">
+<link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/launch-1290x2796.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/launch-1179x2556.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/launch-1206x2622.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/launch-1320x2868.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/launch-1170x2532.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/launch-1284x2778.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/launch-1125x2436.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/launch-1242x2688.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash/launch-828x1792.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash/launch-750x1334.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/launch-1242x2208.jpg">
+<link rel="preload" href="fonts/manrope.woff" as="font" type="font/woff" crossorigin>
+<link rel="preload" href="fonts/exo2.woff" as="font" type="font/woff" crossorigin>
 <style>
+/* font nostri, in locale: niente attesa della rete all'apertura (licenza OFL, vedi fonts/) */
+@font-face{font-family:"Exo 2";src:url(fonts/exo2.woff) format("woff");font-weight:500 700;font-style:normal;font-display:swap}
+@font-face{font-family:Manrope;src:url(fonts/manrope.woff) format("woff");font-weight:500 700;font-style:normal;font-display:swap}
 :root{--ground:#070B14;--surface:#0B1220;--raised:#0E1A30;--wfill:rgba(10,20,38,.96);--veil:rgba(3,6,12,.8);--line:#1E2A42;--line2:#2C3D5E;--ink:#EAF3FF;--mut:#8FA3C2;--soft:#C6D6EA;--sys:#3BA7FF;--sysl:#7CC4FF;--glow:#BDEBFF;--onsys:#06101F;--rew:#FFC94D;--fd:"Exo 2","Segoe UI",system-ui,sans-serif;--fb:Manrope,"Segoe UI",system-ui,sans-serif;color-scheme:dark}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;overflow:hidden;position:fixed;width:100%;background:var(--ground);color:var(--ink);font:500 15px/22px var(--fb);overscroll-behavior:none}
 button,input,textarea{font:inherit;color:inherit}
 button{-webkit-user-select:none;user-select:none}
 body.boot #app{opacity:0}
-#splash{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:radial-gradient(120% 70% at 35% 18%,#1B2D57 0%,#0A1222 55%,#05080F 100%);transition:opacity .3s ease}
+#splash{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:radial-gradient(120% 70% at 35% 18%,#1B2D57 0%,#0A1222 55%,#05080F 100%);transition:opacity .45s ease}
 #splash.out{opacity:0;pointer-events:none}
 #splash svg{width:132px;height:132px;overflow:visible}
 .sp-w,.sp-y{stroke-dasharray:100 100;stroke-dashoffset:100}
-.sp-w{animation:spdraw .62s cubic-bezier(.55,.1,.35,1) .12s forwards}
-.sp-y{animation:spdraw .2s cubic-bezier(.3,.6,.3,1) .74s forwards}
-.sp-g{animation:spglow .5s ease-out .9s forwards}
-.sp-word{font:700 22px/26px var(--fd);letter-spacing:8px;padding-left:8px;color:#EAF3FF;opacity:0;animation:spword .4s ease-out .95s forwards}
+.sp-w{animation:spdraw .95s cubic-bezier(.65,0,.35,1) .2s forwards}
+.sp-y{animation:spdraw .4s cubic-bezier(.22,1,.36,1) 1.08s forwards}
+.sp-g{animation:spglow .8s ease-out 1.3s forwards}
+.sp-word{font:700 22px/26px var(--fd);letter-spacing:8px;padding-left:8px;color:#EAF3FF;opacity:0;animation:spword .6s cubic-bezier(.22,1,.36,1) 1.4s forwards}
 @keyframes spdraw{to{stroke-dashoffset:0}}
 @keyframes spglow{0%{filter:drop-shadow(0 0 0 rgba(255,201,77,0))}40%{filter:drop-shadow(0 0 14px rgba(255,201,77,.75))}100%{filter:drop-shadow(0 0 6px rgba(255,201,77,.25))}}
 @keyframes spword{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -263,6 +277,7 @@ textarea.inp{height:80px;padding:10px 14px;font-size:15px;resize:none}
 </style>
 </head>
 <body>
+<div id="splash" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M73.38 36.50L50.00 23.00L26.62 36.50L26.62 63.50L50.00 77.00L73.38 63.50L73.38 51" fill="none" stroke="rgba(234,243,255,.10)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M73.38 51H53" fill="none" stroke="rgba(234,243,255,.10)" stroke-width="7" stroke-linecap="round"/><g class="sp-g"><path class="sp-w" pathLength="100" d="M73.38 36.50L50.00 23.00L26.62 36.50L26.62 63.50L50.00 77.00L73.38 63.50L73.38 51" fill="none" stroke="#EAF3FF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path class="sp-y" pathLength="100" d="M73.38 51H53" fill="none" stroke="#FFC94D" stroke-width="7" stroke-linecap="round"/></g></svg><span class="sp-word">GESTA</span></div>
 <div id="app"></div>
 <script>
 (function () {
@@ -1327,7 +1342,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">XP, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.7.2</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.7.3</span>';
   return h;
 }
 
@@ -3557,13 +3572,10 @@ autoClose();
 startupNotice();
 /* splash d'apertura (laboratorio 02): la G si disegna dal bianco alla barra d'oro, poi compare GESTA. Un tocco la salta */
 (function () {
-  var W = 'M73.38 36.50L50.00 23.00L26.62 36.50L26.62 63.50L50.00 77.00L73.38 63.50L73.38 51', Y = 'M73.38 51H53';
-  var sp = document.createElement('div'); sp.id = 'splash'; sp.setAttribute('aria-hidden', 'true');
-  sp.innerHTML = '<svg viewBox="0 0 100 100"><path d="' + W + '" fill="none" stroke="rgba(234,243,255,.10)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="' + Y + '" fill="none" stroke="rgba(234,243,255,.10)" stroke-width="7" stroke-linecap="round"/><g class="sp-g"><path class="sp-w" pathLength="100" d="' + W + '" fill="none" stroke="#EAF3FF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path class="sp-y" pathLength="100" d="' + Y + '" fill="none" stroke="#FFC94D" stroke-width="7" stroke-linecap="round"/></g></svg><span class="sp-word">GESTA</span>';
-  document.body.appendChild(sp);
+  var sp = document.getElementById('splash'); if (!sp) return;
   var gone = false, end = function () { if (gone) return; gone = true; sp.classList.add('out'); setTimeout(function () { if (sp.parentNode) sp.parentNode.removeChild(sp); }, 320); };
   sp.addEventListener('click', end);
-  setTimeout(end, 1500);
+  setTimeout(end, 2200);
 })();
 /* all'apertura la pagina resta nascosta finché i font sono pronti (al massimo 0,7 s): niente lettere e misure che saltano */
 document.body.classList.add('boot');
@@ -3576,7 +3588,7 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v3.7.2';
+var APP_V = 'gesta-v3.7.3';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
