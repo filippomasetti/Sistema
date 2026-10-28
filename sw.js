@@ -1,5 +1,5 @@
 // Gesta — service worker: l'app funziona anche offline (palestra senza campo).
-const VERSION = 'gesta-v3.7.3';
+const VERSION = 'gesta-v3.7.4';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './fonts/exo2.woff', './fonts/manrope.woff'];
 
 self.addEventListener('install', (e) => {

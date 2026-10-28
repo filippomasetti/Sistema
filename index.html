@@ -41,9 +41,9 @@ body.boot #app{opacity:0}
 #splash svg{width:132px;height:132px;overflow:visible}
 .sp-w,.sp-y{stroke-dasharray:100 100;stroke-dashoffset:100}
 .sp-w{animation:spdraw .95s cubic-bezier(.65,0,.35,1) .2s forwards}
-.sp-y{animation:spdraw .4s cubic-bezier(.22,1,.36,1) 1.08s forwards}
-.sp-g{animation:spglow .8s ease-out 1.3s forwards}
-.sp-word{font:700 22px/26px var(--fd);letter-spacing:8px;padding-left:8px;color:#EAF3FF;opacity:0;animation:spword .6s cubic-bezier(.22,1,.36,1) 1.4s forwards}
+.sp-y{animation:spdraw .7s cubic-bezier(.7,0,.2,1) 1.45s forwards}
+.sp-g{animation:spglow .9s ease-out 2.05s forwards}
+.sp-word{font:700 22px/26px var(--fd);letter-spacing:8px;padding-left:8px;color:#EAF3FF;opacity:0;animation:spword .6s cubic-bezier(.22,1,.36,1) 2.1s forwards}
 @keyframes spdraw{to{stroke-dashoffset:0}}
 @keyframes spglow{0%{filter:drop-shadow(0 0 0 rgba(255,201,77,0))}40%{filter:drop-shadow(0 0 14px rgba(255,201,77,.75))}100%{filter:drop-shadow(0 0 6px rgba(255,201,77,.25))}}
 @keyframes spword{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -58,6 +58,12 @@ body.boot #app{opacity:0}
 .pfr{border:1px solid rgba(94,224,143,.38);background:rgba(94,224,143,.06);box-shadow:inset 0 0 22px rgba(94,224,143,.05)}
 .pgg{border:1px solid rgba(199,125,255,.4);background:rgba(199,125,255,.07);box-shadow:inset 0 0 22px rgba(199,125,255,.05)}
 .pbox .card{background:rgba(11,18,32,.82)}
+.plist{display:flex;flex-direction:column;gap:6px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scrollbar-width:none;margin:0 -2px;padding:0 2px}
+.plist::-webkit-scrollbar{display:none}
+.pl-f{max-height:226px}.pl-g{max-height:150px}
+.plist.more{-webkit-mask-image:linear-gradient(to bottom,#000 82%,transparent);mask-image:linear-gradient(to bottom,#000 82%,transparent)}
+.prow2{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 10px;border-radius:11px;border:1px solid var(--line);background:rgba(11,18,32,.82);color:var(--ink);text-align:left;width:100%;flex:0 0 auto;cursor:pointer}
+.prow2.hot{border-color:rgba(255,201,77,.55);background:#14120A;box-shadow:0 0 12px rgba(255,201,77,.15)}
 .coach{position:absolute;inset:0;z-index:90;overflow:hidden;cursor:pointer;animation:fade .25s ease}
 .coach .hole{position:absolute;border-radius:14px;box-shadow:0 0 0 2000px rgba(3,6,12,.74);outline:1.5px dashed rgba(124,196,255,.9);outline-offset:3px;pointer-events:none}
 .coach .bub{position:absolute;width:300px;max-width:calc(100% - 28px);border-radius:16px;border:1.5px dashed #7CC4FF;background:#0B1424;box-shadow:0 0 24px rgba(59,167,255,.25);padding:12px 14px 11px;display:flex;flex-direction:column;gap:6px}
@@ -1342,7 +1348,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">XP, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.7.3</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.7.4</span>';
   return h;
 }
 
@@ -2540,15 +2546,16 @@ function viewParty() {
   /* una pagina sola: i primi 5 amici e le prime 5 Gang, in ordine di scambi degli ultimi 10 giorni; gli altri nel dettaglio */
   var fr = FR.slice().sort(function (a, b) { return ixF(b.id) - ixF(a.id) || a.n.localeCompare(b.n); }), gs = p.gangs.slice().sort(function (a, b) { return ixG(b.id) - ixG(a.id) || a.name.localeCompare(b.name); });
   var more = function (n, scr, lbl) { return '<button data-a="go" data-v="' + scr + '" style="border:0;background:none;padding:2px 0;display:flex;align-items:center;gap:2px;font:600 11px/14px var(--fd);letter-spacing:1px;text-transform:uppercase;color:var(--sysl);cursor:pointer">' + lbl + ' · ' + n + svg(IC.right, 'var(--sysl)', 14) + '</button>'; };
-  h += '<div class="pbox pfr"><div class="row" style="align-items:center;padding:0 2px"><span class="lbl" style="color:#7EE0A4">Amici</span>' + (fr.length > 5 ? more(fr.length, 'pfriends', 'Tutti') : fr.length ? '<span class="hint" style="font-size:11px">' + fr.length + '</span>' : '') + '</div>';
-  h += fr.length ? '<div class="g2" style="gap:8px">' + fr.slice(0, 5).map(miniFriend).join('') + (fr.length > 5 ? miniMore('pfriends', 'Tutti gli amici', fr.length) : '<button class="card" data-a="' + (p.demo ? 'pInvite' : 'fAdd') + '" style="display:flex;align-items:center;justify-content:center;gap:6px;min-height:52px;border-style:dashed;color:var(--soft);font:600 12px/16px var(--fd);letter-spacing:1.5px;text-transform:uppercase">' + svg(PI.plus, null, 16) + 'Aggiungi</button>') + '</div>' :
-    '<div class="card" style="padding:12px 14px;display:flex;flex-direction:column;gap:4px;border-style:dashed"><span style="font:600 15px/20px var(--fb)">Ancora nessun amico</span><span class="hint">Tocca Aggiungi e scrivi il suo codice. Se non ha ancora Gesta, mandagli l’invito.</span></div>';
+  var addB = function (a) { return '<button data-a="' + a + '" aria-label="Aggiungi" style="border:0;background:none;padding:2px 4px;display:flex;align-items:center;gap:3px;font:600 11px/14px var(--fd);letter-spacing:1px;text-transform:uppercase;color:var(--soft);cursor:pointer">' + svg(PI.plus, 'var(--soft)', 13) + (a === 'gangNew' ? 'Crea' : 'Aggiungi') + '</button>'; };
+  h += '<div class="pbox pfr"><div class="row" style="align-items:center;padding:0 2px;gap:8px"><span class="lbl" style="color:#7EE0A4;flex:1 1 auto">Amici' + (fr.length ? ' · ' + fr.length : '') + '</span>' + (fr.length ? addB(p.demo ? 'pInvite' : 'fAdd') + more(fr.length, 'pfriends', 'Tutti') : '') + '</div>';
+  h += fr.length ? '<div class="plist pl-f">' + fr.map(rowFriend).join('') + '</div>' :
+    '<button class="card" data-a="' + (p.demo ? 'pInvite' : 'fAdd') + '" style="padding:12px 14px;display:flex;flex-direction:column;gap:4px;border-style:dashed;text-align:left;color:var(--ink)"><span style="font:600 15px/20px var(--fb)">Ancora nessun amico</span><span class="hint">Tocca qui e scrivi il suo codice. Se non ha ancora Gesta, mandagli l’invito.</span></button>';
   h += '</div>';
   if (!p.demo && ui.outbox && ui.outbox.length) h += '<div style="display:flex;flex-direction:column;gap:4px;padding:0 2px">' + ui.outbox.slice(0, 2).map(function (o) { return '<span class="hint" style="font-size:12px;display:flex;align-items:center;gap:6px">' + svg(PI.letter, 'var(--mut)', 14) + 'Invito mandato a ' + esc(o.name || 'un amico') + ', in attesa</span>'; }).join('') + '</div>';
-  h += '<div class="pbox pgg"><div class="row" style="align-items:center;padding:0 2px"><span class="lbl" style="color:#D7A6FF">Gang</span>' + (gs.length > 5 ? more(gs.length, 'pgangs', 'Tutte') : '') + '</div>';
-  var gcell = fr.length ? '<button class="card" data-a="gangNew" style="display:flex;align-items:center;justify-content:center;gap:6px;min-height:52px;border-style:dashed;color:var(--soft);font:600 12px/16px var(--fd);letter-spacing:1.5px;text-transform:uppercase">' + svg(PI.plus, null, 16) + 'Crea</button>' : '<button class="card" data-a="gangNoFr" style="display:flex;align-items:center;justify-content:center;gap:6px;min-height:52px;border-style:dashed;color:var(--mut);opacity:.6;font:600 12px/16px var(--fd);letter-spacing:1.5px;text-transform:uppercase">' + svg(PI.plus, null, 16) + 'Crea una Gang</button>';
-  h += '<div class="g2" style="gap:8px">' + gs.slice(0, 5).map(miniGang).join('') + (gs.length > 5 ? miniMore('pgangs', 'Tutte le Gang', gs.length) : gcell) + '</div>' + '</div>';
-  h += myCode ? '<div class="card pcode" style="padding:8px 10px 8px 14px;display:flex;align-items:center;gap:8px"><span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:1px"><span class="lbl" style="font-size:10px;letter-spacing:2px">Il tuo codice</span><span style="font:700 16px/20px var(--fd);letter-spacing:2px;white-space:nowrap">' + esc(myCode) + '</span></span><button class="btn sm main" data-a="' + (p.demo ? 'pInvite' : 'fAdd') + '" style="height:36px;padding:0 10px;display:flex;align-items:center;gap:4px;font-size:11px">' + svg(PI.plus, null, 14) + 'Aggiungi</button><button class="btn sm" data-a="pInvite" style="height:36px;padding:0 10px;display:flex;align-items:center;gap:4px;font-size:11px">' + svg(PI.letter, null, 14) + 'Invita</button></div>' :
+  h += '<div class="pbox pgg"><div class="row" style="align-items:center;padding:0 2px;gap:8px"><span class="lbl" style="color:#D7A6FF;flex:1 1 auto">Gang' + (gs.length ? ' · ' + gs.length : '') + '</span>' + (fr.length && gs.length ? addB('gangNew') : '') + (gs.length ? more(gs.length, 'pgangs', 'Tutte') : '') + '</div>';
+  h += gs.length ? '<div class="plist pl-g">' + gs.map(rowGang).join('') + '</div>' : '<button class="card" data-a="' + (fr.length ? 'gangNew' : 'gangNoFr') + '" style="display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;border-style:dashed;color:var(--soft);' + (fr.length ? '' : 'opacity:.6;') + 'font:600 12px/16px var(--fd);letter-spacing:1.5px;text-transform:uppercase">' + svg(PI.plus, null, 16) + 'Crea una Gang</button>';
+  h += '</div>';
+  h += myCode ? '<div class="card pcode" style="padding:8px 10px 8px 14px;display:flex;align-items:center;gap:8px"><span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:1px"><span class="lbl" style="font-size:10px;letter-spacing:2px">Il tuo codice</span><span style="font:700 16px/20px var(--fd);letter-spacing:2px;white-space:nowrap">' + esc(myCode) + '</span></span><button class="btn sm main" data-a="pInvite" style="height:36px;padding:0 12px;display:flex;align-items:center;gap:5px;font-size:11px">' + svg(PI.letter, null, 14) + 'Invita</button></div>' :
     '<div class="card" style="padding:12px 14px;display:flex;flex-direction:column;gap:8px"><span class="lbl" style="font-size:11px">Il tuo codice amico</span><span class="hint">' + (cauth ? 'Lo sto prendendo dal cloud…' : 'Collega la tua email per avere il tuo codice e giocare con gli amici.') + '</span>' + (cauth ? '' : '<button class="btn sm main" data-a="cLogin">Collega l’email</button>') + '</div>';
   if (p.demo) h += '<span class="hint" style="text-align:center;padding:0 10px 6px;font-size:11px">Modalità prova: amici finti che rispondono da soli, tutto resta sul telefono.</span>';
   return h;
@@ -2564,6 +2571,28 @@ function miniFriend(f) {
 function miniGang(g) {
   var t = todayKey(), on = g.mem.filter(function (id) { return weekTrained(friend(id)); }).length + (weekCount(t) ? 1 : 0);
   return '<button class="card" data-a="gangOpen" data-v="' + g.id + '" style="display:flex;align-items:center;gap:9px;padding:8px 10px;min-height:52px;text-align:left;color:var(--ink);min-width:0;border-color:' + g.col + '66">' + gangBadge(g, 30) + '<span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:1px"><span style="font:700 13px/17px var(--fd);letter-spacing:.8px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(g.name) + '</span><span class="hint" style="font-size:10.5px;line-height:13px;white-space:nowrap">' + (g.mem.length + 1) + ' · ' + on + ' allenati</span></span>' + rkHex(gangRank(g.id, ymKey(new Date().getFullYear(), new Date().getMonth())), 24) + '</button>';
+}
+/* righe compatte di amici e Gang: una per riga, si scorrono dentro il riquadro */
+function rowFriend(f) {
+  var t = todayKey(), inc = myCh().filter(function (c) { return c.from === f.id && c.to === 'me' && c.day >= t && c.st === 'pending'; })[0], unread = P().letters.filter(function (l) { return !l.rd && l.f === f.id; })[0], on = trainedOn(f, t);
+  return '<button class="prow2' + (inc ? ' hot' : '') + '" data-a="fOpen" data-v="' + f.id + '">' + rkHex(f.r, 26, f.plus) +
+    '<span style="flex:1 1 auto;min-width:0;display:flex;align-items:baseline;gap:8px"><span style="font:700 14px/18px var(--fd);letter-spacing:.8px;text-transform:uppercase;white-space:nowrap">' + esc(f.n) + '</span><span style="font:600 10px/13px var(--fd);letter-spacing:.3px;color:var(--rew);text-transform:uppercase;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + fTitle(f) + '</span></span>' +
+    '<span style="display:flex;align-items:center;gap:8px;flex:0 0 auto">' + (on ? '<span style="display:flex;align-items:center;gap:4px;font:600 9.5px/12px var(--fd);letter-spacing:1px;text-transform:uppercase;color:var(--soft)">' + pDot(SPORTS[fSportOn(f, t)].c) + 'oggi</span>' : '') + (inc ? svg(PI.glove, PGOLD, 18) : '') + (unread ? '<i style="display:block;width:8px;height:8px;border-radius:4px;background:#7CC4FF;box-shadow:0 0 6px #7CC4FF"></i>' : '') + '</span></button>';
+}
+function rowGang(g) {
+  var t = todayKey(), on = g.mem.filter(function (id) { return weekTrained(friend(id)); }).length + (weekCount(t) ? 1 : 0), ask = gangActive().some(function (c) { return c.gang === g.id && c.from !== 'me' && !c.myAcc; });
+  return '<button class="prow2" data-a="gangOpen" data-v="' + g.id + '" style="border-color:' + g.col + '55">' + gangBadge(g, 26) +
+    '<span style="flex:1 1 auto;min-width:0;display:flex;align-items:baseline;gap:8px"><span style="font:700 13.5px/18px var(--fd);letter-spacing:.8px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">' + esc(g.name) + '</span><span class="hint" style="font-size:10.5px;line-height:13px;white-space:nowrap;flex:0 0 auto">' + (g.mem.length + 1) + ' · ' + on + ' in forma</span></span>' +
+    '<span style="display:flex;align-items:center;gap:8px;flex:0 0 auto">' + (ask ? '<i style="display:block;width:8px;height:8px;border-radius:4px;background:' + PGOLD + ';box-shadow:0 0 6px ' + PGOLD + '"></i>' : '') + rkHex(gangRank(g.id, ymKey(new Date().getFullYear(), new Date().getMonth())), 22) + '</span></button>';
+}
+/* il Party resta in una pagina: se non entra, gli elenchi si accorciano (e si scorrono dentro) */
+function fitParty() {
+  if (!S || ui.screen !== 'party') return;
+  var sc = root.querySelector('.scroller'), ls = root.querySelectorAll('.plist'); if (!sc || !ls.length) return;
+  ls.forEach(function (l) { l.style.maxHeight = ''; });
+  var guard = 0;
+  while (freeSpace(sc) < 0 && guard++ < 40) { var big = null; ls.forEach(function (l) { if (!big || l.clientHeight > big.clientHeight) big = l; }); if (!big || big.clientHeight <= 52) break; big.style.maxHeight = (big.clientHeight - 12) + 'px'; }
+  ls.forEach(function (l) { l.classList.toggle('more', l.scrollHeight > l.clientHeight + 2); });
 }
 function miniMore(scr, lbl, n) { return '<button class="card" data-a="go" data-v="' + scr + '" style="display:flex;align-items:center;justify-content:center;gap:6px;min-height:52px;color:var(--sysl);font:600 11px/15px var(--fd);letter-spacing:1.2px;text-transform:uppercase;text-align:center">' + lbl + ' · ' + n + svg(IC.right, 'var(--sysl)', 14) + '</button>'; }
 /* tutti gli amici / tutte le gang, con la ricerca quando sono tanti */
@@ -3470,7 +3499,7 @@ function render() {
   if (S && ui.screen === 'friend') fitFriend();
   fitTitle();
   if (toastMsg && toastShown !== toastMsg) { toastShown = toastMsg; toastAt = Date.now(); }
-  fitLegend(); fitCalendar(); fitTitles(); fitStato(); syncNav();
+  fitLegend(); fitCalendar(); fitTitles(); fitStato(); fitParty(); syncNav();
   if (S) { guideStart(); guideDraw(); }
   var k2 = root.querySelector('[data-keep]'); if (k2 && keep) k2.scrollTop = keepTop;
   var m2 = root.querySelector('.scroller'); if (m2 && main) m2.scrollTop = mainTop;
@@ -3575,7 +3604,7 @@ startupNotice();
   var sp = document.getElementById('splash'); if (!sp) return;
   var gone = false, end = function () { if (gone) return; gone = true; sp.classList.add('out'); setTimeout(function () { if (sp.parentNode) sp.parentNode.removeChild(sp); }, 320); };
   sp.addEventListener('click', end);
-  setTimeout(end, 2200);
+  setTimeout(end, 2950);
 })();
 /* all'apertura la pagina resta nascosta finché i font sono pronti (al massimo 0,7 s): niente lettere e misure che saltano */
 document.body.classList.add('boot');
@@ -3588,7 +3617,7 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v3.7.3';
+var APP_V = 'gesta-v3.7.4';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
