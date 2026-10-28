@@ -22,6 +22,18 @@ html,body{margin:0;height:100%;overflow:hidden;position:fixed;width:100%;backgro
 button,input,textarea{font:inherit;color:inherit}
 button{-webkit-user-select:none;user-select:none}
 body.boot #app{opacity:0}
+#splash{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:radial-gradient(120% 70% at 35% 18%,#1B2D57 0%,#0A1222 55%,#05080F 100%);transition:opacity .3s ease}
+#splash.out{opacity:0;pointer-events:none}
+#splash svg{width:132px;height:132px;overflow:visible}
+.sp-w,.sp-y{stroke-dasharray:100 100;stroke-dashoffset:100}
+.sp-w{animation:spdraw .62s cubic-bezier(.55,.1,.35,1) .12s forwards}
+.sp-y{animation:spdraw .2s cubic-bezier(.3,.6,.3,1) .74s forwards}
+.sp-g{animation:spglow .5s ease-out .9s forwards}
+.sp-word{font:700 22px/26px var(--fd);letter-spacing:8px;padding-left:8px;color:#EAF3FF;opacity:0;animation:spword .4s ease-out .95s forwards}
+@keyframes spdraw{to{stroke-dashoffset:0}}
+@keyframes spglow{0%{filter:drop-shadow(0 0 0 rgba(255,201,77,0))}40%{filter:drop-shadow(0 0 14px rgba(255,201,77,.75))}100%{filter:drop-shadow(0 0 6px rgba(255,201,77,.25))}}
+@keyframes spword{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.sp-w,.sp-y,.sp-g,.sp-word{animation-duration:.01s;animation-delay:0s}}
 #app{transition:opacity .2s ease;position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden}
 .scroller{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(env(safe-area-inset-top,0px) + 10px) max(18px,env(safe-area-inset-right,0px)) 12px max(18px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:12px}
 .nav{flex:0 0 auto;border-top:1px solid var(--line);background:#090F1B;display:flex;align-items:center;justify-content:space-around;padding:2px 40px max(4px,calc(env(safe-area-inset-bottom,0px) - 10px))}
@@ -529,7 +541,7 @@ function monthStatsRaw(y, m, cut) {
   var rk = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a] || ORDER.indexOf(a) - ORDER.indexOf(b); });
   var wkc = {}; keys.forEach(function (k) { var w = mondayOf(k); sessions(k).forEach(function (s) { wkc[w + s.sport] = (wkc[w + s.sport] || 0) + 1; }); });
   var wmax = function (sp) { var mx = 0; Object.keys(wkc).forEach(function (x) { if (x.slice(10) === sp) mx = Math.max(mx, wkc[x]); }); return mx; };
-  var top = rk[0] || null, second = rk.slice(1).filter(function (sp) { return counts[sp] >= 0.7 * counts[top] || wmax(sp) >= 3; })[0] || null, secWk = !!second && counts[second] < 0.7 * counts[top];
+  var top = rk[0] || null, second = rk.slice(1).filter(function (sp) { return counts[sp] >= 0.7 * counts[top] || (sp !== 'bon' && counts[sp] >= 3); })[0] || null, secWk = false;
   var title = titleOf(top, second);
   var hw = Object.keys(S.marks || {}).filter(function (k) { return k.indexOf(ymKey(y, m)) === 0; }).length;
   var weeksOk = 0, seen = {};
@@ -1315,7 +1327,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">XP, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.7.1</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.7.2</span>';
   return h;
 }
 
@@ -1446,7 +1458,7 @@ function viewOverlay() {
       '<div class="fld"><span class="lbl" style="font-size:11px">Rango di ogni sport</span><p>Ogni sessione vale <b>2 Punti Rango</b> (fino a 6 al mese). Una quest media riuscita <b>+0,5</b>, una difficile <b>+1</b>. B a 10 Punti Rango, A a 14, S a 16.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Quest</span><p>Tocca oggi sul calendario: Gesta propone tre sfide partendo dalla tua ultima volta. A fine sessione rispondi <b>Fatta?</b> sulla card in alto: col Sì lo sport si segna sul calendario e si aprono i dettagli.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Pianificare</span><p>Tocca un giorno da domani a fine mese (o fino a domenica, se la settimana passa al mese dopo): scegli lo sport e, se vuoi, la quest. Il numero preciso lo fissa Gesta quella mattina, partendo dalla tua ultima volta. Quel giorno la trovi in alto e rispondi <b>Fatta?</b>.</p><p>Puoi toglierla o cambiarla <b>fino alle 12</b> di quel giorno. Dopo resta: se quel giorno non fai sport, <b>−0,5 Punti Rango</b>. Se fai uno sport diverso il giorno conta e non perdi niente. Le quest scelte per oggi stesso non costano mai niente.</p><p>Puoi pianificare anche uno sport che non è tra i tuoi (tocca <b>Altro</b>): vale come <b>jolly</b>, senza quest.</p><p>Se ti scordi di rispondere, nessun problema: il giorno dopo Gesta te lo chiede appena apri l’app, per guanti e quest.</p></div>' +
-      '<div class="fld"><span class="lbl" style="font-size:11px">Titolo del mese</span><p>Viene dallo sport che hai fatto di più. Diventa doppio se un secondo sport arriva al 70% del primo, oppure se lo fai almeno 3 volte in una stessa settimana.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Titolo del mese</span><p>Viene dallo sport che hai fatto di più. Diventa doppio se un secondo sport arriva al 70% del primo, oppure se lo fai almeno 3 volte nel mese.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Badge della settimana</span><p>Uno per ogni giorno di sport da lunedì a domenica. Le frasi cambiano ogni settimana. Oltre i 5 giorni Gesta ti consiglia di riposare.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Hard Study/Work</span><p>Un segno sul calendario per le giornate di testa: giornate giustificate, con la scusa migliore. Non è sport e non dà né XP né Punti Rango.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Tratto del mese</span><p>Ogni sport allena uno o più tratti: <b>Forza</b>, <b>Agilità</b>, <b>Resistenza</b>, <b>Equilibrio</b>. Il tratto del mese è quello che hai allenato di più; il rombo ne mostra la forma, e la sua grandezza segue il rango. Il secondo tratto compare se arriva almeno a metà del primo: <b>non male anche</b> dal 50%, <b>notevole anche</b> dal 75%, <b>spalla a spalla</b> dall’80%.</p></div>' +
@@ -2380,7 +2392,7 @@ var GUIDE = {
   ],
   stato: [
     ['[data-a="rankOpen"]', 'Rango e livello', 'Il rango dice come va questo mese, il livello tutta la strada fatta. Tocca la scheda per i dettagli.'],
-    ['.ttlc', 'Il titolo del mese', 'Viene dallo sport che fai di più. Con un secondo sport forte diventa doppio.'],
+    ['.ttlc', 'Il titolo del mese', 'Viene dallo sport che fai di più. Se un secondo sport arriva ad almeno 3 volte nel mese, diventa doppio.'],
     ['.spc', 'I tuoi sport', 'Ognuno ha il suo rango. I più fatti del mese vengono prima: toccane uno per lo storico.'],
     ['.bachbtn', 'La bacheca', 'Medaglie che non si azzerano mai e salgono di lega. Molte sono segrete.']
   ],
@@ -2395,7 +2407,7 @@ var GUIDE = {
 function guideSeen(scr) { var g = S.seen.guide; return !!(g && g.v === GUIDE_V && g[scr]); }
 function guideMark(scr) { if (!S.seen.guide || S.seen.guide.v !== GUIDE_V) S.seen.guide = { v: GUIDE_V }; S.seen.guide[scr] = 1; save(); }
 function guideStart() {
-  if (!S || ui.ov || ui.coach || !GUIDE[ui.screen] || guideSeen(ui.screen) || !S.seen.intro) return;
+  if (!S || ui.ov || ui.coach || !GUIDE[ui.screen] || guideSeen(ui.screen) || S.seen.intro === false) return;
   ui.coach = { scr: ui.screen, i: 0 };
 }
 function guideDraw() {
@@ -3543,6 +3555,16 @@ document.addEventListener('visibilitychange', function () { if (!document.hidden
 
 autoClose();
 startupNotice();
+/* splash d'apertura (laboratorio 02): la G si disegna dal bianco alla barra d'oro, poi compare GESTA. Un tocco la salta */
+(function () {
+  var W = 'M73.38 36.50L50.00 23.00L26.62 36.50L26.62 63.50L50.00 77.00L73.38 63.50L73.38 51', Y = 'M73.38 51H53';
+  var sp = document.createElement('div'); sp.id = 'splash'; sp.setAttribute('aria-hidden', 'true');
+  sp.innerHTML = '<svg viewBox="0 0 100 100"><path d="' + W + '" fill="none" stroke="rgba(234,243,255,.10)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="' + Y + '" fill="none" stroke="rgba(234,243,255,.10)" stroke-width="7" stroke-linecap="round"/><g class="sp-g"><path class="sp-w" pathLength="100" d="' + W + '" fill="none" stroke="#EAF3FF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path class="sp-y" pathLength="100" d="' + Y + '" fill="none" stroke="#FFC94D" stroke-width="7" stroke-linecap="round"/></g></svg><span class="sp-word">GESTA</span>';
+  document.body.appendChild(sp);
+  var gone = false, end = function () { if (gone) return; gone = true; sp.classList.add('out'); setTimeout(function () { if (sp.parentNode) sp.parentNode.removeChild(sp); }, 320); };
+  sp.addEventListener('click', end);
+  setTimeout(end, 1500);
+})();
 /* all'apertura la pagina resta nascosta finché i font sono pronti (al massimo 0,7 s): niente lettere e misure che saltano */
 document.body.classList.add('boot');
 render();
@@ -3554,7 +3576,7 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v3.7.1';
+var APP_V = 'gesta-v3.7.2';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
