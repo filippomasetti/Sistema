@@ -1061,7 +1061,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">XP, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.7.7</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.7.8</span>';
   return h;
 }
 
@@ -2316,6 +2316,8 @@ function viewPList(kind) {
   h += '<span class="hint" style="padding:0 2px">' + list.length + (isF ? ' amici' : ' Gang') + ' · prima quelli con più scambi negli ultimi 10 giorni</span>';
   if (list.length > 8) h += '<input class="inp" data-f="pq" placeholder="Cerca per nome" autocomplete="off" enterkeyhint="search" value="' + esc(ui.pq || '') + '">';
   h += '<div style="display:flex;flex-direction:column;gap:8px" id="plist">' + list.map(function (x) { var nm = (isF ? x.n : x.name).toLowerCase(), hide = ui.pq && nm.indexOf(ui.pq.toLowerCase()) < 0; return '<div class="prow" data-n="' + esc(nm) + '"' + (hide ? ' hidden' : '') + '>' + (isF ? friendRow(x) : miniGang(x).replace('min-height:52px', 'min-height:60px;width:100%')) + '</div>'; }).join('') + '</div>';
+  h += isF ? '<div class="g2" style="gap:8px"><button class="btn main" data-a="' + (p.demo ? 'pInvite' : 'fAdd') + '" style="display:flex;align-items:center;justify-content:center;gap:6px">' + svg(PI.plus, null, 16) + 'Aggiungi</button><button class="btn" data-a="pInvite" style="display:flex;align-items:center;justify-content:center;gap:6px">' + svg(PI.letter, null, 16) + 'Invita</button></div>'
+    : '<button class="btn main" data-a="' + (FR.length ? 'gangNew' : 'gangNoFr') + '" style="display:flex;align-items:center;justify-content:center;gap:6px">' + svg(PI.plus, null, 16) + 'Crea una Gang</button>';
   return h;
 }
 function weekTrained(f) { var mon = mondayOf(todayKey()); for (var i = 0; i < 7; i++) { var k = addDays(mon, i); if (trainedOn(f, k)) return true; } return false; }
@@ -3336,7 +3338,7 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v3.7.7';
+var APP_V = 'gesta-v3.7.8';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
