@@ -1,6 +1,6 @@
 // Gesta — service worker: l'app funziona anche offline (palestra senza campo).
-const VERSION = 'gesta-v3.7.8';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './fonts/exo2.woff', './fonts/manrope.woff', './app.js?v=3.7.8'];
+const VERSION = 'gesta-v3.8.0';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './fonts/exo2.woff', './fonts/manrope.woff', './app.js?v=3.8.0'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
@@ -42,4 +42,21 @@ self.addEventListener('fetch', (e) => {
       return res;
     }).catch(() => hit))
   );
+});
+
+/* 3.8 · notifiche sul telefono */
+self.addEventListener('push', function (e) {
+  var d = {}; try { d = e.data ? e.data.json() : {}; } catch (x) { d = { body: e.data && e.data.text() }; }
+  e.waitUntil(self.registration.showNotification(d.title || 'Gesta', {
+    body: d.body || '', tag: d.tag || undefined, renotify: false,
+    icon: './icons/icon-192.png', badge: './icons/icon-192.png', data: { go: d.go || 'party' }
+  }));
+});
+self.addEventListener('notificationclick', function (e) {
+  e.notification.close();
+  var go = (e.notification.data && e.notification.data.go) || 'party';
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (cs) {
+    for (var i = 0; i < cs.length; i++) { if ('focus' in cs[i]) { cs[i].postMessage({ go: go }); return cs[i].focus(); } }
+    return self.clients.openWindow('./?go=' + go);
+  }));
 });

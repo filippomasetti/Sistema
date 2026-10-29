@@ -1061,7 +1061,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">XP, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.7.8</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.8.0</span>';
   return h;
 }
 
@@ -1176,6 +1176,10 @@ function viewOverlay() {
       var lc = chById(o.id); if (!lc) { ui.ov = null; return ''; } var lf = friend(lc.from === 'me' ? lc.to : lc.from);
       h = '<div class="' + cls + ' gold" style="gap:14px">' + whead('Ieri · ' + niceDate(o.k), true) + '<div style="border-radius:12px;border:1px solid ' + PGOLD + '8C;background:#14120A;padding:10px 14px;display:flex;align-items:center;gap:12px">' + sportIc(lc.sp, 28, true) + '<span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="lbl" style="color:#D9B04A;font-size:11px">' + (lc.from === 'me' ? 'Condivisa con ' : 'Guanto di ') + esc(lf.n) + '</span><span style="font:700 18px/22px var(--fd);text-transform:uppercase;color:var(--rew)">' + esc(chLabel(lc)) + '</span></span></div><p class="wtitle">Ce l’hai fatta?</p><p class="wtext" style="margin-top:-8px">Ieri non hai risposto: puoi farlo fino a stasera.</p><div class="acts"><button class="btn" data-a="gLose" data-v="' + lc.id + '">No</button><button class="btn main" data-a="gLate" data-v="' + lc.id + '" style="background:' + PGOLD + ';border-color:' + PGOLD + '">Sì, fatta</button></div></div>';
     }
+  } else if (o.t === 'pushask') {
+    h = '<div class="' + cls + '" style="gap:14px">' + whead('Notifiche', true) + '<p class="wtitle" style="margin-top:-4px">Cosa vuoi sapere subito?</p><p class="wtext" style="margin-top:-8px">Ora che hai amici nel Party, scegli tu cosa far arrivare sul telefono. Il resto aspetta in Novità.</p>' +
+      '<div class="card" style="padding:2px 12px;text-align:left">' + pushToggles() + '</div><p class="hint" style="margin:-4px 0 0;text-align:center">Una notifica per ogni cosa, mai ripetute. Le cambi quando vuoi nelle impostazioni del Party.</p>' +
+      '<div class="acts"><button class="btn" data-a="pushLater">Più tardi</button><button class="btn main" data-a="pushOn">Attiva</button></div></div>';
   } else if (o.t === 'hwok') {
     h = '<div class="' + cls + ' gold" style="text-align:center;gap:14px">' + whead('Hard Study/Work', true) +
       '<div style="align-self:center;width:76px;height:76px;border-radius:20px;border:1.5px solid rgba(255,201,77,.6);background:radial-gradient(circle at 50% 35%,rgba(255,201,77,.18),rgba(255,201,77,0) 70%);box-shadow:0 0 26px rgba(255,201,77,.25);display:flex;align-items:center;justify-content:center">' + svg(HW.ic, '#FFD978', 40) + '</div>' +
@@ -1202,6 +1206,7 @@ function viewOverlay() {
       '<div class="fld"><span class="lbl" style="font-size:11px">Gang</span><p>Un membro <b>fissa l’obiettivo</b> della Gang, uno al giorno, uguale per tutti. Vale se almeno un altro membro accetta, ed è superato se lo completano almeno 2 membri su 3: mezzo Punto Rango a tutti, fino a 3 al mese. Se lo completi anche tu, conta per il + del rango. Il <b>rango della Gang</b> sale solo con gli obiettivi superati: D a 1, C a 2, B a 4, A a 6, S a 8.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Il + del rango</span><p>Ogni rango ha il suo +: C+, B+, fino a S+. Lo prendi vincendo una quest social quando sei già in quel rango: un guanto di un amico che hai completato, o un obiettivo Gang che hai completato tu e che almeno un altro membro ha accettato. Va per soglie: se da D+ sali in C sei C, e per il + ti serve una nuova quest social da C. Senza amici sali lo stesso, ma senza +.</p><p>Si sale di <b>un gradino al giorno</b> (un rango pieno o un +): se oggi sei già salito, il gradino dopo scatta domani alla prima sessione. Non vale l’ultimo giorno del mese, e A+, S e S+ scattano sempre.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Cinque</span><p>Un applauso a un amico, uno a settimana per amico. Non dà né XP né Punti Rango: fa solo piacere.</p></div>' +
+      (VAPID_PUB ? '<div class="fld"><span class="lbl" style="font-size:11px">Notifiche</span><p>Con Gesta aggiunta alla schermata Home possono arrivarti sul telefono guanti, sfide chiuse, richieste di amicizia, obiettivi della Gang e cinque. Scegli tu quali nelle impostazioni del Party. Una sola notifica per ogni cosa: pianificare non avvisa nessuno.</p></div>' : '') +
       '<div class="fld"><span class="lbl" style="font-size:11px">XP e livello</span><p>Ogni sessione dà 10 XP, una quest riuscita da 5 a 20 in più, una stella 5, un guanto completato 15. Il livello cresce e non si perde mai.</p></div>' +
       '</div><div class="acts"><button class="btn" data-a="guideAgain">Rivedi la guida</button><button class="btn main" data-a="close">Ho capito</button></div></div>';
   } else if (o.t === 'qask') {
@@ -2170,6 +2175,11 @@ function lateItems() {
   if (partyLive()) myCh().forEach(function (c) { if (!c.gang && c.day === y && c.st === 'accepted' && !c.me && !c.myNo && (c.to === 'me' || c.shared) && friend(c.from === 'me' ? c.to : c.from)) out.push({ kind: 'glove', k: y, id: c.id, key: 'g' + c.id }); });
   return out;
 }
+function pushAsk() {
+  if (!S || ui.ov || ui.coach || ui.screen !== 'party' || !S.party || S.party.demo || S.seen.pushAsk || !RF.length || !isStandalone()) return;
+  if (pushState() !== 'off' || Notification.permission !== 'default') return;
+  S.seen.pushAsk = 1; save(); ui.ov = { t: 'pushask' }; ding('open');
+}
 function lateQueue() {
   if (!S || ui.ov || ui.screen !== 'home') return;
   ui.lateSeen = ui.lateSeen || {};
@@ -2316,8 +2326,8 @@ function viewPList(kind) {
   h += '<span class="hint" style="padding:0 2px">' + list.length + (isF ? ' amici' : ' Gang') + ' · prima quelli con più scambi negli ultimi 10 giorni</span>';
   if (list.length > 8) h += '<input class="inp" data-f="pq" placeholder="Cerca per nome" autocomplete="off" enterkeyhint="search" value="' + esc(ui.pq || '') + '">';
   h += '<div style="display:flex;flex-direction:column;gap:8px" id="plist">' + list.map(function (x) { var nm = (isF ? x.n : x.name).toLowerCase(), hide = ui.pq && nm.indexOf(ui.pq.toLowerCase()) < 0; return '<div class="prow" data-n="' + esc(nm) + '"' + (hide ? ' hidden' : '') + '>' + (isF ? friendRow(x) : miniGang(x).replace('min-height:52px', 'min-height:60px;width:100%')) + '</div>'; }).join('') + '</div>';
-  h += isF ? '<div class="g2" style="gap:8px"><button class="btn main" data-a="' + (p.demo ? 'pInvite' : 'fAdd') + '" style="display:flex;align-items:center;justify-content:center;gap:6px">' + svg(PI.plus, null, 16) + 'Aggiungi</button><button class="btn" data-a="pInvite" style="display:flex;align-items:center;justify-content:center;gap:6px">' + svg(PI.letter, null, 16) + 'Invita</button></div>'
-    : '<button class="btn main" data-a="' + (FR.length ? 'gangNew' : 'gangNoFr') + '" style="display:flex;align-items:center;justify-content:center;gap:6px">' + svg(PI.plus, null, 16) + 'Crea una Gang</button>';
+  h += isF ? '<div class="g2" style="gap:8px"><button class="btn main" data-a="' + (p.demo ? 'pInvite' : 'fAdd') + '" style="display:flex;align-items:center;justify-content:center;gap:6px;height:40px;font-size:12px">' + svg(PI.plus, null, 16) + 'Aggiungi</button><button class="btn" data-a="pInvite" style="display:flex;align-items:center;justify-content:center;gap:6px;height:40px;font-size:12px">' + svg(PI.letter, null, 16) + 'Invita</button></div>'
+    : '<button class="btn main" data-a="' + (FR.length ? 'gangNew' : 'gangNoFr') + '" style="display:flex;align-items:center;justify-content:center;gap:6px;height:40px;font-size:12px">' + svg(PI.plus, null, 16) + 'Crea una Gang</button>';
   return h;
 }
 function weekTrained(f) { var mon = mondayOf(todayKey()); for (var i = 0; i < 7; i++) { var k = addDays(mon, i); if (trainedOn(f, k)) return true; } return false; }
@@ -2340,11 +2350,49 @@ function viewLetters() {
   return h;
 }
 function pToggle(key, t, s, on, lock) { return '<button class="toggle"' + (lock ? ' disabled style="opacity:.55"' : ' data-a="pTg" data-v="' + key + '"') + '><span style="display:flex;flex-direction:column;gap:2px"><span style="font:600 15px/20px var(--fb)">' + t + '</span>' + (s ? '<span class="hint" style="font-size:11.5px">' + s + '</span>' : '') + '</span><span class="sw' + (on ? ' on' : '') + '"></span></button>'; }
+/* ---------- 3.8: notifiche sul telefono ----------
+   La chiave pubblica VAPID la crea Filippo (laboratorio chiavi); la privata sta solo nei secret di Supabase. */
+var VAPID_PUB = '';
+var PUSH_K = [['glove', 'Guanti ricevuti', 'Un amico ti sfida o ti propone una modifica'], ['won', 'Sfide chiuse', 'Quando un amico completa la tua'], ['req', 'Richieste di amicizia', ''], ['gang', 'Obiettivi della Gang', 'Quando qualcuno ne fissa uno'], ['five', 'Cinque ricevuti', '']];
+function pushPrefs() { var p = P(), d = { glove: true, won: true, req: true, gang: true, five: false }; if (!p) return d; p.set.push = p.set.push || d; Object.keys(d).forEach(function (k) { if (p.set.push[k] === undefined) p.set.push[k] = d[k]; }); return p.set.push; }
+function isStandalone() { try { return !!(navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches)); } catch (e) { return false; } }
+function pushCan() { return !!(VAPID_PUB && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && cauth && cloudOn()); }
+function pushState() { if (!pushCan()) return 'no'; if (Notification.permission === 'denied') return 'denied'; return Notification.permission === 'granted' && P() && P().pushOn ? 'on' : 'off'; }
+function u8(b64) { var p = '='.repeat((4 - b64.length % 4) % 4), s = atob((b64 + p).replace(/-/g, '+').replace(/_/g, '/')), o = new Uint8Array(s.length); for (var i = 0; i < s.length; i++) o[i] = s.charCodeAt(i); return o; }
+function pushSave(sub) {
+  var j = sub.toJSON ? sub.toJSON() : sub;
+  return authFresh().then(function () { return sbFetch('/rest/v1/push_subscriptions?on_conflict=user_id,endpoint', { method: 'POST', prefer: 'resolution=merge-duplicates,return=minimal', body: { user_id: cauth.uid, endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth, prefs: pushPrefs(), updated_at: new Date().toISOString() } }); });
+}
+/* va chiamata direttamente dal tocco: iPhone chiede il permesso solo dopo un gesto */
+function pushEnable() {
+  if (!pushCan()) return Promise.reject('no');
+  return Notification.requestPermission().then(function (perm) {
+    if (perm !== 'granted') throw 'denied';
+    return navigator.serviceWorker.ready;
+  }).then(function (reg) {
+    return reg.pushManager.getSubscription().then(function (s) { return s || reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: u8(VAPID_PUB) }); });
+  }).then(function (sub) { return pushSave(sub); }).then(function () { P().pushOn = true; save(); });
+}
+function pushPrefsSync() { if (pushState() !== 'on') return; authFresh().then(function () { return sbFetch('/rest/v1/push_subscriptions?user_id=eq.' + cauth.uid, { method: 'PATCH', prefer: 'return=minimal', body: { prefs: pushPrefs(), updated_at: new Date().toISOString() } }); }).catch(function () {}); }
+/* ad ogni apertura: se il permesso c'è, l'iscrizione resta fresca nel cloud */
+function pushRefresh() { if (pushState() !== 'on') return; navigator.serviceWorker.ready.then(function (reg) { return reg.pushManager.getSubscription(); }).then(function (s) { if (s) return pushSave(s); P().pushOn = false; save(); }).catch(function () {}); }
+function pushToggles(cls) { var pr = pushPrefs(); return PUSH_K.map(function (k) { return '<button class="toggle" data-a="pushTg" data-v="' + k[0] + '" style="min-height:50px;padding-block:5px"><span style="display:flex;flex-direction:column;gap:2px"><span style="font:600 15px/20px var(--fb)">' + k[1] + '</span>' + (k[2] ? '<span class="hint" style="font-size:11.5px">' + k[2] + '</span>' : '') + '</span><span class="sw' + (pr[k[0]] ? ' on' : '') + '"></span></button>'; }).join(''); }
+function pushSection() {
+  var st = pushState(), h = '<div class="card" style="padding:4px 12px">' + pSec('Notifiche sul telefono', st === 'on' ? 'attive' : '');
+  if (!VAPID_PUB) return '';
+  if (!cauth) return h + '<p class="hint" style="margin:4px 2px 10px">Collega la tua email per riceverle.</p></div>';
+  if (!('PushManager' in window) || !('Notification' in window)) return h + '<p class="hint" style="margin:4px 2px 10px">' + (!isStandalone() && /iphone|ipad/i.test(navigator.userAgent) ? 'Su iPhone arrivano solo con Gesta aggiunta alla schermata Home: aprila dall’icona.' : 'Questo browser non le supporta.') + '</p></div>';
+  h += pushToggles();
+  if (st === 'denied') h += '<p class="hint" style="margin:4px 2px 10px">Le hai bloccate. Per riattivarle: Impostazioni del telefono › Notifiche › Gesta.</p>';
+  else if (st !== 'on') h += '<button class="btn sm main" data-a="pushOn" style="width:100%;margin:6px 0 10px">Attiva le notifiche</button>';
+  return h + '</div>';
+}
 function viewPSettings() {
   var p = P(), st = p.set, h = pBack('Party', 'Impostazioni', 'party');
   h += '<p class="hint" style="margin:0;padding:0 2px">Gli amici vedono solo il positivo: i giorni senza sport non esistono.</p>';
   h += '<div class="card" style="padding:4px 12px">' + pSec('Sempre', '') + pToggle('', 'Rango, livello, titolo e tratto', '', true, true) + pToggle('', 'Bacheca e medaglie prese', '', true, true) + pToggle('', 'Giorni allenati, come puntini', 'Solo il colore dello sport', true, true) + '</div>';
   h += '<div class="card" style="padding:4px 12px">' + pSec('A scelta', '') + pToggle('q', 'Quest del giorno', 'E se l’hai completata', st.q) + pToggle('det', 'Dettagli delle sessioni', 'Pesi, km, tempi', st.det) + pToggle('rec', 'Card del recap', 'La condividi tu quando vuoi', st.rec) + '</div>';
+  h += pushSection();
   if (DEMO_ON) h += '<div class="card" style="padding:4px 12px">' + pSec('Modalità prova', '') + pToggle('demo', 'Amici finti', 'Per provare il Party prima del cloud', p.demo) + '<button class="btn sm" data-a="pReset" style="width:100%;margin:6px 0 10px">Ricomincia la prova</button></div>';
   return h;
 }
@@ -2477,6 +2525,9 @@ var PA = {
     if (navigator.share) { navigator.share({ title: 'Gesta', text: txt }).catch(function () {}); return; }
     try { navigator.clipboard.writeText(txt).then(function () { toast('Invito copiato: incollalo dove vuoi.'); }, function () { toast(txt); }); } catch (e) { toast(txt); }
   },
+  pushTg: function (k) { var pr = pushPrefs(); pr[k] = !pr[k]; save(); ding('tap'); pushPrefsSync(); render(); },
+  pushOn: function () { ding('tap'); pushEnable().then(function () { ui.ov = null; toast('Notifiche attive.'); render(); }, function (e) { ui.ov = null; toast(e === 'denied' ? 'Notifiche non permesse: puoi attivarle dalle impostazioni del telefono.' : 'Non riesco ad attivarle adesso: riprova tra poco.'); render(); }); },
+  pushLater: function () { ui.ov = null; ding('tap'); toast('Va bene. Le trovi nelle impostazioni del Party.'); render(); },
   pTg: function (k) { var p = P(); if (k === 'demo') p.demo = !p.demo; else p.set[k] = !p.set[k]; save(); ding('tap'); render(); },
   pReset: function () { delete S.party; partyInit(); ding('tap'); toast('Prova ricominciata: Marco ti ha appena lanciato un guanto.'); },
   gangNew: function () { if (!P().demo && !RF.length) { A.gangNoFr(); return; } ui.ov = { t: 'gangNew', name: '', col: 0, mem: {} }; ding('open'); render(); },
@@ -2565,7 +2616,7 @@ function viewFCal(o, cls) {
   days.forEach(function (x) { if (x.sp) used[x.sp] = 1; if (x.pl) used[x.pl] = 1; var fut = x.k > todayKey(); g += '<span style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 0"><span style="font:600 12px/14px var(--fd);color:' + (x.k === todayKey() ? 'var(--ink)' : fut ? '#3A4866' : 'var(--mut)') + '">' + x.d + '</span>' + (x.sp ? '<i style="display:block;width:14px;height:14px;border-radius:7px;background:' + SPORTS[x.sp].c + ';box-shadow:0 0 8px ' + SPORTS[x.sp].c + '"></i>' : x.pl ? '<i style="display:block;box-sizing:border-box;width:14px;height:14px;border-radius:7px;border:1.5px dashed ' + (x.pg ? PGOLD : SPORTS[x.pl].c) + '"></i>' : '<i style="display:block;width:14px;height:14px;border-radius:7px;border:1px ' + (fut ? 'dashed #1E2A42' : 'solid #1E2A42') + '"></i>') + '</span>'; });
   g += '</div>';
   var leg = '<div style="display:flex;flex-wrap:wrap;gap:8px 16px">' + Object.keys(used).map(function (s) { return '<span style="display:flex;align-items:center;gap:6px;font:500 13px/18px var(--fb);color:var(--soft)">' + sportIc(s, 16, true) + SPORTS[s].name + '</span>'; }).join('') + '</div>';
-  return '<div class="' + cls + '">' + whead(f.n + ' · ' + MONTHS[m], true) + '<div class="card" style="padding:8px 10px">' + g + '</div>' + leg + (plans.length ? '<div class="card" style="padding:8px 12px;display:flex;flex-direction:column;gap:6px"><span class="lbl" style="font-size:10.5px">In programma</span>' + plans.map(function (x) { return '<span style="display:flex;align-items:center;gap:8px;font:600 13px/18px var(--fb)"><i style="display:block;box-sizing:border-box;width:12px;height:12px;border-radius:6px;border:1.5px dashed ' + (x.pg ? PGOLD : SPORTS[x.pl].c) + '"></i>' + dayShort(x.k).charAt(0).toUpperCase() + dayShort(x.k).slice(1) + ' · ' + SPORTS[x.pl].name + (x.pg ? '<span class="hint" style="font-size:11px">guanto</span>' : '') + '<button class="btn sm" data-a="launchOn" data-v="' + f.id + '|' + x.k + '|' + x.pl + '" style="margin-left:auto;height:30px;padding:0 10px;font-size:10.5px;display:flex;align-items:center;gap:5px;border-color:' + PGOLD + '8C;color:var(--rew)">' + svg(PI.glove, PGOLD, 14) + 'Sfida</button></span>'; }).join('') + '<span class="hint" style="font-size:11.5px">Tratteggiato: in programma. Buon momento per sfidarlo.</span></div>' : '') + '<p class="hint" style="margin:0">Solo gli sport, niente prestazioni.</p></div>';
+  return '<div class="' + cls + '">' + whead(f.n + ' · ' + MONTHS[m], true) + '<div class="card" style="padding:8px 10px">' + g + '</div>' + leg + (plans.length ? '<div class="card" style="padding:8px 12px;display:flex;flex-direction:column;gap:6px"><span class="lbl" style="font-size:10.5px">In programma</span>' + plans.map(function (x) { return '<span style="display:flex;align-items:center;gap:8px;font:600 13px/18px var(--fb)"><i style="display:block;box-sizing:border-box;width:12px;height:12px;border-radius:6px;border:1.5px dashed ' + (x.pg ? PGOLD : SPORTS[x.pl].c) + '"></i>' + dayShort(x.k).charAt(0).toUpperCase() + dayShort(x.k).slice(1) + ' · ' + SPORTS[x.pl].name + (x.pg ? '<span class="hint" style="font-size:11px">guanto</span>' : '') + '<button class="btn sm" data-a="launchOn" data-v="' + f.id + '|' + x.k + '|' + x.pl + '" style="margin-left:auto;height:30px;padding:0 10px;font-size:10.5px;display:flex;align-items:center;gap:5px;border-color:' + PGOLD + '8C;color:var(--rew)">' + svg(PI.glove, PGOLD, 14) + 'Sfida</button></span>'; }).join('') + '<span class="hint" style="font-size:11.5px">Tratteggiato: in programma. Buon momento per sfidarlo.</span></div>' : '') + '</div>';
 }
 function chOut(c, who) {
   var t = todayKey(), me = who === 'me';
@@ -2996,6 +3047,9 @@ function cloudPush() {
   }).then(function () { syncBusy = false; cloudMeta({ ok: Date.now(), err: null }); if (syncPending) { syncPending = false; cloudDirty(); } if (ui.screen === 'settings') render(); })
     .catch(function (e) { syncBusy = false; cloudMeta({ err: e.message || String(e) }); if (e.status === 401 || e.status === 403) { /* sessione scaduta */ } if (ui.screen === 'settings') render(); });
 }
+/* dal tocco su una notifica: ?go=letters o ?go=party */
+(function () { try { var m = location.search.match(/[?&]go=(letters|party)/); if (m) { ui.goTo = m[1]; history.replaceState(null, '', location.pathname); } } catch (e) {} })();
+if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', function (e) { if (e.data && e.data.go && S && S.party) { ui.ov = null; ui.screen = e.data.go; render(); } });
 /* invito col link: ?invito=<token> → appena sei dentro diventate amici */
 (function () { try { var m = location.search.match(/[?&]invito=([0-9a-fA-F-]{36})/); if (m) { localStorage.setItem('gesta.invite', m[1]); history.replaceState(null, '', location.pathname); } } catch (e) {} })();
 function pendingInvite() { try { return localStorage.getItem('gesta.invite'); } catch (e) { return null; } }
@@ -3207,7 +3261,7 @@ function render() {
     if (!ui.ov && !ui.rkq && ui.tq) { ui.ov = { t: 'newtitle', tt: ui.tq.t, why: ui.tq.why, was: ui.tq.was, k: ui.tq.t }; ui.tq = null; ding('reward'); }
     if (!ui.ov && ui.rkq) { ui.ov = { t: 'rankup', r: ui.rkq.r, plus: ui.rkq.plus, k: ui.rkq.r + ui.rkq.plus }; ui.rkq = null; rankSound(); buzz([40, 50, 40, 50, 140]); }
     if (!ui.ov && ui.mq && ui.mq.length) { if (!ui.mqTot || ui.mqN >= ui.mqTot) { ui.mqTot = ui.mq.length; ui.mqN = 0; } var q = ui.mq.shift(); ui.mqN++; ui.ov = { t: 'medal', id: q.id, tr: q.t, n: ui.mqN, tot: ui.mqTot }; if (!ui.mq.length) { ui.mqTot = 0; } medalSound(); }
-    gloveQueue(); lateQueue();
+    gloveQueue(); lateQueue(); pushAsk();
     var body = ui.screen === 'party' ? viewParty() : ui.screen === 'friend' ? viewFriend() : ui.screen === 'letters' ? viewLetters() : ui.screen === 'pfriends' ? viewPList('f') : ui.screen === 'pgangs' ? viewPList('g') : ui.screen === 'psettings' ? viewPSettings() : ui.screen === 'gang' ? viewGang() : ui.screen === 'sfide' ? viewSfide() : ui.screen === 'stato' ? viewStato() : ui.screen === 'settings' ? viewSettings() : ui.screen === 'bacheca' ? viewBacheca() : viewHome();
     if (!ui.ov) lastAnim.ov = null;
     if (ui.screen !== 'home') lastAnim.card = null;
@@ -3321,6 +3375,8 @@ document.addEventListener('visibilitychange', function () { if (!document.hidden
 
 autoClose();
 startupNotice();
+if (ui.goTo && S && S.party) { ui.screen = ui.goTo; } ui.goTo = null;
+setTimeout(pushRefresh, 4000);
 /* splash d'apertura (laboratorio 02): la G si disegna dal bianco alla barra d'oro, poi compare GESTA. Un tocco la salta */
 (function () {
   var sp = document.getElementById('splash'); if (!sp) return;
@@ -3338,7 +3394,7 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v3.7.8';
+var APP_V = 'gesta-v3.8.0';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
