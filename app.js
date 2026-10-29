@@ -142,7 +142,7 @@ var MSHORT = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ot
 var DAYS_SHORT = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
 // Rango del mese: 2 punti per giorno attivo, +1 se quel giorno hai completato una quest. Giorni contati fino a 16.
 // [rango, punti, stelle richieste nel mese]
-var RANKS = [['S', 46, 1], ['A', 36, 0], ['B', 24, 0], ['C', 16, 0], ['D', 8, 0], ['E', 0, 0]];
+var RANKS = [['S', 58, 1], ['A', 50, 0], ['B', 36, 0], ['C', 24, 0], ['D', 12, 0], ['E', 0, 0]];
 var DAY_CAP = 16;
 // Rango del singolo sport: 2 punti a sessione (fino a 6 al mese), +1 per quest riuscita.
 var SPORT_RANKS = [['S', 16], ['A', 14], ['B', 10], ['C', 6], ['D', 2], ['E', 0]];
@@ -247,7 +247,7 @@ function dayPts(k) { var m = 0; sessions(k).forEach(function (s) { m = Math.max(
 function totalXp() { var x = 0; Object.keys(S.days).forEach(function (k) { S.days[k].forEach(function (s) { x += sessXp(s); }); }); return x + (S.party ? gloveXp() : 0); }
 function levelInfo(xp) { var lv = 1, need = 100; while (xp >= need) { xp -= need; lv++; need = 100 + 50 * (lv - 1); } return { lv: lv, inLv: xp, need: need }; }
 function levelOf(xp) { return levelInfo(xp).lv; }
-/* 3.9.2: le tue Gesta = i giorni di sport da quando hai iniziato. Prendono il posto di XP e livello */
+/* 3.9.3: le tue Gesta = i giorni di sport da quando hai iniziato. Prendono il posto di XP e livello */
 var GMS = [10, 25, 50, 100, 200, 365, 500, 1000];
 function gestaN() { return S ? allKeysSorted().length : 0; }
 function gestaSince(short) { var k = allKeysSorted()[0]; if (!k) return ''; var d = parseKey(k); return (short ? MSHORT[d.getMonth()] : MONTHS[d.getMonth()].toLowerCase()) + ' ' + d.getFullYear(); }
@@ -271,13 +271,14 @@ function monthStatsRaw(y, m, cut) {
     sessions(k).forEach(function (s) {
       counts[s.sport] = (counts[s.sport] || 0) + 1; n++;
       if (s.star) stars++;
+      if (!s.quest) { var nq = noQTop(s); if (nq) { dq = true; best = Math.max(best, nq); } }
       if (s.quest && s.quest.done !== null && s.quest.done !== undefined) { qt++; if (s.quest.done) { qd++; dq = true; best = Math.max(best, qPts(s)); if ((sportQn[s.sport] || 0) < SPORT_CAP) { sportQn[s.sport] = (sportQn[s.sport] || 0) + 1; sportQ[s.sport] = (sportQ[s.sport] || 0) + qPts(s); } } }
     });
     if (dq) { qDays++; qSum += best; }
   });
-  var cp = S.party ? chPoints(ymKey(y, m), cut) : { splus: 0, pts: 0, wins: [], lost: 0 }, gw = cp.splus, pen = 0, pk = planKept(y, m, cut); qSum = qSum + cp.pts + pk * PLAN_B;
+  var cp = S.party ? chPoints(ymKey(y, m), cut) : { splus: 0, pts: 0, wins: [], lost: 0 }, gw = cp.splus, pen = 0, pk = planKept(y, m, cut), soc = cp.pts + pk * PLAN_B;
   /* i guanti accettati e non chiusi si tolgono dal totale del mese; i piani invece danno solo un piccolo premio */
-  var pts = Math.max(0, monthPts(keys.length, qSum)), sportPts = {};
+  var pts = Math.max(0, monthPts(keys.length, qSum, soc)), sportPts = {};
   Object.keys(counts).forEach(function (sp) { sportPts[sp] = Math.min(counts[sp], SPORT_CAP) * 2 + (sportQ[sp] || 0); });
   var rk = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a] || ORDER.indexOf(a) - ORDER.indexOf(b); });
   var wkc = {}; keys.forEach(function (k) { var w = mondayOf(k); sessions(k).forEach(function (s) { wkc[w + s.sport] = (wkc[w + s.sport] || 0) + 1; }); });
@@ -290,7 +291,7 @@ function monthStatsRaw(y, m, cut) {
   Object.keys(seen).forEach(function (w) { if (seen[w] >= 2) weeksOk++; });
   var first = new Date(y, m, 1), last = new Date(y, m + 1, 0), wTot = {};
   for (var d = new Date(first); d <= last; d.setDate(d.getDate() + 1)) wTot[mondayOf(keyOf(d))] = 1;
-  return { keys: keys, days: keys.length, qDays: qDays, qSum: qSum, stars: stars, pts: pts, rank: rankOf(pts, RANKS, stars), plus: !cut && plusOf(y, m, rankOf(pts, RANKS, stars), cp.wins), wins: cp.wins, gloves: gw, counts: counts, sportPts: sportPts, sessions: n, top: top, second: second, title: title, qd: qd, qt: qt, weeksOk: weeksOk, weeksTot: Object.keys(wTot).length, hw: hw, pen: pen, pk: pk, glost: cp.lost || 0, secWk: secWk, ptsNoPen: Math.max(0, monthPts(keys.length, qSum + pen + (cp.lost || 0) * GPTS)) };
+  return { keys: keys, days: keys.length, qDays: qDays, qSum: qSum, stars: stars, pts: pts, rank: rankOf(pts, RANKS, stars), plus: !cut && plusOf(y, m, rankOf(pts, RANKS, stars), cp.wins), wins: cp.wins, gloves: gw, counts: counts, sportPts: sportPts, sessions: n, top: top, second: second, title: title, qd: qd, qt: qt, weeksOk: weeksOk, weeksTot: Object.keys(wTot).length, hw: hw, pen: pen, pk: pk, soc: soc, glost: cp.lost || 0, secWk: secWk, ptsNoPen: Math.max(0, monthPts(keys.length, qSum, soc + pen + (cp.lost || 0) * GPTS)) };
 }
 /* il + del rango: una quest social vinta quando eri già in quel rango (il rango prima di quella quest, nello stesso giorno, è quello attuale) */
 function plusOf(y, m, rank, wins) {
@@ -319,7 +320,11 @@ function stepRank(y, m, full) {
   L = Math.min(L, full);
   stepCache = { k: ck, v: L }; return L;
 }
-function monthPts(days, qSum) { return Math.min(days, DAY_CAP) * 2 + Math.min(qSum, DAY_CAP); }
+/* 3.9.3: i giorni pesano di più. Giorno 3 punti (fino a 16), quest fino a 8, social e piani a parte fino a 6 */
+var DAY_PTS = 3, Q_CAP = 8, SOC_CAP = 6;
+function monthPts(days, qSum, soc) { return Math.min(days, DAY_CAP) * DAY_PTS + Math.min(qSum, Q_CAP) + Math.min(soc || 0, SOC_CAP); }
+/* gli sport senza quest: una sessione Top (o lunga un'ora, per le lezioni) vale come una quest media */
+function noQTop(s) { var qt = qType(s.sport); if (qt !== 'sat' && qt !== 'none' && qt !== 'bon') return 0; var d = s.d || {}; return (qt === 'sat' ? (d.sat === 3 || d.min >= 60) : !!s.star) ? 0.5 : 0; }
 function rankBand(ms) {
   var i = RANKS.map(function (r) { return r[0]; }).indexOf(ms.rank), lo = RANKS[i][1], hi = i > 0 ? RANKS[i - 1][1] : null;
   if (hi === null) return { pct: 100, lbl: ms.rank + ' · ' + num(ms.pts), lo: lo, hi: null };
@@ -337,7 +342,7 @@ function viewRankSheet(cls) {
   var h = '<div class="' + cls + ' tall" style="gap:12px">' + whead('Rango e Gesta', true) + '<div class="wbody" data-keep style="gap:12px">';
   h += '<div class="card" style="padding:12px 14px;display:flex;flex-direction:column;gap:9px;text-align:left"><div style="display:flex;align-items:center;gap:12px"><span style="display:flex;flex:0 0 auto">' + rkHex(ms.rank, 54, ms.plus) + '</span><span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px"><span class="lbl" style="font-size:11px">Rango del mese</span><span style="font:700 16px/21px var(--fd)">' + goal + '</span></span></div>' +
     bar(rb.pct, '#3BA7FF', rb.hi ? num(ms.pts) + ' / ' + rb.hi + ' Punti Rango' : num(ms.pts) + ' Punti Rango') +
-    chips(['Giorno di sport +2', 'Quest media +0,5', 'Difficile +1', 'Guanto vinto +0,5', 'Piano rispettato +¼' + (ms.pk ? ' · ' + ms.pk + ' di ' + PLAN_MAX : '')]) +
+    chips(['Giorno di sport +3', 'Quest media +0,5', 'Difficile +1', 'Quest fino a 8', 'Guanto vinto +0,5', 'Piano rispettato +¼', 'Social e piani fino a 6' + (ms.pk ? ' · ' + ms.pk + ' di ' + PLAN_MAX : '')]) +
     (penN ? '<div style="border-radius:10px;border:1px solid rgba(255,178,122,.35);background:rgba(255,178,122,.06);padding:9px 11px;display:flex;flex-direction:column;gap:2px"><span style="font:600 13px/18px var(--fb);color:#FFCFA8">−' + num(penN) + (penN === 1 ? ' Punto Rango' : ' Punti Rango') + ' questo mese</span><span class="hint">' + why.join(' · ') + '.' + (noPen !== ms.rank ? ' Senza, saresti ' + noPen + '.' : '') + ' Si risale con le sessioni.</span></div>' : '') +
     '<span class="hint">' + (pj && !pj.early ? (pj.rank === ms.rank ? 'Al tuo ritmo resti ' + ms.rank + '. ' : 'Al tuo ritmo chiudi in ' + pj.rank + '. ') : '') + 'Si azzera ogni mese: dice come stai andando adesso.</span></div>';
   var gS = gestaN(), gNext = GMS.filter(function (x) { return x > gS; })[0];
@@ -372,7 +377,7 @@ function projection(y, m, ms) {
   if (y !== nd.getFullYear() || m !== nd.getMonth()) return null;
   if (el < 8) return { early: true };
   var f = len / el, pd = Math.min(len, Math.round(ms.days * f)), pq = Math.min(pd, Math.round(ms.qSum * f * 2) / 2), ps = Math.round(ms.stars * f);
-  var r = rankOf(monthPts(pd, pq), RANKS, ps), order = 'SABCDE';
+  var r = rankOf(monthPts(pd, pq, (ms.soc || 0) * f), RANKS, ps), order = 'SABCDE';
   if (order.indexOf(r) > order.indexOf(ms.rank)) r = ms.rank;
   return { rank: r };
 }
@@ -403,7 +408,7 @@ function planEnd() { var t = todayKey(), d = parseKey(t), eom = keyOf(new Date(d
 function canPlan(k) { return k > todayKey() && k <= planEnd(); }
 /* fissato in anticipo: deciso prima di quel giorno. Da mezzogiorno di quel giorno non si toglie più */
 function planEarly(k, p) { return p.at < parseKey(k).getTime(); }
-/* 3.9.2: i piani non si bloccano più e non costano niente */
+/* 3.9.3: i piani non si bloccano più e non costano niente */
 function planFixed(k, p) { return false; }
 function planMissed(k, p) { return !!p && planEarly(k, p) && !sessions(k).length && (k < addDays(todayKey(), -1) || !!p.miss); }
 /* piano rispettato: deciso prima e fatto quel giorno. +¼ di Punto Rango, al massimo 4 volte al mese */
@@ -1072,7 +1077,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">Ranghi, Gesta e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.9.2</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.9.3</span>';
   return h;
 }
 
@@ -1119,7 +1124,7 @@ function viewOverlay() {
     var s = findSession(o.k, o.id);
     h = '<div class="' + cls + '">' + whead('Verifica', true) + '<p class="wtitle">Obiettivo raggiunto?</p><p class="wtext">' + esc(s ? goalText(s) : '') + '</p><div class="acts"><button class="btn" data-a="verify" data-v="0">Non oggi</button><button class="btn main" data-a="verify" data-v="1">Sì</button></div></div>';
   } else if (o.t === 'reward') {
-    /* 3.9.2: un solo riepilogo a fine sessione. Le voci si accendono una dopo l'altra; oltre 5 si scorre */
+    /* 3.9.3: un solo riepilogo a fine sessione. Le voci si accendono una dopo l'altra; oltre 5 si scorre */
     var rows = [], rrow = function (ic, t, sub, col) { rows.push('<div class="rrow" style="--rc:' + col + ';--i:' + rows.length + '"><span class="rri">' + ic + '</span><span style="display:flex;flex-direction:column;min-width:0;text-align:left"><span style="font:700 14px/18px var(--fd);letter-spacing:.5px;color:var(--ink)">' + t + '</span><span class="hint" style="font-size:11.5px">' + sub + '</span></span></div>'); };
     if (o.pk) rrow(svg(IC.cal || PI.glove, '#7CC4FF', 20), 'Parola mantenuta', 'Era in programma: +¼ di Punto Rango', '#7CC4FF');
     if (o.gms) rrow('<b style="font:700 12px/1 var(--fd);color:#7CC4FF">N°</b>', o.gms + ' Gesta', o.gms === 365 ? 'Un anno di Gesta, tutto tuo' : 'Una Gesta tonda', '#3BA7FF');
@@ -1183,7 +1188,7 @@ function viewOverlay() {
     var pn = planAt(o.k), pfx = pn && planEarly(o.k, pn) && planFixed(o.k, pn);
     var op = function (a, t1, t2) { return '<button class="card" data-a="' + a + '" data-v="' + o.k + '" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:12px 14px;text-align:left;color:var(--ink);width:100%"><span style="font:600 15px/20px var(--fd)">' + t1 + '</span><span class="hint">' + t2 + '</span></button>'; };
     h = '<div class="' + cls + '" style="gap:12px">' + whead(pn ? SPORTS[pn.jsp || pn.sp].name + (pn.diff === 'solo' ? '' : ' · ' + PDIFF[pn.diff][0]) : 'Quest', true) + '<p class="wtitle" style="margin-top:-4px">Com’è andata?</p>' +
-      (pn && pn.diff !== 'solo' ? op('planNoQ', 'Ho fatto ' + SPORTS[pn.sp].name.toLowerCase() + ', la quest no', 'Il giorno conta lo stesso: +2 Punti Rango.') : '') +
+      (pn && pn.diff !== 'solo' ? op('planNoQ', 'Ho fatto ' + SPORTS[pn.sp].name.toLowerCase() + ', la quest no', 'Il giorno conta lo stesso: +3 Punti Rango.') : '') +
       op('planOther', 'Ho fatto un altro sport', 'Lo segni al posto di questo, senza costi.') +
       op('planSkip', o.k === todayKey() ? 'Oggi niente sport' : 'Niente sport', pfx ? 'Era fissata: −0,5 Punti Rango.' : 'La togli, nessun costo.') +
       '<button class="btn" data-a="close">Annulla</button></div>';
@@ -1210,7 +1215,7 @@ function viewOverlay() {
     h = viewRankSheet(cls);
   } else if (o.t === 'rules') {
     h = '<div class="' + cls + ' tall" style="gap:12px">' + whead('Regole del gioco', true) + '<div class="wbody rules" data-keep>' +
-      '<div class="fld"><span class="lbl" style="font-size:11px">Rango del mese</span><p>Ogni giorno con almeno uno sport vale <b>2 Punti Rango</b>, fino a 16 giorni. Se quel giorno completi una quest media vale <b>+0,5</b>, una difficile <b>+1</b>. La facile serve a prendere il ritmo e non dà Punti Rango. Per <b>S</b> serve anche una stella nel mese, da una sessione top.</p><p>Un guanto accettato e non chiuso toglie mezzo punto: se scendi sotto la soglia torni al rango prima. Si risale con le sessioni.</p>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Rango del mese</span><p>Contano soprattutto i giorni: ogni giorno con almeno uno sport vale <b>3 Punti Rango</b>, fino a 16 giorni. Se quel giorno completi una quest media vale <b>+0,5</b>, una difficile <b>+1</b>, fino a <b>8 punti</b> al mese. La facile serve a prendere il ritmo e non dà Punti Rango. Per gli sport senza quest (yoga, pilates, danza, boxe, crossfit, sci, golf, jolly…) una sessione <b>Top</b> vale come una quest media: per le lezioni il voto Top o almeno un’ora, per gli altri la stella.</p><p>Guanti vinti, obiettivi Gang e piani rispettati hanno uno spazio a parte, fino a <b>6 punti</b>: così quest e amici non si rubano posto. Per <b>S</b> serve anche una stella nel mese, da una sessione top.</p><p>Un guanto accettato e non chiuso toglie mezzo punto: se scendi sotto la soglia torni al rango prima. Si risale con le sessioni.</p>' +
       '<div class="rtab">' + RANKS.slice(0, 5).map(function (r) { return '<span><b>' + r[0] + '</b>' + r[1] + ' Punti Rango' + (r[2] ? ' · ' + r[2] + (r[2] === 1 ? ' stella' : ' stelle') : '') + '</span>'; }).join('') + '</div><p class="hint">Dalla seconda settimana Stato ti dice dove chiudi il mese al tuo ritmo.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Rango di ogni sport</span><p>Ogni sessione vale <b>2 Punti Rango</b> (fino a 6 al mese). Una quest media riuscita <b>+0,5</b>, una difficile <b>+1</b>. B a 10 Punti Rango, A a 14, S a 16.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Quest</span><p>Tocca oggi sul calendario: Gesta propone tre sfide partendo dalla tua ultima volta. A fine sessione rispondi <b>Fatta?</b> sulla card in alto: col Sì lo sport si segna sul calendario e si aprono i dettagli.</p></div>' +
@@ -1298,7 +1303,7 @@ function viewRecap(o, cls) {
   h += '<p class="wtext">' + cmp + '</p>';
   if (ms.hw) h += '<p class="hint" style="margin:-6px 0 0;text-align:center">E ' + ms.hw + (ms.hw === 1 ? ' giornata' : ' giornate') + ' di testa, con Hard Study/Work. ' + ['Il cervello è un muscolo, dicono.', 'Anche la scrivania ha le sue Gesta.', 'Scusa approvata.'][ms.hw % 3] + '</p>';
   /* il mese nuovo: si riparte tutti da E, detto bene */
-  if (o.first) { var nm = MONTHS[new Date().getMonth()]; h += '<div style="border-radius:12px;border:1px solid rgba(59,167,255,.4);background:rgba(59,167,255,.06);padding:10px 12px;display:flex;flex-direction:column;gap:3px"><span style="font:700 15px/20px var(--fd);letter-spacing:.5px;color:var(--ink)">' + nm + ' parte adesso</span><span class="hint">Si riparte tutti da E, anche i tuoi amici. Il primo giorno di sport vale già 2 Punti Rango.</span></div>'; }
+  if (o.first) { var nm = MONTHS[new Date().getMonth()]; h += '<div style="border-radius:12px;border:1px solid rgba(59,167,255,.4);background:rgba(59,167,255,.06);padding:10px 12px;display:flex;flex-direction:column;gap:3px"><span style="font:700 15px/20px var(--fd);letter-spacing:.5px;color:var(--ink)">' + nm + ' parte adesso</span><span class="hint">Si riparte tutti da E, anche i tuoi amici. Il primo giorno di sport vale già 3 Punti Rango.</span></div>'; }
   h += '<div class="acts one"><button class="btn main" data-a="recapOk">' + (o.first ? 'Inizia ' + MONTHS[new Date().getMonth()].toLowerCase() : 'Chiudi') + '</button></div></div>';
   return h;
 }
@@ -2165,7 +2170,7 @@ var GUIDE = {
 };
 function guideSeen(scr) { var g = S.seen.guide; return !!(g && g.v === GUIDE_V && g[scr]); }
 function guideMark(scr) { if (!S.seen.guide || S.seen.guide.v !== GUIDE_V) S.seen.guide = { v: GUIDE_V }; S.seen.guide[scr] = 1; save(); }
-/* 3.9.2: spiegazioni al primo incontro. Un fumetto solo, la prima volta che la cosa compare sullo schermo */
+/* 3.9.3: spiegazioni al primo incontro. Un fumetto solo, la prima volta che la cosa compare sullo schermo */
 var TIPS = [
   ['plan', 'home', '.cell.plan:not(.today)', 'Parola mantenuta', 'Se quel giorno fai sport, +¼ di Punto Rango. Se salta, nessun problema: il piano sparisce e basta.'],
   ['plus', 'home', '.top button[data-v="stato"] .rplus, .top button[data-v="stato"]', 'Il + del rango', 'Hai vinto una quest social quando eri già in questo rango: il gradino in più è tuo per tutto il mese.', function () { var n = new Date(); return monthStats(n.getFullYear(), n.getMonth()).plus; }],
@@ -2767,7 +2772,7 @@ document.addEventListener('pointerdown', function (e) { if (e.pointerType !== 'm
 document.addEventListener('pointermove', function (e) { if (e.pointerType !== 'mouse' || !gs) return; gMove(e.clientX, e.clientY, e); }, true);
 document.addEventListener('pointerup', function (e) { if (e.pointerType !== 'mouse') return; gEnd(); }, true);
 /* ---------- 2.3: obiettivo Gang, punti condivisi, storico, rango Gang ---------- */
-var GANG_RANKS = [['S', 8], ['A', 6], ['B', 4], ['C', 2], ['D', 1], ['E', 0]], GANG_CAP = 999; /* 3.9.2: niente tetto al mese */
+var GANG_RANKS = [['S', 8], ['A', 6], ['B', 4], ['C', 2], ['D', 1], ['E', 0]], GANG_CAP = 999; /* 3.9.3: niente tetto al mese */
 function gangById(id) { return P() ? P().gangs.filter(function (g) { return g.id === id; })[0] : null; }
 /* la barra dell'obiettivo: tanti esagoni quanti ne servono, accesi da chi l'ha fatto */
 function gangBar(c, g) {
@@ -3517,7 +3522,7 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v3.9.2';
+var APP_V = 'gesta-v3.9.3';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
