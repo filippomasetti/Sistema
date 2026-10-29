@@ -48,6 +48,7 @@ body.boot #app{opacity:0}
 .sp-word{font:700 22px/26px var(--fd);letter-spacing:8px;padding-left:8px;color:#EAF3FF;opacity:0;animation:spword .6s cubic-bezier(.22,1,.36,1) 2.1s forwards}
 .sp-line{font:500 17px/24px var(--fb);color:#C6D6EA;text-align:center;text-wrap:balance;max-width:min(22ch,calc(100vw - 48px));opacity:0;animation:spword .5s cubic-bezier(.22,1,.36,1) .55s forwards}
 .sp-line .sp-gw{display:inline-block;white-space:nowrap;opacity:0;font:700 19px/24px var(--fd);letter-spacing:.5px;color:var(--rew);animation:spdrop .5s cubic-bezier(.2,1.3,.4,1) 1.5s forwards,spink .6s ease 2.4s forwards}
+#splash:not(.fok) .sp-line,#splash:not(.fok) .sp-line .sp-gw{animation-play-state:paused}
 .sp-line .sp-gw i{font:500 17px/24px var(--fb);font-style:normal;color:#C6D6EA}
 @keyframes spdrop{from{opacity:0;transform:translateY(-10px) scale(1.15)}to{opacity:1;transform:none}}
 @keyframes spink{to{color:#EAF3FF}}
@@ -392,7 +393,7 @@ textarea.inp{height:80px;padding:10px 14px;font-size:15px;resize:none}
 @keyframes fxtxt{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion: reduce){.fx.run *,.rkst *,.rk-tip,.fx-ha{animation-duration:.01s!important;animation-delay:0s!important;animation-iteration-count:1!important}}
 
-/* 3.9.6 · riepilogo a fine sessione */
+/* 3.9.7 · riepilogo a fine sessione */
 .rlist{display:flex;flex-direction:column;gap:6px;max-height:282px;overflow-y:auto;overscroll-behavior:contain;margin:-2px 0}
 .rrow{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--rc) 45%,transparent);background:color-mix(in srgb,var(--rc) 7%,transparent);flex-shrink:0;min-height:50px}
 .rri{width:32px;height:32px;flex:0 0 auto;display:flex;align-items:center;justify-content:center}
@@ -401,6 +402,9 @@ textarea.inp{height:80px;padding:10px 14px;font-size:15px;resize:none}
 @media (prefers-reduced-motion: reduce){.rlist.run .rrow{animation-duration:.01s;animation-delay:0s}}
 .gbump{animation:gbump .5s cubic-bezier(.2,1.5,.4,1)}
 @keyframes gbump{0%{transform:scale(1)}40%{transform:scale(1.22);text-shadow:0 0 28px rgba(59,167,255,1)}100%{transform:scale(1)}}
+.pgl{position:absolute;top:2px;left:2px;display:flex}
+.pgl svg{width:11px;height:11px}
+.prow2 .lt{display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:rgba(124,196,255,.14);border:1px solid rgba(124,196,255,.5)}
 </style>
 </head>
 <body>
@@ -423,10 +427,12 @@ textarea.inp{height:80px;padding:10px 14px;font-size:15px;resize:none}
     var esc = function (x) { return x.replace(/&/g, '&amp;').replace(/</g, '&lt;'); };
     var h = esc(f).replace(/\*Gesta\*([.,;:!?…]*)/, function (m, p) { return '<span class="sp-gw">Gesta' + (p ? '<i>' + p + '</i>' : '') + '</span>'; });
     var w = document.querySelector('#splash .sp-word'); if (w) { var s = document.createElement('span'); s.className = 'sp-line'; s.innerHTML = h; w.parentNode.replaceChild(s, w); }
+    var sp = document.getElementById('splash'), ok = function () { if (sp) sp.classList.add('fok'); };
+    if (document.fonts && document.fonts.load) { Promise.all([document.fonts.load('500 17px Manrope'), document.fonts.load('700 19px "Exo 2"')]).then(ok, ok); setTimeout(ok, 700); } else ok();
   } catch (e) {}
 })();
 </script>
 <div id="app"></div>
-<script src="app.js?v=3.9.6" defer></script>
+<script src="app.js?v=3.9.7" defer></script>
 </body>
 </html>

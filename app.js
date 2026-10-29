@@ -247,7 +247,7 @@ function dayPts(k) { var m = 0; sessions(k).forEach(function (s) { m = Math.max(
 function totalXp() { var x = 0; Object.keys(S.days).forEach(function (k) { S.days[k].forEach(function (s) { x += sessXp(s); }); }); return x + (S.party ? gloveXp() : 0); }
 function levelInfo(xp) { var lv = 1, need = 100; while (xp >= need) { xp -= need; lv++; need = 100 + 50 * (lv - 1); } return { lv: lv, inLv: xp, need: need }; }
 function levelOf(xp) { return levelInfo(xp).lv; }
-/* 3.9.6: le tue Gesta = i giorni di sport da quando hai iniziato. Prendono il posto di XP e livello */
+/* 3.9.7: le tue Gesta = i giorni di sport da quando hai iniziato. Prendono il posto di XP e livello */
 var GMS = [10, 25, 50, 100, 200, 365, 500, 1000];
 function gestaN() { return S ? allKeysSorted().length : 0; }
 function gestaSince(short) { var k = allKeysSorted()[0]; if (!k) return ''; var d = parseKey(k); return (short ? MSHORT[d.getMonth()] : MONTHS[d.getMonth()].toLowerCase()) + ' ' + d.getFullYear(); }
@@ -320,7 +320,7 @@ function stepRank(y, m, full) {
   L = Math.min(L, full);
   stepCache = { k: ck, v: L }; return L;
 }
-/* 3.9.6: i giorni pesano di più. Giorno 3 punti (fino a 16), quest fino a 8, social e piani a parte fino a 6 */
+/* 3.9.7: i giorni pesano di più. Giorno 3 punti (fino a 16), quest fino a 8, social e piani a parte fino a 6 */
 var DAY_PTS = 3, Q_CAP = 8, SOC_CAP = 6;
 function monthPts(days, qSum, soc) { return Math.min(days, DAY_CAP) * DAY_PTS + Math.min(qSum, Q_CAP) + Math.min(soc || 0, SOC_CAP); }
 /* gli sport senza quest: una sessione Top (o lunga un'ora, per le lezioni) vale come una quest media */
@@ -408,7 +408,7 @@ function planEnd() { var t = todayKey(), d = parseKey(t), eom = keyOf(new Date(d
 function canPlan(k) { return k > todayKey() && k <= planEnd(); }
 /* fissato in anticipo: deciso prima di quel giorno. Da mezzogiorno di quel giorno non si toglie più */
 function planEarly(k, p) { return p.at < parseKey(k).getTime(); }
-/* 3.9.6: i piani non si bloccano più e non costano niente */
+/* 3.9.7: i piani non si bloccano più e non costano niente */
 function planFixed(k, p) { return false; }
 function planMissed(k, p) { return !!p && planEarly(k, p) && !sessions(k).length && (k < addDays(todayKey(), -1) || !!p.miss); }
 /* piano rispettato: deciso prima e fatto quel giorno. +¼ di Punto Rango, al massimo 4 volte al mese */
@@ -1014,7 +1014,7 @@ function viewHome() {
       st = sp.length > 1 ? 'background:linear-gradient(135deg,' + SPORTS[sp[0]].c + ' 0 50%,' + SPORTS[sp[1]].c + ' 50% 100%)' : 'background:' + SPORTS[sp[0]].c + ';box-shadow:0 0 10px ' + SPORTS[sp[0]].c + '66';
     } else if (hasMark(k)) cls += ' hw';
     else if (age < 0) cls += ' fut';
-    if (!ss.length && k >= t) { var pl = planAt(k), gl = gloveOn(k); if (pl || gl.length) { var pcol = pl ? planCol(pl) : PGOLD; cls = cls.replace(' fut', '') + ' plan'; st = 'background:transparent;border:1.5px ' + (k === t ? 'solid' : 'dashed') + ' ' + pcol + ';color:' + pcol; pc = '<span class="pli">' + (pl ? '<svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="stroke:' + pcol + ';stroke-width:2.2">' + planIc(pl) + '</svg>' : svg(PI.glove, PGOLD)) + '</span>'; } }
+    if (!ss.length && k >= t) { var pl = planAt(k), gl = gloveOn(k); if (pl || gl.length) { var pcol = pl ? planCol(pl) : PGOLD; cls = cls.replace(' fut', '') + ' plan'; st = 'background:transparent;border:1.5px ' + (k === t ? 'solid' : 'dashed') + ' ' + pcol + ';color:' + pcol; pc = '<span class="pli">' + (pl ? '<svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="stroke:' + pcol + ';stroke-width:2.2">' + planIc(pl) + '</svg>' : svg(PI.glove, PGOLD)) + '</span>' + (pl && gl.length ? '<span class="pgl">' + svg(PI.glove, PGOLD) + '</span>' : ''); } }
     if (k === t) { cls += ' today'; if (!ss.length && !hasMark(k)) cls += ' wait'; }
     if (tap) cls += ' tap';
     var star = ss.some(function (s) { return s.star; });
@@ -1023,7 +1023,7 @@ function viewHome() {
   if (isCur && planEnd() > keyOf(new Date(y, m + 1, 0))) {
     for (var nk = keyOf(new Date(y, m + 1, 1)); nk <= planEnd(); nk = addDays(nk, 1)) {
       var npl = planAt(nk), ngl = gloveOn(nk), nst = '', nc = 'cell fut nxt', npc = '';
-      if (npl || ngl.length) { var ncol = npl ? planCol(npl) : PGOLD; nc = 'cell plan nxt'; nst = 'background:transparent;border:1.5px dashed ' + ncol + ';color:' + ncol; npc = '<span class="pli">' + (npl ? '<svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="stroke:' + ncol + ';stroke-width:2.2">' + planIc(npl) + '</svg>' : svg(PI.glove, PGOLD)) + '</span>'; }
+      if (npl || ngl.length) { var ncol = npl ? planCol(npl) : PGOLD; nc = 'cell plan nxt'; nst = 'background:transparent;border:1.5px dashed ' + ncol + ';color:' + ncol; npc = '<span class="pli">' + (npl ? '<svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="stroke:' + ncol + ';stroke-width:2.2">' + planIc(npl) + '</svg>' : svg(PI.glove, PGOLD)) + '</span>' + (npl && ngl.length ? '<span class="pgl">' + svg(PI.glove, PGOLD) + '</span>' : ''); }
       h += '<button class="' + nc + ' tap" style="' + nst + '" data-a="day" data-v="' + nk + '" aria-label="' + parseKey(nk).getDate() + ' ' + MONTHS[parseKey(nk).getMonth()] + '">' + parseKey(nk).getDate() + npc + '<span class="nxm">' + MSHORT[parseKey(nk).getMonth()] + '</span></button>';
     }
   }
@@ -1077,7 +1077,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">Ranghi, Gesta e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.9.6</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.9.7</span>';
   return h;
 }
 
@@ -1124,7 +1124,7 @@ function viewOverlay() {
     var s = findSession(o.k, o.id);
     h = '<div class="' + cls + '">' + whead('Verifica', true) + '<p class="wtitle">Obiettivo raggiunto?</p><p class="wtext">' + esc(s ? goalText(s) : '') + '</p><div class="acts"><button class="btn" data-a="verify" data-v="0">Non oggi</button><button class="btn main" data-a="verify" data-v="1">Sì</button></div></div>';
   } else if (o.t === 'reward') {
-    /* 3.9.6: un solo riepilogo a fine sessione. Le voci si accendono una dopo l'altra; oltre 5 si scorre */
+    /* 3.9.7: un solo riepilogo a fine sessione. Le voci si accendono una dopo l'altra; oltre 5 si scorre */
     var rows = [], rrow = function (ic, t, sub, col) { rows.push('<div class="rrow" style="--rc:' + col + ';--i:' + rows.length + '"><span class="rri">' + ic + '</span><span style="display:flex;flex-direction:column;min-width:0;text-align:left"><span style="font:700 14px/18px var(--fd);letter-spacing:.5px;color:var(--ink)">' + t + '</span><span class="hint" style="font-size:11.5px">' + sub + '</span></span></div>'); };
     if (o.pk) rrow(svg(IC.cal || PI.glove, '#7CC4FF', 20), 'Parola mantenuta', 'Era in programma: +¼ di Punto Rango', '#7CC4FF');
     if (o.gms) rrow('<b style="font:700 12px/1 var(--fd);color:#7CC4FF">N°</b>', o.gms + ' Gesta', o.gms === 365 ? 'Un anno di Gesta, tutto tuo' : 'Una Gesta tonda', '#3BA7FF');
@@ -1180,7 +1180,7 @@ function viewOverlay() {
     }
     gls.forEach(function (c) {
       var fr = friend(c.from === 'me' ? c.to : c.from), lock = c.day === todayKey() && new Date().getHours() >= 12;
-      h += '<div style="border-radius:12px;border:1px dashed ' + PGOLD + 'B3;background:#14120A;padding:10px 12px;display:flex;align-items:center;gap:12px">' + svg(PI.glove, PGOLD, 24) + '<span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px"><span class="lbl" style="font-size:10.5px;color:#D9B04A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (c.from === 'me' ? 'Condivisa con ' : 'Guanto di ') + esc(fr.n) + '</span><span style="display:flex;align-items:center;gap:6px;min-width:0;font:700 15px/19px var(--fd);color:var(--rew)" title="' + esc(SPORTS[c.sp].name) + '">' + sportIc(c.sp, 16, true) + '<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">' + esc(c.q) + '</span></span></span>' + (c.to === 'me' && !lock ? '<button class="btn sm" data-a="gDrop" data-v="' + c.id + '" style="height:34px;font-size:11px">Togli</button>' : '') + '</div>';
+      h += '<div style="border-radius:12px;border:1px dashed ' + PGOLD + 'B3;background:#14120A;padding:10px 12px;display:flex;align-items:center;gap:12px"><button data-a="gView" data-v="' + c.id + '" aria-label="Dettaglio della sfida" style="all:unset;cursor:pointer;flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:12px">' + svg(PI.glove, PGOLD, 24) + '<span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px"><span class="lbl" style="font-size:10.5px;color:#D9B04A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (c.from === 'me' ? 'Condivisa con ' : 'Guanto di ') + esc(fr.n) + '</span><span style="display:flex;align-items:center;gap:6px;min-width:0;font:700 15px/19px var(--fd);color:var(--rew)" title="' + esc(SPORTS[c.sp].name) + '">' + sportIc(c.sp, 16, true) + '<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">' + esc(c.q) + '</span></span></span>' + svg(IC.right, PGOLD, 16) + '</button>' + (c.to === 'me' && !lock ? '<button class="btn sm" data-a="gDrop" data-v="' + c.id + '" style="height:34px;font-size:11px">Togli</button>' : '') + '</div>';
     });
     if (!pp) h += (canPlan(o.k) ? '<button class="btn" data-a="plEdit" data-v="' + o.k + '">Aggiungi uno sport tuo</button>' : '') + '<p class="hint" style="margin:-6px 0 0;text-align:center">Un guanto accettato si toglie fino alle 12 di quel giorno.</p>';
     h += '</div>';
@@ -2170,7 +2170,7 @@ var GUIDE = {
 };
 function guideSeen(scr) { var g = S.seen.guide; return !!(g && g.v === GUIDE_V && g[scr]); }
 function guideMark(scr) { if (!S.seen.guide || S.seen.guide.v !== GUIDE_V) S.seen.guide = { v: GUIDE_V }; S.seen.guide[scr] = 1; save(); }
-/* 3.9.6: spiegazioni al primo incontro. Un fumetto solo, la prima volta che la cosa compare sullo schermo */
+/* 3.9.7: spiegazioni al primo incontro. Un fumetto solo, la prima volta che la cosa compare sullo schermo */
 var TIPS = [
   ['plan', 'home', '.cell.plan:not(.today)', 'Parola mantenuta', 'Se quel giorno fai sport, +¼ di Punto Rango. Se salta, nessun problema: il piano sparisce e basta.'],
   ['plus', 'home', '.top button[data-v="stato"] .rplus, .top button[data-v="stato"]', 'Il + del rango', 'Hai vinto una quest social quando eri già in questo rango: il gradino in più è tuo per tutto il mese.', function () { var n = new Date(); return monthStats(n.getFullYear(), n.getMonth()).plus; }],
@@ -2337,7 +2337,7 @@ function rowFriend(f) {
   var t = todayKey(), inc = myCh().filter(function (c) { return c.from === f.id && c.to === 'me' && c.day >= t && c.st === 'pending'; })[0], unread = P().letters.filter(function (l) { return !l.rd && l.f === f.id; })[0], on = trainedOn(f, t), seen = !on && f.real && f.seen === t;
   return '<button class="prow2' + (inc ? ' hot' : '') + '" data-a="fOpen" data-v="' + f.id + '">' + rkHex(f.r, 26, f.plus) +
     '<span style="flex:1 1 auto;min-width:0;display:flex;align-items:baseline;gap:8px"><span style="font:700 14px/18px var(--fd);letter-spacing:.8px;text-transform:uppercase;white-space:nowrap">' + esc(f.n) + '</span><span style="font:600 10px/13px var(--fd);letter-spacing:.3px;color:var(--rew);text-transform:uppercase;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + fTitle(f) + '</span></span>' +
-    '<span style="display:flex;align-items:center;gap:8px;flex:0 0 auto">' + (on ? '<span style="display:flex;align-items:center;gap:4px;font:600 9.5px/12px var(--fd);letter-spacing:1px;text-transform:uppercase;color:var(--soft)">' + pDot(SPORTS[fSportOn(f, t)].c) + 'oggi</span>' : seen ? '<span style="display:flex;align-items:center;gap:4px;font:600 9.5px/12px var(--fd);letter-spacing:1px;text-transform:uppercase;color:var(--mut)"><i style="display:block;width:7px;height:7px;border-radius:4px;background:#7EE0A4;box-shadow:0 0 6px #7EE0A4"></i>attivo</span>' : '') + (inc ? svg(PI.glove, PGOLD, 18) : '') + (unread ? '<i style="display:block;width:8px;height:8px;border-radius:4px;background:#7CC4FF;box-shadow:0 0 6px #7CC4FF"></i>' : '') + '</span></button>';
+    '<span style="display:flex;align-items:center;gap:8px;flex:0 0 auto">' + (on ? '<i aria-label="Si è allenato oggi" style="display:block;width:9px;height:9px;border-radius:5px;background:' + PGOLD + ';box-shadow:0 0 8px ' + PGOLD + '"></i>' : seen ? '<i aria-label="Oggi ha aperto Gesta" style="display:block;width:9px;height:9px;border-radius:5px;background:#7EE0A4;box-shadow:0 0 7px #7EE0A4"></i>' : '') + (inc ? svg(PI.glove, PGOLD, 18) : '') + (unread ? '<span class="lt" aria-label="Letterine da leggere">' + svg(PI.letter, '#7CC4FF', 14) + '</span>' : '') + '</span></button>';
 }
 function rowGang(g) {
   var t = todayKey(), on = g.mem.filter(function (id) { return weekTrained(friend(id)); }).length + (weekCount(t) ? 1 : 0), ask = gangActive().some(function (c) { return c.gang === g.id && c.from !== 'me' && !c.myAcc; });
@@ -2772,7 +2772,7 @@ document.addEventListener('pointerdown', function (e) { if (e.pointerType !== 'm
 document.addEventListener('pointermove', function (e) { if (e.pointerType !== 'mouse' || !gs) return; gMove(e.clientX, e.clientY, e); }, true);
 document.addEventListener('pointerup', function (e) { if (e.pointerType !== 'mouse') return; gEnd(); }, true);
 /* ---------- 2.3: obiettivo Gang, punti condivisi, storico, rango Gang ---------- */
-var GANG_RANKS = [['S', 8], ['A', 6], ['B', 4], ['C', 2], ['D', 1], ['E', 0]], GANG_CAP = 999; /* 3.9.6: niente tetto al mese */
+var GANG_RANKS = [['S', 8], ['A', 6], ['B', 4], ['C', 2], ['D', 1], ['E', 0]], GANG_CAP = 999; /* 3.9.7: niente tetto al mese */
 function gangById(id) { return P() ? P().gangs.filter(function (g) { return g.id === id; })[0] : null; }
 /* la barra dell'obiettivo: tanti esagoni quanti ne servono, accesi da chi l'ha fatto */
 function gangBar(c, g) {
@@ -3193,7 +3193,7 @@ function fetchCode() {
   if (!cauth || (cmeta.code && cmeta.inv && cmeta.codeUid === cauth.uid)) return;
   sbFetch('/rest/v1/profiles?id=eq.' + cauth.uid + '&select=friend_code,invite_token').then(function (pr) { if (pr && pr[0] && pr[0].friend_code) { cloudMeta({ code: pr[0].friend_code, inv: pr[0].invite_token || null, codeUid: cauth.uid }); render(); } }).catch(function () {});
 }
-/* 3.9.6: gli amici vedono che oggi hai aperto Gesta. Una volta al giorno si aggiorna solo il profilo */
+/* 3.9.7: gli amici vedono che oggi hai aperto Gesta. Una volta al giorno si aggiorna solo il profilo */
 function seenPing() {
   var t = todayKey(), last = ''; try { last = localStorage.getItem('gesta.seen') || ''; } catch (e) {}
   if (last === t || !S || !cauth) return;
@@ -3532,18 +3532,18 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v3.9.6';
+var APP_V = 'gesta-v3.9.7';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
   var swPending = false;
-  document.addEventListener('visibilitychange', function () { if (document.hidden && swPending && !swReload) { swReload = true; try { sessionStorage.setItem('gesta.quiet', '1'); } catch (e) {} location.reload(); } });
+  /* 3.9.7: niente ricariche automatiche, neanche in sottofondo: la versione nuova si apre la volta dopo */
   window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function (r) { swReg = r; }).catch(function () {}); });
   document.addEventListener('visibilitychange', function () { if (!document.hidden && swReg) { try { swReg.update(); } catch (e) {} } });
   /* il service worker nuovo dice la sua versione: se è diversa da questa pagina, ricarica (mai mentre scrivi o hai una finestra aperta) */
   navigator.serviceWorker.addEventListener('message', function (e) {
     if (!e.data || !e.data.v || e.data.v === APP_V) return;
-    /* 3.9.6: mai ricaricare sotto gli occhi (era la splash che ripartiva e cambiava frase). La versione nuova si applica quando l'app va in sottofondo, e al rientro niente splash */
+    /* 3.9.7: mai ricaricare sotto gli occhi (era la splash che ripartiva e cambiava frase). La versione nuova si applica quando l'app va in sottofondo, e al rientro niente splash */
     swPending = true;
   });
 }
