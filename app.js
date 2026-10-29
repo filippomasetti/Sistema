@@ -1061,7 +1061,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">XP, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.8.1</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.9.0</span>';
   return h;
 }
 
@@ -1205,7 +1205,7 @@ function viewOverlay() {
       '<div class="fld"><span class="lbl" style="font-size:11px">Party e guanto di sfida</span><p>Un amico ti lancia il <b>guanto</b>: uno sport e una quest precisa. Puoi accettare, dire non oggi o modificarla e rimandarla. Si accetta entro mezzanotte. Se lo completi vale <b>+15 Punti XP</b> e <b>mezzo Punto Rango</b> per il rango del mese. Se chi lancia sceglie “lo devo fare anch’io”, diventa una <b>quest condivisa</b>: <b>mezzo Punto Rango a testa</b> a chi la completa, anche a chi l’ha lanciata. Se accetti un guanto e non lo chiudi entro mezzanotte, <b>−0,5 Punti Rango</b> (solo per i guanti, non per gli obiettivi Gang); nel punteggio tra amici nessuna penalità.</p><p>Ognuno può lanciare all’altro un guanto al giorno: se tu l’hai mandato a un amico, lui può mandarne uno a te. La quest condivisa vale già per tutti e due. Al massimo <b>3 guanti a settimana</b> per ogni amico.</p><p>Con <b>Per un altro giorno</b> scegli una data: per l’amico diventa la quest di quel giorno e scade a mezzanotte. Un guanto accettato si toglie senza costi <b>fino alle 12</b> di quel giorno.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Gang</span><p>Un membro <b>fissa l’obiettivo</b> della Gang, uno al giorno, uguale per tutti. Vale se almeno un altro membro accetta, ed è superato se lo completano almeno 2 membri su 3: mezzo Punto Rango a tutti, fino a 3 al mese. Se lo completi anche tu, conta per il + del rango. Il <b>rango della Gang</b> sale solo con gli obiettivi superati: D a 1, C a 2, B a 4, A a 6, S a 8.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Il + del rango</span><p>Ogni rango ha il suo +: C+, B+, fino a S+. Lo prendi vincendo una quest social quando sei già in quel rango: un guanto di un amico che hai completato, o un obiettivo Gang che hai completato tu e che almeno un altro membro ha accettato. Va per soglie: se da D+ sali in C sei C, e per il + ti serve una nuova quest social da C. Senza amici sali lo stesso, ma senza +.</p><p>Si sale di <b>un gradino al giorno</b> (un rango pieno o un +): se oggi sei già salito, il gradino dopo scatta domani alla prima sessione. Non vale l’ultimo giorno del mese, e A+, S e S+ scattano sempre.</p></div>' +
-      '<div class="fld"><span class="lbl" style="font-size:11px">Cinque</span><p>Un applauso a un amico, uno a settimana per amico. Non dà né XP né Punti Rango: fa solo piacere.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Cinque</span><p>Un applauso a un amico, uno a settimana per amico: nel suo calendario tocchi un giorno di sport e glielo dai per quella sessione. Se anche lui te lo dà nella stessa settimana è un <b>cinque battuto</b>, e in Bacheca c’è una medaglia apposta. Non dà né XP né Punti Rango: fa solo piacere.</p></div>' +
       (VAPID_PUB ? '<div class="fld"><span class="lbl" style="font-size:11px">Notifiche</span><p>Con Gesta aggiunta alla schermata Home possono arrivarti sul telefono guanti, sfide chiuse, richieste di amicizia, obiettivi della Gang e cinque. Scegli tu quali nelle impostazioni del Party. Una sola notifica per ogni cosa: pianificare non avvisa nessuno.</p></div>' : '') +
       '<div class="fld"><span class="lbl" style="font-size:11px">XP e livello</span><p>Ogni sessione dà 10 XP, una quest riuscita da 5 a 20 in più, una stella 5, un guanto completato 15. Il livello cresce e non si perde mai.</p></div>' +
       '</div><div class="acts"><button class="btn" data-a="guideAgain">Rivedi la guida</button><button class="btn main" data-a="close">Ho capito</button></div></div>';
@@ -1214,6 +1214,7 @@ function viewOverlay() {
     var who = c0.gang ? 'l’obiettivo della Gang ' + gangById(c0.gang).name : c0.from === 'me' ? 'la quest condivisa con ' + friend(c0.to).n : 'il guanto di ' + friend(c0.from).n;
     h = '<div class="' + cls + '">' + whead('Notifica', true) + '<p class="wtitle">Hai già una quest social</p><p class="wtext">Oggi hai attivo ' + who + ': <b style="color:var(--rew)">' + esc(chLabel(c0)) + '</b>' + (soc.length > 1 ? ' (e altre ' + (soc.length - 1) + ')' : '') + '. Vuoi aggiungerne anche una personale?</p><div class="acts"><button class="btn" data-a="qNo">No</button><button class="btn main" data-a="qYes">Sì</button></div></div>';
   } else if (o.t === 'fnote') { h = viewFNote(o, cls);
+  } else if (o.t === 'fivefx') { h = viewFiveFx(o, cls);
   } else if (o.t === 'addf') { h = viewAddF(o, cls);
   } else if (o.t === 'trait') { h = viewTrait(o, cls);
   } else if (o.t === 'gobj') { h = viewGObj(o, cls);
@@ -1552,6 +1553,7 @@ M({ id: 'r_Sp', grp: 'rank', name: 'Primo S+', letter: 'S+', col: '#F4F1E6', th:
 SX('guanto', 'Raccogli il guanto', [], '<path d="M8 20.5v-4.2L4.8 12.6c-.9-1.1.5-2.6 1.6-1.7L8.6 13V5.6a1.3 1.3 0 0 1 2.6 0v5.6V4.3a1.3 1.3 0 0 1 2.6 0v6.9V5.3a1.3 1.3 0 0 1 2.6 0v6.4V8a1.3 1.3 0 0 1 2.6 0v7.2c0 2.6-1.4 4.2-3.4 5.3"/><path d="M7.6 20.5h9.2"/>', '#FFC94D', 'Guanti degli amici completati.', [1, 3, 7, 15, 25, 40, 60], function () { return S.party ? gloveWonCount() : 0; }, 'guanti');
 SX('sfidante', 'Sfidante', [], '<path d="M8 20.5v-4.2L4.8 12.6c-.9-1.1.5-2.6 1.6-1.7L8.6 13V5.6a1.3 1.3 0 0 1 2.6 0v5.6V4.3a1.3 1.3 0 0 1 2.6 0v6.9V5.3a1.3 1.3 0 0 1 2.6 0v6.4V8a1.3 1.3 0 0 1 2.6 0v7.2c0 2.6-1.4 4.2-3.4 5.3"/><path d="M7.6 20.5h9.2"/>', '#FF9F6B', 'Guanti lanciati agli amici.', [1, 5, 10, 25, 50, 75, 100], function () { return S.party ? S.party.ch.filter(function (x) { return x.from === 'me'; }).length : 0; }, 'guanti');
 SX('cinque', 'Batti cinque', [], '<path d="M8.6 13V5.6a1.3 1.3 0 0 1 2.6 0v5.6V4.3a1.3 1.3 0 0 1 2.6 0v6.9V5.3a1.3 1.3 0 0 1 2.6 0v6.4V8a1.3 1.3 0 0 1 2.6 0v7.2c0 3.4-2.4 5.8-5.8 5.8-2.2 0-3.6-.9-4.8-2.4l-3.4-4.6c-.9-1.1.5-2.6 1.6-1.7z"/>', '#7CC4FF', 'Cinque dati agli amici.', [1, 5, 15, 30, 50, 75, 100], function () { return S.party ? (S.party.nfive || 0) : 0; }, 'cinque');
+SX('battuti', 'Cinque battuti', [], '<path d="M8.6 13V5.6a1.3 1.3 0 0 1 2.6 0v5.6V4.3a1.3 1.3 0 0 1 2.6 0v6.9V5.3a1.3 1.3 0 0 1 2.6 0v6.4V8a1.3 1.3 0 0 1 2.6 0v7.2c0 3.4-2.4 5.8-5.8 5.8-2.2 0-3.6-.9-4.8-2.4l-3.4-4.6c-.9-1.1.5-2.6 1.6-1.7z"/>', '#E8A877', 'Cinque battuti: tu e un amico ve lo date nella stessa settimana.', [1, 5, 10, 25, 50, 75, 100], function () { return S.party ? (S.party.nbat || 0) : 0; }, 'cinque');
 var MBYID = {}; MEDALS.forEach(function (d) { MBYID[d.id] = d; });
 function mctx() {
   var keys = allKeysSorted(), all = [], weeks = {};
@@ -1621,7 +1623,7 @@ function titleCheck() {
 function rankCheck() {
   var n = new Date(), ym = ymKey(n.getFullYear(), n.getMonth()), ms = monthStats(n.getFullYear(), n.getMonth()), L = rStep(ms.rank, ms.plus), seen = S.rkSeen;
   if (!seen || seen.ym !== ym || L < seen.l) { if (!seen || seen.l !== L || seen.ym !== ym) { S.rkSeen = { ym: ym, l: L }; save(); } return; }
-  if (L > seen.l) { S.rkSeen = { ym: ym, l: L }; ui.rkq = { r: ms.rank, plus: ms.plus }; save(); }
+  if (L > seen.l) { ui.rkq = { r: ms.rank, plus: ms.plus, from: seen.l }; S.rkSeen = { ym: ym, l: L }; save(); }
 }
 function rankSound() {
   if (!S || !S.settings.sound) return;
@@ -1633,15 +1635,6 @@ function rankSound() {
     [64, 68, 71, 76].forEach(function (x) { synth(a, t + d, x, 1.3, 'sawtooth', 0.025, 3000, 0.01); synth(a, t + d, x + 0.08, 1.3, 'sawtooth', 0.025, 3000, 0.01); });
     [88, 92, 95, 100].forEach(function (x, k) { synth(a, t + d + 0.1 + k * 0.06, x, k === 3 ? 0.3 : 0.06, 'square', 0.035, 0, 0.002); });
   } catch (e) {}
-}
-function viewRankUp(o, cls) {
-  var n = new Date(), ms = monthStats(n.getFullYear(), n.getMonth()), lab = o.r + (o.plus ? '+' : ''), gold = o.r === 'S' || o.plus;
-  return '<div class="' + cls + (gold ? ' gold' : '') + '" style="text-align:center">' + whead('Nuovo rango', true) +
-    '<span class="pop" style="display:flex;justify-content:center;padding:6px 0 2px">' + rkHex(o.r, 104, o.plus) + '</span>' +
-    '<p class="wtitle" style="text-align:center">Rango ' + lab + '</p>' +
-    '<p class="wtext" style="text-align:center">' + (o.plus ? 'Quest social vinta da ' + o.r + ': il gradino in più è tuo.' : 'Questo mese sei salito in rango ' + o.r + '.') + '</p>' +
-    '<span class="hint" style="font-size:11px;text-align:center">' + pfmt(ms.pts) + ' questo mese</span>' +
-    '<div class="acts" style="grid-template-columns:1fr;width:100%"><button class="btn main" data-a="close">Continua</button></div></div>';
 }
 function checkMedals() {
   if (!S) return;
@@ -1982,7 +1975,7 @@ function chPull(force) {
   chAt = Date.now(); chBusy = true;
   var since = addDays(todayKey(), -40), mon = mondayOf(todayKey());
   var G = { gangs: [], mem: [], cm: [] };
-  return authFresh().then(function () { return Promise.all([sbFetch('/rest/v1/challenges?select=*&day=gte.' + since + '&order=created_at.desc'), sbFetch('/rest/v1/fives?select=from_id,week&to_id=eq.' + cauth.uid + '&week=gte.' + addDays(mon, -7)).catch(function () { return []; }), sbFetch('/rest/v1/gang_members?select=gang_id&user_id=eq.' + cauth.uid).catch(function () { return []; })]); }).then(function (res) {
+  return authFresh().then(function () { return Promise.all([sbFetch('/rest/v1/challenges?select=*&day=gte.' + since + '&order=created_at.desc'), sbFetch('/rest/v1/fives?select=*&to_id=eq.' + cauth.uid + '&week=gte.' + addDays(mon, -7)).catch(function () { return []; }), sbFetch('/rest/v1/gang_members?select=gang_id&user_id=eq.' + cauth.uid).catch(function () { return []; })]); }).then(function (res) {
     var gids = (res[2] || []).map(function (x) { return x.gang_id; }), gch = (res[0] || []).filter(function (r) { return r.gang_id; }).map(function (r) { return r.id; });
     if (!gids.length) return res;
     return Promise.all([sbFetch('/rest/v1/gangs?select=*&id=in.(' + gids.join(',') + ')'), sbFetch('/rest/v1/gang_members?select=gang_id,user_id&gang_id=in.(' + gids.join(',') + ')'), gch.length ? sbFetch('/rest/v1/challenge_members?select=*&challenge_id=in.(' + gch.join(',') + ')') : Promise.resolve([])]).then(function (g2) {
@@ -2045,7 +2038,7 @@ function chPull(force) {
     if (JSON.stringify(out) !== JSON.stringify(p.ch)) { p.ch = out; dirty = true; }
     /* cinque ricevuti */
     p.fin = p.fin || {};
-    (res[1] || []).forEach(function (x) { var k = x.from_id + '|' + x.week; if (p.fin[k]) return; p.fin[k] = 1; dirty = true; var f = friend(x.from_id); letter('five', x.from_id, (f ? f.n : 'Un amico') + ' ti ha dato il cinque', 'Per la tua settimana'); });
+    (res[1] || []).forEach(function (x) { var k = x.from_id + '|' + x.week; if (p.fin[k]) return; p.fin[k] = 1; dirty = true; var f = friend(x.from_id), nm = f ? f.n : 'Un amico'; if (p.fives[x.from_id] === x.week) { p.nbat = (p.nbat || 0) + 1; letter('bat', x.from_id, nm + ' ha battuto il tuo cinque', 'Tu e ' + nm + ', questa settimana.', null, x.week); } else letter('five', x.from_id, nm + ' ti ha dato il cinque', fiveSub(x.day, x.sport), null, x.week); });
     patches.forEach(function (q) { chPatch(q[0], q[1]); });
     if (dirty) { save(); render(); }
   }).catch(function () { chBusy = false; });
@@ -2092,7 +2085,7 @@ function activeGloves() { var t = todayKey(); return myCh().filter(function (c) 
 function gloveWonCount(ym) { return myCh().filter(function (c) { return c.to === 'me' && c.me && (!ym || c.day.indexOf(ym) === 0); }).length; }
 function gloveXp() { return myCh().filter(function (c) { return c.me; }).length * GXP; }
 function unreadLetters() { return (P() ? P().letters.filter(function (l) { return !l.rd; }).length + incomingPending().length : 0) + (ui.inbox ? ui.inbox.length : 0); }
-function letter(k, f, tx, sub, cid) { P().letters.unshift({ id: uid(), k: k, f: f, tx: tx, sub: sub, cid: cid || null, t: Date.now(), rd: false }); }
+function letter(k, f, tx, sub, cid, wk) { var l = { id: uid(), k: k, f: f, tx: tx, sub: sub, cid: cid || null, t: Date.now(), rd: false }; if (wk) l.wk = wk; P().letters.unshift(l); }
 function chLabel(c) { return SPORTS[c.sp].name + ' · ' + c.q; }
 function partyTick() {
   if (!partyOn()) return;
@@ -2122,7 +2115,7 @@ function partyTick() {
 }
 /* ---------- guida per chi arriva: una volta per schermata, fumetti tratteggiati dall'alto in basso.
    ATTENZIONE: quando aggiungi o cambi una funzione importante, aggiorna anche questi passaggi (e GUIDE_V per farla rivedere a tutti). ---------- */
-var GUIDE_V = 1;
+var GUIDE_V = 2;
 var GUIDE = {
   home: [
     ['.top button[data-v="stato"]', 'Il tuo rango del mese', 'Sale con i giorni di sport e con le quest, e riparte ogni mese. Toccalo per vedere quanto manca al prossimo.'],
@@ -2138,8 +2131,9 @@ var GUIDE = {
   ],
   party: [
     ['.top [data-v="letters"]', 'Novità', 'Richieste, guanti e letterine arrivano qui. Il pallino rosso ti dice che c’è qualcosa.'],
+    ['[data-v="psettings"]', 'Impostazioni', 'Scegli cosa vedono gli amici e quali notifiche ti arrivano sul telefono.'],
     ['[data-v="sfide"]', 'Le sfide', 'I guanti del mese, lanciati e ricevuti. Un guanto vinto vale mezzo Punto Rango.'],
-    ['.pfr', 'I tuoi amici', 'Tocca un amico per il suo profilo e per lanciargli il guanto di sfida.'],
+    ['.pfr', 'I tuoi amici', 'Tocca un amico per il suo profilo: gli lanci il guanto di sfida, o nel suo calendario gli dai il cinque su una sessione.'],
     ['.pgg', 'Le Gang', 'Gruppi di amici con un obiettivo al giorno, uguale per tutti.'],
     ['.pcode', 'Il tuo codice', 'Dallo a un amico, oppure mandagli l’invito: col link diventate amici subito.']
   ]
@@ -2474,7 +2468,7 @@ var PA = {
   },
   gWin: function (id) { var c = chById(id); if (c && c.real) { c.me = true; var bw = c.from === 'me' ? { from_done: true } : { to_done: true }; if (c.to === 'me' && (!c.shared || c.done)) { bw.status = 'won'; c.st = 'won'; } chAct(chPatch(c.id, bw)); save(); ui.ov = { t: 'gwin', id: id }; medalSound(); render(); return; } c.me = true; if (c.to === 'me' && !c.shared) c.st = 'won'; if (c.to === 'me' && c.shared && c.done) c.st = 'won'; save(); ui.ov = { t: 'gwin', id: id }; medalSound(); render(); },
   launch: function (fid) { if (sendBlock(fid)) { toast('Questa settimana hai già lanciato 3 guanti a ' + friend(fid).n + '.'); return; } var f = friend(fid), sp = f.sports.filter(function (s) { return S.profile.sports.indexOf(s) >= 0; })[0] || f.sports[0], open1 = chOpenToday(fid); ui.ov = { t: 'launch', fid: fid, sp: sp, q: '', sh: true, msg: '', fut: !!open1, day: open1 ? (addDays(todayKey(), 1) <= planEnd() ? addDays(todayKey(), 1) : todayKey()) : todayKey() }; ding('open'); render(); },
-  launchOn: function (arg) { var p = arg.split('|'); A.launch(p[0]); var o = ui.ov; if (!o || o.t !== 'launch') return; if (p[1] > todayKey()) { o.fut = true; o.day = p[1]; } else { o.fut = false; o.day = todayKey(); } if (SPORTS[p[2]]) o.sp = p[2]; render(); },
+  launchOn: function (arg) { var p = arg.split('|'); A.launch(p[0]); var o = ui.ov; if (!o || o.t !== 'launch') return; if (p[1] > todayKey()) { o.fut = true; o.day = p[1]; } else { o.fut = false; o.day = todayKey(); } if (SPORTS[p[2]]) o.sp = p[2]; if (p[3]) { try { o.q = decodeURIComponent(p[3]); } catch (e) {} } render(); },
   lFut: function () { var o = ui.ov; o.fut = !o.fut; o.day = o.fut ? (o.day > todayKey() ? o.day : addDays(todayKey(), 1)) : todayKey(); ding('tap'); render(); },
   lDay: function (k) { ui.ov.day = k; ding('tap'); render(); },
   launchGang: function (gid) { var sp = S.profile.sports.filter(function (s) { return s !== 'bon'; })[0] || 'run'; ui.ov = { t: 'launch', gid: gid, sp: sp, q: '', sh: true, msg: '' }; ding('open'); render(); },
@@ -2500,7 +2494,9 @@ var PA = {
     save(); ui.ov = null; ding('ok');
     toast(sent ? (o.fid ? 'Guanto lanciato a ' + friend(o.fid).n + '.' : 'Guanto lanciato a ' + sent + (sent === 1 ? ' amico' : ' amici') + ' della Gang.') : 'Oggi con loro c’è già un guanto aperto.');
   },
-  five: function (fid) { if (friend(fid) && friend(fid).real) { var ff = friend(fid), wk = mondayOf(todayKey()); if (P().fives[fid] === wk) { toast('Il cinque a ' + ff.n + ' l’hai già dato questa settimana.'); return; } P().fives[fid] = wk; P().nfive = (P().nfive || 0) + 1; save(); ding('ok'); toast('Cinque a ' + ff.n + '!'); render(); authFresh().then(function () { return sbFetch('/rest/v1/fives', { method: 'POST', prefer: 'return=minimal', body: { from_id: cauth.uid, to_id: fid, week: wk } }); }).catch(function () {}); return; } var f = friend(fid), w = mondayOf(todayKey()); if (P().fives[fid] === w) { toast('Il cinque a ' + f.n + ' l’hai già dato questa settimana.'); return; } P().fives[fid] = w; P().nfive = (P().nfive || 0) + 1; save(); ding('ok'); toast('Cinque a ' + f.n + '!'); },
+  five: function (arg) { var a = String(arg).split('|'); fiveGive(a[0], a[1] || null); },
+  fiveBack: function (lid) { var l = P().letters.filter(function (x) { return x.id === lid; })[0]; if (!l || !l.f) return; P().fin = P().fin || {}; P().fin[l.f + '|' + (l.wk || mondayOf(todayKey()))] = 1; if (fiveGive(l.f, null, true) && ui.ov && ui.ov.t === 'fnote') { ui.ov.batl = lid; render(); } },
+  rkBreak: function () { var o = ui.ov; if (!o || o.t !== 'rankup' || o.br) return; o.br = 1; rankSound(); buzz([40, 50, 40, 50, 140]); render(); },
   fAdd: function () { if (!cauth) { A.cLogin(); return; } ui.ov = { t: 'addf', code: '' }; ui.focusNext = 'fcode'; ding('open'); render(); },
   fAddGo: function () {
     var o = ui.ov, c = (o.code || '').trim().toUpperCase().replace(/\s+/g, '');
@@ -2613,10 +2609,11 @@ function viewFCal(o, cls) {
   var g = '<div class="grid7">' + ['L', 'M', 'M', 'G', 'V', 'S', 'D'].map(function (x) { return '<span class="dow">' + x + '</span>'; }).join('') + '</div><div class="grid7" style="row-gap:8px">';
   for (var i = 0; i < lead; i++) g += '<span></span>';
   var plans = days.filter(function (x) { return x.pl; });
-  days.forEach(function (x) { if (x.sp) used[x.sp] = 1; if (x.pl) used[x.pl] = 1; var fut = x.k > todayKey(); g += '<span style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 0"><span style="font:600 12px/14px var(--fd);color:' + (x.k === todayKey() ? 'var(--ink)' : fut ? '#3A4866' : 'var(--mut)') + '">' + x.d + '</span>' + (x.sp ? '<i style="display:block;width:14px;height:14px;border-radius:7px;background:' + SPORTS[x.sp].c + ';box-shadow:0 0 8px ' + SPORTS[x.sp].c + '"></i>' : x.pl ? '<i style="display:block;box-sizing:border-box;width:14px;height:14px;border-radius:7px;border:1.5px dashed ' + (x.pg ? PGOLD : SPORTS[x.pl].c) + '"></i>' : '<i style="display:block;width:14px;height:14px;border-radius:7px;border:1px ' + (fut ? 'dashed #1E2A42' : 'solid #1E2A42') + '"></i>') + '</span>'; });
+  var five5 = P().fives[f.id] === mondayOf(todayKey()), canF = !five5 && !(f.gm && !isFriend(f.id));
+  days.forEach(function (x) { if (x.sp) used[x.sp] = 1; if (x.pl) used[x.pl] = 1; var fut = x.k > todayKey(), tap = canF && x.sp && !fut; g += (tap ? '<button data-a="five" data-v="' + f.id + '|' + x.k + '" aria-label="Cinque per ' + dayShort(x.k) + '" style="appearance:none;border:0;background:transparent;color:inherit;cursor:pointer;' : '<span style="') + 'display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 0"><span style="font:600 12px/14px var(--fd);color:' + (x.k === todayKey() ? 'var(--ink)' : fut ? '#3A4866' : 'var(--mut)') + '">' + x.d + '</span>' + (x.sp ? '<i style="display:block;width:14px;height:14px;border-radius:7px;background:' + SPORTS[x.sp].c + ';box-shadow:0 0 8px ' + SPORTS[x.sp].c + '"></i>' : x.pl ? '<i style="display:block;box-sizing:border-box;width:14px;height:14px;border-radius:7px;border:1.5px dashed ' + (x.pg ? PGOLD : SPORTS[x.pl].c) + '"></i>' : '<i style="display:block;width:14px;height:14px;border-radius:7px;border:1px ' + (fut ? 'dashed #1E2A42' : 'solid #1E2A42') + '"></i>') + (tap ? '</button>' : '</span>'); });
   g += '</div>';
   var leg = '<div style="display:flex;flex-wrap:wrap;gap:8px 16px">' + Object.keys(used).map(function (s) { return '<span style="display:flex;align-items:center;gap:6px;font:500 13px/18px var(--fb);color:var(--soft)">' + sportIc(s, 16, true) + SPORTS[s].name + '</span>'; }).join('') + '</div>';
-  return '<div class="' + cls + '">' + whead(f.n + ' · ' + MONTHS[m], true) + '<div class="card" style="padding:8px 10px">' + g + '</div>' + leg + (plans.length ? '<div class="card" style="padding:8px 12px;display:flex;flex-direction:column;gap:6px"><span class="lbl" style="font-size:10.5px">In programma</span>' + plans.map(function (x) { return '<span style="display:flex;align-items:center;gap:8px;font:600 13px/18px var(--fb)"><i style="display:block;box-sizing:border-box;width:12px;height:12px;border-radius:6px;border:1.5px dashed ' + (x.pg ? PGOLD : SPORTS[x.pl].c) + '"></i>' + dayShort(x.k).charAt(0).toUpperCase() + dayShort(x.k).slice(1) + ' · ' + SPORTS[x.pl].name + (x.pg ? '<span class="hint" style="font-size:11px">guanto</span>' : '') + '<button class="btn sm" data-a="launchOn" data-v="' + f.id + '|' + x.k + '|' + x.pl + '" style="margin-left:auto;height:30px;padding:0 10px;font-size:10.5px;display:flex;align-items:center;gap:5px;border-color:' + PGOLD + '8C;color:var(--rew)">' + svg(PI.glove, PGOLD, 14) + 'Sfida</button></span>'; }).join('') + '<span class="hint" style="font-size:11.5px">Tratteggiato: in programma. Buon momento per sfidarlo.</span></div>' : '') + '</div>';
+  return '<div class="' + cls + '">' + whead(f.n + ' · ' + MONTHS[m], true) + '<div class="card" style="padding:8px 10px">' + g + '</div>' + leg + (plans.length ? '<div class="card" style="padding:8px 12px;display:flex;flex-direction:column;gap:6px"><span class="lbl" style="font-size:10.5px">In programma</span>' + plans.map(function (x) { return '<span style="display:flex;align-items:center;gap:8px;font:600 13px/18px var(--fb)"><i style="display:block;box-sizing:border-box;width:12px;height:12px;border-radius:6px;border:1.5px dashed ' + (x.pg ? PGOLD : SPORTS[x.pl].c) + '"></i>' + dayShort(x.k).charAt(0).toUpperCase() + dayShort(x.k).slice(1) + ' · ' + SPORTS[x.pl].name + (x.pg ? '<span class="hint" style="font-size:11px">guanto</span>' : '') + '<button class="btn sm" data-a="launchOn" data-v="' + f.id + '|' + x.k + '|' + x.pl + '" style="margin-left:auto;height:30px;padding:0 10px;font-size:10.5px;display:flex;align-items:center;gap:5px;border-color:' + PGOLD + '8C;color:var(--rew)">' + svg(PI.glove, PGOLD, 14) + 'Sfida</button></span>'; }).join('') + '<span class="hint" style="font-size:11.5px">Tratteggiato: in programma. Buon momento per sfidarlo.</span></div>' : '') + '<p class="hint" style="margin:0;display:flex;align-items:center;gap:6px">' + svg(PI.five, '#7CC4FF', 14) + (five5 ? 'Il cinque di questa settimana l’hai già dato.' : canF ? 'Tocca un giorno di sport per dargli il cinque.' : '') + '</p></div>';
 }
 function chOut(c, who) {
   var t = todayKey(), me = who === 'me';
@@ -2822,7 +2819,7 @@ function viewGWin(o, cls) {
   else if (c.to === 'me') { pts = '+½'; note = ms.held ? 'Oggi sei già salito: il prossimo gradino scatta domani, alla prima sessione.' : ms.plus ? 'Sei in ' + ms.rank + '+ questo mese.' : 'Sei in ' + ms.rank + ': con la prossima quest social passi a ' + ms.rank + '+.'; }
   else { pts = '+½'; note = 'Quest condivisa con ' + f.n + ': mezzo Punto Rango a testa a chi la completa.'; }
   return '<div class="' + cls + ' gold" style="border-color:' + col + '">' + '<div class="whead"><span class="mark" style="border-color:' + col + ';color:' + col + '">!</span><span class="wlabel" style="color:' + col + '">' + (g ? 'Obiettivo Gang' : 'Guanto vinto') + '</span><span class="rule"></span></div>' +
-    '<div style="display:flex;justify-content:center">' + svg(g ? PI.party : PI.glove, col, 64) + '</div><span class="badge" style="text-align:center">' + (g ? 'Fatto per la Gang' : 'Raccolto e vinto') + '</span>' +
+    (g ? (c.st === 'passed' ? fxGang(c, 'gw' + c.id) : '<div style="display:flex;justify-content:center">' + svg(PI.party, col, 64) + '</div>') : fxSeal(!!(c.shared && c.me && c.done), 'gw' + c.id + (c.done ? 2 : 1))) + '<span class="badge" style="text-align:center">' + (g ? 'Fatto per la Gang' : c.shared && c.done ? 'Chiusa in due' : 'Raccolto e vinto') + '</span>' +
     '<p class="wtext">' + esc(chLabel(c)) + '.</p>' +
     '<div class="g2"><div class="fld" style="align-items:center"><span style="font:700 17px/22px var(--fd);color:var(--glow)">+' + GXP + '</span><span class="hint">Punti XP extra</span></div><div class="fld" style="align-items:center"><span style="font:700 17px/22px var(--fd);color:var(--rew)">' + pts + '</span><span class="hint">Punto Rango</span></div></div>' +
     '<div class="row" style="padding:0 2px"><span class="hint">' + note + '</span>' + (!g && c.to === 'me' ? rkHex('S', 30, true) : '') + '</div>' +
@@ -2853,6 +2850,78 @@ function viewGang() {
   if (g.real) h += '<button class="mlink" data-a="gangLeave" data-v="' + g.id + '" style="align-self:center;color:' + (ui.leave === g.id ? '#FF8A80' : 'var(--mut)') + '">' + (ui.leave === g.id ? 'Tocca ancora per uscire dalla Gang' : 'Esci dalla Gang') + '</button>';
   return h;
 }
+/* ---------- 3.9: animazioni di vittoria, cinque e rango. Lo stato di riposo è quello finale: l'animazione parte solo la prima volta che la finestra si apre ---------- */
+var FIST = '<path d="M4.5 9.2A2.2 2.2 0 0 1 6.7 7H15a4.5 4.5 0 0 1 4.5 4.5v2.2A4.3 4.3 0 0 1 15.2 18H8.7a4.2 4.2 0 0 1-4.2-4.2z"/><path d="M14.6 10.6h4.8M14.6 14.4h4.6"/><path d="M4.8 11.3h5.6a1.75 1.75 0 0 1 0 3.5H8.2"/><path d="M4.5 9.9H2.4v4.4h2.1"/>';
+function fxRun(key) { return animCls(key, 'fx') ? ' run' : ''; }
+function fxIc(p, c, cls, w) { return '<svg class="' + cls + '" viewBox="0 0 24 24" fill="none" stroke="' + c + '" stroke-width="' + (w || 1.5) + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg>'; }
+function fxRays() { var h = '<span class="fx-ry">'; for (var i = 0; i < 10; i++) h += '<i style="--a:' + (i * 36) + 'deg"></i>'; return h + '</span>'; }
+/* il certificato: sigillo d'oro col guanto dentro; in due, i pugnetti che si scontrano e il sigillo doppio */
+function fxSealSvg(two) {
+  var id = 'sp' + (two ? 2 : 1), t = two ? 'CHIUSA IN DUE · CHIUSA IN DUE · ' : 'SFIDA CHIUSA · SFIDA CHIUSA · ';
+  var g = '<g fill="none" stroke="' + PGOLD + '" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" ';
+  var mid = two ? g + 'transform="translate(51.5 63)">' + FIST + '</g>' + g + 'transform="translate(98.5 63) scale(-1 1)">' + FIST + '</g>' : g + 'transform="translate(57 57) scale(1.5)">' + PI.glove + '</g>';
+  return '<svg class="fx-seal" viewBox="0 0 150 150" aria-hidden="true"><defs><path id="' + id + '" d="M75 75m-48.5 0a48.5 48.5 0 1 1 97 0a48.5 48.5 0 1 1 -97 0"/></defs><circle cx="75" cy="75" r="66" fill="#14120A" stroke="' + PGOLD + '" stroke-width="3"/><circle cx="75" cy="75" r="40" fill="none" stroke="' + PGOLD + '" stroke-width="1.4" opacity=".7"/><text font-family="Exo 2, sans-serif" font-weight="700" font-size="12.5" letter-spacing="' + (two ? 2.15 : 3.05) + '" fill="' + PGOLD + '"><textPath href="#' + id + '">' + t + '</textPath></text>' + mid + '</svg>';
+}
+function fxSeal(two, key) {
+  return '<div class="fx fxs' + (two ? ' two' : '') + fxRun(key) + '" aria-hidden="true">' + (two ? '<span class="fx-fl"></span>' + fxRays() + fxIc(FIST, PGOLD, 'fx-fa') + fxIc(FIST, PGOLD, 'fx-fb') : '') + '<span class="fx-du"></span>' + fxSealSvg(two) + '</div>';
+}
+function fxHexSvg(l, cls) { return '<svg class="' + cls + '" viewBox="0 0 76 84" aria-hidden="true"><path d="M38 3l33 19v40L38 81 5 62V22z" fill="#160F26" stroke="' + PGOLD + '" stroke-width="2.4" stroke-linejoin="round"/><text x="38" y="43" text-anchor="middle" dominant-baseline="central" font-family="Manrope, sans-serif" font-weight="700" font-size="32" fill="#EAF3FF">' + l + '</text></svg>'; }
+/* obiettivo della Gang: gli esagoni di chi l'ha fatto arrivano e si incastrano */
+function fxGang(c, key) {
+  var g = gangById(c.gang), n = new Date(), L = [monthStats(n.getFullYear(), n.getMonth()).rank].concat((g ? g.mem : []).slice(0, 2).map(function (id) { var f = friend(id); return f && f.r ? f.r : '·'; }));
+  var pos = L.length >= 3 ? [[-30, -26, -140, -90], [30, -26, 140, -70], [0, 26, 0, 150]] : [[-30, 0, -140, -40], [30, 0, 140, 40]];
+  return '<div class="fx fxg' + fxRun(key) + '" aria-hidden="true"><span class="fx-lk"></span>' + L.slice(0, pos.length).map(function (l, i) { var q = pos[i]; return '<span class="fx-hx" style="--x:' + q[0] + 'px;--y:' + q[1] + 'px;--fx:' + q[2] + 'px;--fy:' + q[3] + 'px;--dl:' + (.15 + i * .28).toFixed(2) + 's">' + fxHexSvg(l, '') + '</span>'; }).join('') + '</div>';
+}
+/* il guanto che torna a casa: si sfalda in polvere azzurra */
+function fxDust(key) {
+  var h = '<div class="fx fxd' + fxRun(key) + '" aria-hidden="true">' + fxIc(PI.glove, '#7CC4FF', 'fx-gg');
+  for (var i = 0; i < 24; i++) { var a = (i * 137.5) * Math.PI / 180, r = 8 + (i * 7) % 26; h += '<i class="fx-pt" style="--sx:' + (Math.cos(a) * r).toFixed(1) + 'px;--sy:' + (Math.sin(a) * r).toFixed(1) + 'px;--dx:' + (((i * 29) % 70) - 35) + 'px;--dy:' + ((i * 17) % 50) + 'px;--dl:' + (.35 + (i % 6) * .08).toFixed(2) + 's"></i>'; }
+  return h + '</div>';
+}
+/* il cinque: la mano alzata che aspetta, e il cinque battuto */
+function fxFiveUp(key) { return '<div class="fx fxu' + fxRun(key) + '" aria-hidden="true"><span class="fx-ha"></span>' + fxIc(PI.five, '#7CC4FF', 'fx-h1') + '</div>'; }
+function fxFiveBat(key) { return '<div class="fx fxb' + fxRun(key) + '" aria-hidden="true"><span class="fx-fl"></span>' + fxRays() + fxIc(PI.five, PGOLD, 'fx-lh') + fxIc(PI.five, PGOLD, 'fx-rh') + '</div>'; }
+function viewFiveFx(o, cls) {
+  var f = friend(o.fid) || { n: 'il tuo amico' };
+  if (o.mode === 'bat') return '<div class="' + cls + ' gold" style="text-align:center">' + whead('Cinque', true) + fxFiveBat('fb' + o.n) + '<p class="wtitle" style="text-align:center">Cinque battuto</p><p class="wtext" style="text-align:center">Tu e <b>' + esc(f.n) + '</b>, questa settimana.</p><div class="acts one"><button class="btn main" data-a="close">Ok</button></div></div>';
+  return '<div class="' + cls + '" style="text-align:center">' + whead('Cinque', true) + fxFiveUp('fu' + o.n) + '<p class="wtitle" style="text-align:center">Mano alzata</p><p class="wtext" style="text-align:center"><b>' + esc(f.n) + '</b> lo vede ' + esc(fiveSub(o.k, o.sp).toLowerCase()) + '. Quando lo batte, è un cinque battuto.</p><div class="acts one"><button class="btn main" data-a="close">Ok</button></div></div>';
+}
+function fiveSub(k, sp) { if (!k || !SPORTS[sp]) return 'Per la tua settimana'; return 'Per la sessione di ' + SPORTS[sp].name.toLowerCase() + ' ' + (k === todayKey() ? 'di oggi' : 'di ' + DAYS_LONG[parseKey(k).getDay()].toLowerCase()); }
+/* l'ultima sessione dell'amico, per il cinque dato dal profilo */
+function fLastSess(f) { for (var i = 0; i < 31; i++) { var k = addDays(todayKey(), -i); if (trainedOn(f, k)) return { k: k, sp: fSportOn(f, k) }; } return { k: null, sp: null }; }
+var fxN = 0;
+/* dare il cinque: uno a settimana per amico. Se lui te l'aveva già dato, è battuto */
+function fiveGive(fid, k, inLetter) {
+  var f = friend(fid), p = P(), wk = mondayOf(todayKey()); if (!f) return false;
+  if (p.fives[fid] === wk) { toast('Il cinque a ' + f.n + ' l’hai già dato questa settimana.'); return false; }
+  var sp = null; if (k && trainedOn(f, k)) sp = fSportOn(f, k); else { var ls = fLastSess(f); k = ls.k; sp = ls.sp; }
+  p.fives[fid] = wk; p.nfive = (p.nfive || 0) + 1; p.fin = p.fin || {};
+  var back = !!p.fin[fid + '|' + wk]; if (back) p.nbat = (p.nbat || 0) + 1;
+  save(); ding('ok'); buzz(back ? [20, 40, 60] : [25]);
+  if (!inLetter) { fxN++; ui.ov = { t: 'fivefx', fid: fid, mode: back ? 'bat' : 'up', k: k, sp: sp, n: fxN }; }
+  render();
+  if (f.real) {
+    var body = { from_id: cauth.uid, to_id: fid, week: wk };
+    if (k && sp) { body.day = k; body.sport = sp; }
+    authFresh().then(function () { return sbFetch('/rest/v1/fives', { method: 'POST', prefer: 'return=minimal', body: body }); }).catch(function () {
+      if (body.day) { delete body.day; delete body.sport; return sbFetch('/rest/v1/fives', { method: 'POST', prefer: 'return=minimal', body: body }).catch(function () {}); }
+    });
+  }
+  return back;
+}
+/* il rango che si rompe al tocco: trema, si crepa, e quando tocchi esce il nuovo */
+function viewRankUp(o, cls) {
+  var n = new Date(), ms = monthStats(n.getFullYear(), n.getMonth()), lab = o.r + (o.plus ? '+' : ''), gold = o.r === 'S' || o.plus;
+  var fr = o.from >= 0 ? RLET[Math.floor(o.from / 2)] : 'E', fp = o.from >= 0 ? o.from % 2 === 1 : false;
+  var old = rkHex(fr, 104, fp), crk = '<svg class="rk-c" viewBox="0 0 76 84" aria-hidden="true"><path class="m" pathLength="100" style="--dl:.5s" d="M38 4L33.5 32L42.5 50L38 80"/><path class="t" pathLength="100" style="--dl:.95s" d="M33.5 32L23 36L14 35"/><path class="t" pathLength="100" style="--dl:1.15s" d="M42.5 50L52 55L60 54"/><path class="t" pathLength="100" style="--dl:1.3s" d="M36 15L44 10M38 66L31 72"/></svg>';
+  var stage = '<button class="rkst' + (o.br ? ' br' + fxRun('rkb' + o.k) : fxRun('rka' + o.k)) + '" data-a="rkBreak" aria-label="Rompi il vecchio rango"' + (o.br ? ' disabled' : '') + '><span class="rk-beam"></span><span class="rk-lk"></span><span class="rk-box"><span class="rk-old"><span class="rk-h rk-l">' + old + '</span><span class="rk-h rk-r">' + old + '</span>' + crk + '</span><span class="rk-n">' + rkHex(o.r, 104, o.plus) + '</span></span></button>';
+  if (!o.br) return '<div class="' + cls + '" style="text-align:center">' + whead('Nuovo rango', false) + stage + '<p class="wtext rk-tip" style="text-align:center">Qualcosa si sta rompendo. Tocca il tuo rango.</p></div>';
+  return '<div class="' + cls + (gold ? ' gold' : '') + '" style="text-align:center">' + whead('Nuovo rango', true) + stage +
+    '<div class="rk-txt" style="display:flex;flex-direction:column;gap:10px"><p class="wtitle" style="text-align:center">Rango ' + lab + '</p>' +
+    '<p class="wtext" style="text-align:center">' + (o.plus ? 'Quest social vinta da ' + o.r + ': il gradino in più è tuo.' : 'Questo mese sei salito in rango ' + o.r + '.') + '</p>' +
+    '<span class="hint" style="font-size:11px;text-align:center">' + pfmt(ms.pts) + ' questo mese</span>' +
+    '<div class="acts" style="grid-template-columns:1fr;width:100%"><button class="btn main" data-a="close">Continua</button></div></div></div>';
+}
 function viewFNote(o, cls) {
   var l = P().letters.filter(function (x) { return x.id === o.list[o.i]; })[0]; if (!l) { return ''; }
   var f = o.fid ? friend(o.fid) : null, cq = l.cid ? chById(l.cid) : null, gq = cq && cq.gang ? gangById(cq.gang) : null;
@@ -2865,12 +2934,16 @@ function viewFNote(o, cls) {
   else if (l.k === 'five') { icon = PI.five; }
   else if (l.k === 'medal' || l.k === 'rank') { icon = PI.medal; }
   else if (l.k === 'gang') { icon = PI.party; }
-  var col = gold ? PGOLD : '#7CC4FF';
+  var col = gold ? PGOLD : '#7CC4FF', wk = mondayOf(todayKey());
+  var bat = l.k === 'bat' || o.batl === l.id, canBat = l.k === 'five' && !bat && f.id && (l.wk || '') === wk && P().fives[f.id] !== wk;
+  if (bat) { gold = true; col = PGOLD; title = 'Cinque battuto'; body = 'Tu e ' + f.n + ', questa settimana.'; }
+  var fx = bat ? fxFiveBat('lb' + l.id) : l.k === 'five' ? fxFiveUp('lf' + l.id) : l.k === 'won' ? fxSeal(!!(cq && cq.shared && cq.me && cq.done), 'lw' + l.id) : l.k === 'flost' ? fxDust('ld' + l.id) : (l.k === 'gang' && cq && cq.st === 'passed') ? fxGang(cq, 'lg' + l.id) : '';
+  var rv = l.k === 'flost' && cq && f.id && !cq.gang ? '<button class="mlink" data-a="launchOn" data-v="' + f.id + '|' + addDays(todayKey(), 1) + '|' + cq.sp + '|' + encodeURIComponent(cq.q || '') + '" style="display:flex;align-items:center;justify-content:center;gap:6px;color:var(--rew)">' + svg(PI.glove, PGOLD, 14) + 'Rivincita ›</button>' : '';
   return '<div class="' + cls + (gold ? ' gold' : '') + '">' + '<div class="whead"><span class="mark"' + (gold ? ' style="border-color:' + PGOLD + ';color:' + PGOLD + '"' : '') + '>!</span><span class="wlabel"' + (gold ? ' style="color:' + PGOLD + '"' : '') + '>' + f.n + (n > 1 ? ' · ' + (o.i + 1) + ' di ' + n : '') + '</span><span class="rule"></span><button class="x" data-a="close" aria-label="Chiudi">' + svg(IC.close, null, 20) + '</button></div>' +
-    '<div style="display:flex;justify-content:center">' + svg(icon, col, 44) + '</div><p class="wtitle">' + esc(title) + '</p>' + (body ? '<p class="wtext">' + esc(body) + '</p>' : '') +
+    (fx || '<div style="display:flex;justify-content:center">' + svg(icon, col, 44) + '</div>') + '<p class="wtitle">' + esc(title) + '</p>' + (body ? '<p class="wtext">' + esc(body) + '</p>' : '') + rv +
     (score ? '<div style="display:flex;align-items:baseline;justify-content:center;gap:12px;font:700 34px/1 var(--fd)"><span style="font:600 11px/14px var(--fd);letter-spacing:1px;color:var(--mut)">TU</span><span>' + sc[0] + '</span><span style="color:var(--mut)">–</span><span>' + sc[1] + '</span><span style="font:600 11px/14px var(--fd);letter-spacing:1px;color:var(--mut)">' + f.n.toUpperCase() + '</span></div>' : '') +
     (cq ? '<button class="mlink" data-a="gView" data-v="' + cq.id + '" style="display:flex;align-items:center;justify-content:center;gap:6px">' + svg(cq.gang ? PI.party : PI.glove, col, 14) + 'Vedi la quest ›</button>' : '') +
-    '<div class="acts' + (n > 1 && o.i + 1 < n ? '' : ' one') + '">' + (n > 1 && o.i + 1 < n ? '<button class="btn" data-a="close">Salta</button><button class="btn main" data-a="fnNext">Avanti</button>' : '<button class="btn main" data-a="fnNext">Ok</button>') + '</div></div>';
+    (canBat ? '<div class="acts"><button class="btn" data-a="fnNext">' + (n > 1 && o.i + 1 < n ? 'Avanti' : 'Dopo') + '</button><button class="btn main" data-a="fiveBack" data-v="' + l.id + '" style="display:flex;align-items:center;justify-content:center;gap:8px">' + svg(PI.five, null, 18) + 'Batti</button></div></div>' : '<div class="acts' + (n > 1 && o.i + 1 < n ? '' : ' one') + '">' + (n > 1 && o.i + 1 < n ? '<button class="btn" data-a="close">Salta</button><button class="btn main" data-a="fnNext">Avanti</button>' : '<button class="btn main" data-a="fnNext">Ok</button>') + '</div></div>');
 }
 function viewTrait(o, cls) {
   var n = new Date(), ms = monthStats(n.getFullYear(), n.getMonth()), mt = monthTraits(n.getFullYear(), n.getMonth()); if (!mt) return '';
@@ -3259,7 +3332,7 @@ function render() {
     partyTick();
     if (medalDirty) { noteMid(); rankCheck(); titleCheck(); checkMedals(); }
     if (!ui.ov && !ui.rkq && ui.tq) { ui.ov = { t: 'newtitle', tt: ui.tq.t, why: ui.tq.why, was: ui.tq.was, k: ui.tq.t }; ui.tq = null; ding('reward'); }
-    if (!ui.ov && ui.rkq) { ui.ov = { t: 'rankup', r: ui.rkq.r, plus: ui.rkq.plus, k: ui.rkq.r + ui.rkq.plus }; ui.rkq = null; rankSound(); buzz([40, 50, 40, 50, 140]); }
+    if (!ui.ov && ui.rkq) { ui.ov = { t: 'rankup', r: ui.rkq.r, plus: ui.rkq.plus, from: ui.rkq.from === undefined ? -1 : ui.rkq.from, k: ui.rkq.r + ui.rkq.plus + Date.now() }; ui.rkq = null; ding('open'); buzz([15, 60, 15, 60, 15]); }
     if (!ui.ov && ui.mq && ui.mq.length) { if (!ui.mqTot || ui.mqN >= ui.mqTot) { ui.mqTot = ui.mq.length; ui.mqN = 0; } var q = ui.mq.shift(); ui.mqN++; ui.ov = { t: 'medal', id: q.id, tr: q.t, n: ui.mqN, tot: ui.mqTot }; if (!ui.mq.length) { ui.mqTot = 0; } medalSound(); }
     gloveQueue(); lateQueue(); pushAsk();
     var body = ui.screen === 'party' ? viewParty() : ui.screen === 'friend' ? viewFriend() : ui.screen === 'letters' ? viewLetters() : ui.screen === 'pfriends' ? viewPList('f') : ui.screen === 'pgangs' ? viewPList('g') : ui.screen === 'psettings' ? viewPSettings() : ui.screen === 'gang' ? viewGang() : ui.screen === 'sfide' ? viewSfide() : ui.screen === 'stato' ? viewStato() : ui.screen === 'settings' ? viewSettings() : ui.screen === 'bacheca' ? viewBacheca() : viewHome();
@@ -3381,7 +3454,7 @@ setTimeout(pushRefresh, 4000);
 (function () {
   var sp = document.getElementById('splash'); if (!sp) return;
   var gone = false, end = function () { if (gone) return; gone = true; sp.classList.add('out'); setTimeout(function () { if (sp.parentNode) sp.parentNode.removeChild(sp); }, 320); };
-  setTimeout(end, Math.max(300, 2950 - (window.performance && performance.now ? performance.now() : 0)));
+  setTimeout(end, Math.max(300, 3200 - (window.performance && performance.now ? performance.now() : 0)));
 })();
 /* all'apertura la pagina resta nascosta finché i font sono pronti (al massimo 0,7 s): niente lettere e misure che saltano */
 document.body.classList.add('boot');
@@ -3394,7 +3467,7 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v3.8.1';
+var APP_V = 'gesta-v3.9.0';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
@@ -3407,5 +3480,5 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     go();
   });
 }
-window.__sistema = { get state() { return S; }, ui: ui, A: A, rkHex: rkHex };
+window.__sistema = { get state() { return S; }, ui: ui, A: A, rkHex: rkHex, render: function () { render(); } };
 }, 0); });
