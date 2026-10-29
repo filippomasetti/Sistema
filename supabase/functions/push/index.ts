@@ -21,7 +21,7 @@ async function messaggi(p: any): Promise<Msg[]> {
   const r = p.record || {}, o = p.old_record || {}, out: Msg[] = [];
   if (p.table === "challenges") {
     if (p.type === "INSERT" && r.to_id) {
-      out.push({ to: r.to_id, kind: "glove", title: (await nome(r.from_id)) + " ti ha lanciato il guanto", body: sp(r.sport) + " · " + r.quest + (r.shared ? " · condivisa" : "") + quando(r.day), go: "letters", tag: "g" + r.id });
+      out.push({ to: r.to_id, kind: "glove", title: (await nome(r.from_id)) + " ti ha lanciato un guanto", body: sp(r.sport) + " · " + r.quest + (r.shared ? " · condivisa" : "") + quando(r.day), go: "letters", tag: "g" + r.id });
     } else if (p.type === "INSERT" && r.gang_id) {
       const { data: g } = await sb.from("gangs").select("name").eq("id", r.gang_id).maybeSingle();
       const { data: mem } = await sb.from("gang_members").select("user_id").eq("gang_id", r.gang_id);
