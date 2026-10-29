@@ -1061,7 +1061,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">XP, ranghi e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.8.0</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.8.1</span>';
   return h;
 }
 
@@ -1177,7 +1177,7 @@ function viewOverlay() {
       h = '<div class="' + cls + ' gold" style="gap:14px">' + whead('Ieri · ' + niceDate(o.k), true) + '<div style="border-radius:12px;border:1px solid ' + PGOLD + '8C;background:#14120A;padding:10px 14px;display:flex;align-items:center;gap:12px">' + sportIc(lc.sp, 28, true) + '<span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="lbl" style="color:#D9B04A;font-size:11px">' + (lc.from === 'me' ? 'Condivisa con ' : 'Guanto di ') + esc(lf.n) + '</span><span style="font:700 18px/22px var(--fd);text-transform:uppercase;color:var(--rew)">' + esc(chLabel(lc)) + '</span></span></div><p class="wtitle">Ce l’hai fatta?</p><p class="wtext" style="margin-top:-8px">Ieri non hai risposto: puoi farlo fino a stasera.</p><div class="acts"><button class="btn" data-a="gLose" data-v="' + lc.id + '">No</button><button class="btn main" data-a="gLate" data-v="' + lc.id + '" style="background:' + PGOLD + ';border-color:' + PGOLD + '">Sì, fatta</button></div></div>';
     }
   } else if (o.t === 'pushask') {
-    h = '<div class="' + cls + '" style="gap:14px">' + whead('Notifiche', true) + '<p class="wtitle" style="margin-top:-4px">Cosa vuoi sapere subito?</p><p class="wtext" style="margin-top:-8px">Ora che hai amici nel Party, scegli tu cosa far arrivare sul telefono. Il resto aspetta in Novità.</p>' +
+    h = '<div class="' + cls + '" style="gap:14px">' + whead('Notifiche', true) + '<p class="wtitle" style="margin-top:-4px">Cosa può disturbare la tua quiete?</p><p class="wtext" style="margin-top:-8px">Ora che hai amici nel Party, scegli tu cosa far arrivare sul telefono. Il resto aspetta in Novità.</p>' +
       '<div class="card" style="padding:2px 12px;text-align:left">' + pushToggles() + '</div><p class="hint" style="margin:-4px 0 0;text-align:center">Una notifica per ogni cosa, mai ripetute. Le cambi quando vuoi nelle impostazioni del Party.</p>' +
       '<div class="acts"><button class="btn" data-a="pushLater">Più tardi</button><button class="btn main" data-a="pushOn">Attiva</button></div></div>';
   } else if (o.t === 'hwok') {
@@ -2352,7 +2352,7 @@ function viewLetters() {
 function pToggle(key, t, s, on, lock) { return '<button class="toggle"' + (lock ? ' disabled style="opacity:.55"' : ' data-a="pTg" data-v="' + key + '"') + '><span style="display:flex;flex-direction:column;gap:2px"><span style="font:600 15px/20px var(--fb)">' + t + '</span>' + (s ? '<span class="hint" style="font-size:11.5px">' + s + '</span>' : '') + '</span><span class="sw' + (on ? ' on' : '') + '"></span></button>'; }
 /* ---------- 3.8: notifiche sul telefono ----------
    La chiave pubblica VAPID la crea Filippo (laboratorio chiavi); la privata sta solo nei secret di Supabase. */
-var VAPID_PUB = '';
+var VAPID_PUB = 'BKCM98ttsyfzcbPiutLy3ULQrsQ3-KBtOv5vqS0V9D92V-e909oPFPqyOs5VlU4NMcAUXyUSjfBk7RieQ93umXs';
 var PUSH_K = [['glove', 'Guanti ricevuti', 'Un amico ti sfida o ti propone una modifica'], ['won', 'Sfide chiuse', 'Quando un amico completa la tua'], ['req', 'Richieste di amicizia', ''], ['gang', 'Obiettivi della Gang', 'Quando qualcuno ne fissa uno'], ['five', 'Cinque ricevuti', '']];
 function pushPrefs() { var p = P(), d = { glove: true, won: true, req: true, gang: true, five: false }; if (!p) return d; p.set.push = p.set.push || d; Object.keys(d).forEach(function (k) { if (p.set.push[k] === undefined) p.set.push[k] = d[k]; }); return p.set.push; }
 function isStandalone() { try { return !!(navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches)); } catch (e) { return false; } }
@@ -3394,7 +3394,7 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v3.8.0';
+var APP_V = 'gesta-v3.8.1';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
