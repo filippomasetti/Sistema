@@ -392,13 +392,15 @@ textarea.inp{height:80px;padding:10px 14px;font-size:15px;resize:none}
 @keyframes fxtxt{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion: reduce){.fx.run *,.rkst *,.rk-tip,.fx-ha{animation-duration:.01s!important;animation-delay:0s!important;animation-iteration-count:1!important}}
 
-/* 3.9.1 · riepilogo a fine sessione */
+/* 3.9.2 · riepilogo a fine sessione */
 .rlist{display:flex;flex-direction:column;gap:6px;max-height:282px;overflow-y:auto;overscroll-behavior:contain;margin:-2px 0}
 .rrow{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--rc) 45%,transparent);background:color-mix(in srgb,var(--rc) 7%,transparent);flex-shrink:0;min-height:50px}
 .rri{width:32px;height:32px;flex:0 0 auto;display:flex;align-items:center;justify-content:center}
 .rlist.run .rrow{animation:rron .45s cubic-bezier(.22,1,.36,1) calc(.35s + var(--i) * .32s) both}
 @keyframes rron{0%{opacity:0;transform:translateY(8px) scale(.97);box-shadow:none}55%{opacity:1;box-shadow:0 0 18px color-mix(in srgb,var(--rc) 45%,transparent)}100%{opacity:1;transform:none;box-shadow:none}}
 @media (prefers-reduced-motion: reduce){.rlist.run .rrow{animation-duration:.01s;animation-delay:0s}}
+.gbump{animation:gbump .5s cubic-bezier(.2,1.5,.4,1)}
+@keyframes gbump{0%{transform:scale(1)}40%{transform:scale(1.22);text-shadow:0 0 28px rgba(59,167,255,1)}100%{transform:scale(1)}}
 </style>
 </head>
 <body>
@@ -423,6 +425,6 @@ textarea.inp{height:80px;padding:10px 14px;font-size:15px;resize:none}
 })();
 </script>
 <div id="app"></div>
-<script src="app.js?v=3.9.1" defer></script>
+<script src="app.js?v=3.9.2" defer></script>
 </body>
 </html>
