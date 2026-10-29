@@ -37,8 +37,10 @@ async function messaggi(p: any): Promise<Msg[]> {
   } else if (p.table === "friend_requests" && p.type === "INSERT") {
     out.push({ to: r.to_id, kind: "req", title: (await nome(r.from_id)) + " vuole essere tuo amico", body: "Rispondi in Novità", go: "letters", tag: "r" + r.id });
   } else if (p.table === "fives" && p.type === "INSERT") {
-    // se l'altro aveva già dato il cinque questa settimana, questo lo batte
-    const { data: back } = await sb.from("fives").select("from_id").eq("from_id", r.to_id).eq("to_id", r.from_id).eq("week", r.week).maybeSingle();
+    // se l'altro te l'aveva dato da poco (questa settimana o la scorsa), questo lo batte
+    const prev = new Date(r.week + "T12:00:00"); prev.setDate(prev.getDate() - 7);
+    const { data: backs } = await sb.from("fives").select("from_id").eq("from_id", r.to_id).eq("to_id", r.from_id).in("week", [r.week, prev.toISOString().slice(0, 10)]);
+    const back = backs && backs.length;
     const chi = await nome(r.from_id);
     if (back) out.push({ to: r.to_id, kind: "five", title: chi + " ha battuto il tuo cinque", body: "Cinque battuto", go: "letters", tag: "b" + r.from_id + r.week });
     else out.push({ to: r.to_id, kind: "five", title: chi + " ti ha dato il cinque", body: r.day && r.sport ? "Per la sessione di " + sp(r.sport).toLowerCase() + " " + giorno(r.day) : "Per la tua settimana", go: "letters", tag: "f" + r.from_id + r.week });
