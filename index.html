@@ -127,7 +127,7 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .rbar{position:relative;height:20px;border-radius:6px;background:var(--line);overflow:hidden}
 .rfill{position:absolute;left:0;top:0;bottom:0;border-radius:6px;transition:width .8s cubic-bezier(.2,.8,.2,1)}
 .rtick{position:absolute;top:0;bottom:0;width:1px;margin-left:-1px;background:rgba(7,11,20,.55)}
-.rtxt{position:absolute;right:8px;top:0;bottom:0;display:flex;align-items:center;font:700 11px/1 var(--fd);letter-spacing:.5px;color:var(--ink);text-shadow:0 0 4px #000,0 0 2px #000}
+.rtxt{position:absolute;right:4px;top:2px;bottom:2px;padding:0 5px;border-radius:4px;background:var(--line);display:flex;align-items:center;font:700 11px/1 var(--fd);letter-spacing:.5px;color:var(--ink);text-shadow:0 0 4px #000,0 0 2px #000}
 .rlets{position:relative;height:14px;margin-top:-4px}.rlets .rlet{position:absolute;transform:translateX(-50%);font:700 10px/14px var(--fd);color:var(--mut)}.rlets .rlet.on{color:var(--ink)}.rlets .rlet:last-child{transform:translateX(-100%)}
 .tcard{padding:10px 12px 10px 16px;display:flex;align-items:center;gap:12px}
 .bachbtn{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 14px;cursor:pointer;text-align:left;border-color:#7A6430!important;background:#14120A!important;box-shadow:0 0 14px rgba(255,201,77,.12)}
@@ -283,6 +283,9 @@ textarea.inp{height:80px;padding:10px 14px;font-size:15px;resize:none}
 .split{display:flex;height:6px;gap:2px;width:100%}.split i{display:block;border-radius:2px}
 .hint{font:500 12px/17px var(--fb);color:var(--mut)}
 .sess{display:flex;align-items:center;gap:12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);padding:10px 12px}
+.sesst{all:unset;box-sizing:border-box;flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:12px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sesst>svg:last-child{flex:0 0 auto;margin-left:-4px}
+.sess .meta b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sess .meta{flex:1 1 auto;min-width:0;display:flex;flex-direction:column}
 .sess .meta b{font:600 15px/20px var(--fd)}
 .sess .meta span{font:500 12px/16px var(--fb);color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -456,6 +459,6 @@ textarea.inp{height:80px;padding:10px 14px;font-size:15px;resize:none}
 })();
 </script>
 <div id="app"></div>
-<script src="app.js?v=4.1.0" defer></script>
+<script src="app.js?v=4.1.1" defer></script>
 </body>
 </html>

@@ -45,10 +45,11 @@ var GROUPS = {
   gambe: { name: 'Gambe', key: 'Leg press', ex: ['Leg press', 'Squat', 'Squat bulgaro', 'Stacchi'] },
   braccia: { name: 'Braccia', key: 'Dips', ex: ['Dips', 'Curl con bilanciere', 'Pushdown ai cavi'] },
   core: { name: 'Core', key: 'Plank', ex: ['Plank', 'Crunch', 'Leg raise'] },
+  libero: { name: 'Corpo libero', key: 'Piegamenti', ex: ['Piegamenti', 'Trazioni', 'Dips', 'Squat a corpo libero', 'Affondi', 'Plank', 'Burpees'] },
   altro: { name: 'Altro', key: null, ex: [] },
   cal: { name: 'Calisthenics', key: 'Trazioni', ex: ['Trazioni', 'Piegamenti', 'Dips', 'Muscle-up', 'Pistol squat', 'L-sit'] }
 };
-var GROUP_ORDER = ['petto', 'spalle', 'schiena', 'gambe', 'braccia', 'core', 'altro'];
+var GROUP_ORDER = ['petto', 'spalle', 'schiena', 'gambe', 'braccia', 'core', 'libero', 'altro'];
 var EX = {
   'Panca piana': { start: 40, inc: 2.5 }, 'Panca inclinata 30°': { start: 30, inc: 2.5 }, 'Panca 45°': { start: 30, inc: 2.5 },
   'Dips': { start: 0, inc: 2.5, reps: true }, 'Military press': { start: 25, inc: 2.5 }, 'Alzate laterali': { start: 6, inc: 2 },
@@ -57,7 +58,7 @@ var EX = {
   'Squat bulgaro': { start: 8, inc: 2 }, 'Curl con bilanciere': { start: 20, inc: 2.5 }, 'Pushdown ai cavi': { start: 20, inc: 2.5 },
   'Plank': { t: 't', start: 30, inc: 5 }, 'Crunch': { t: 'r', start: 15 }, 'Leg raise': { t: 'r', start: 10 },
   'Trazioni': { t: 'r', start: 5 }, 'Piegamenti': { t: 'r', start: 15 }, 'Muscle-up': { t: 'r', start: 2 },
-  'Pistol squat': { t: 'r', start: 5 }, 'L-sit': { t: 't', start: 10, inc: 5 }
+  'Pistol squat': { t: 'r', start: 5 }, 'Squat a corpo libero': { t: 'r', start: 20 }, 'Affondi': { t: 'r', start: 12 }, 'Burpees': { t: 'r', start: 10 }, 'L-sit': { t: 't', start: 10, inc: 5 }
 };
 var EX_TYPES = [['w', 'Con carico'], ['r', 'Corpo libero'], ['t', 'A tempo']];
 var COLORS = [
@@ -1095,7 +1096,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">Ranghi, Gesta e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 4.1.0</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 4.1.1</span>';
   return h;
 }
 
@@ -1160,8 +1161,8 @@ function viewOverlay() {
     list.forEach(function (s) {
       var phx = s.ph ? '<button class="phthumb" data-a="phOpen" data-v="' + o.k + '|' + s.id + '" aria-label="Apri la foto"><img alt="" ' + (phURL[s.id] ? 'src="' + phURL[s.id] + '"' : 'data-phs="' + s.id + '"') + '></button>' : '<label class="phadd" aria-label="Aggiungi foto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7CC4FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><input type="file" accept="image/*"' + (o.k === todayKey() ? '' : '') + ' data-ph="1" data-k="' + o.k + '" data-sid="' + s.id + '" hidden></label>';
       if (o.ro) { h += '<div class="sess">' + sportIc(s.sport, 26, true) + '<div class="meta"><b>' + SPORTS[s.sport].name + (s.star ? ' ★' : '') + '</b><span>' + esc(sessSummary(s)) + '</span></div>' + phx + '</div>'; return; }
-      h += '<div class="sess">' + sportIc(s.sport, 26, true) + '<div class="meta"><b>' + SPORTS[s.sport].name + (s.star ? ' ★' : '') + '</b><span>' + esc(sessSummary(s)) + '</span></div>' + phx +
-        (o.confirm === s.id ? '<button class="btn sm danger" data-a="remove" data-v="' + s.id + '">Rimuovi</button>' : '<button class="btn sm" data-a="edit" data-v="' + s.id + '">Dettagli</button><button class="x" style="margin:0 -6px 0 0" data-a="askRemove" data-v="' + s.id + '" aria-label="Rimuovi sessione">' + svg(IC.close, '#8FA3C2', 18) + '</button>') + '</div>';
+      h += '<div class="sess"><button class="sesst" data-a="edit" data-v="' + s.id + '" aria-label="Dettagli di ' + SPORTS[s.sport].name + '">' + sportIc(s.sport, 26, true) + '<div class="meta"><b>' + SPORTS[s.sport].name + (s.star ? ' ★' : '') + '</b><span>' + esc(sessSummary(s)) + '</span></div>' + svg(IC.right, 'var(--mut)', 16) + '</button>' + phx +
+        (o.confirm === s.id ? '<button class="btn sm danger" data-a="remove" data-v="' + s.id + '">Rimuovi</button>' : '<button class="x" style="margin:0 -6px 0 0" data-a="askRemove" data-v="' + s.id + '" aria-label="Rimuovi sessione">' + svg(IC.close, '#8FA3C2', 18) + '</button>') + '</div>';
     });
     if (hasMark(o.k)) h += '<div class="sess" style="border-style:dashed">' + svg(HW.ic, '#AEBBD3', 26) + '<div class="meta"><b>Hard Study/Work</b><span>Giornata di testa, conta anche questa</span></div><button class="x" style="margin:0 -6px 0 0" data-a="hw" aria-label="Togli Hard Study/Work">' + svg(IC.close, '#8FA3C2', 18) + '</button></div>';
     h += '</div>' + (o.ro ? '<p class="hint" style="margin:0;text-align:center">Oltre i ' + editWindow() + ' giorni la sessione non si cambia più, ma la foto sì.</p><button class="btn" data-a="close">Chiudi</button>' : '<button class="btn" data-a="addOther">Aggiungi uno sport</button>') + '</div>';
@@ -1239,7 +1240,7 @@ function viewOverlay() {
   } else if (o.t === 'rules') {
     h = '<div class="' + cls + ' tall" style="gap:12px">' + whead('Regole del gioco', true) + '<div class="wbody rules" data-keep>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Rango del mese</span><p>Contano soprattutto i giorni: ogni giorno con almeno uno sport vale <b>3 Punti Rango</b>, fino a 16 giorni. Se quel giorno completi una quest media vale <b>+0,5</b>, una difficile <b>+1</b>, fino a <b>8 punti</b> al mese. La facile serve a prendere il ritmo e non dà Punti Rango. Per gli sport senza quest (yoga, pilates, danza, boxe, crossfit, sci, golf, jolly…) una sessione <b>Top</b> vale come una quest media: per le lezioni il voto Top o almeno un’ora, per gli altri la stella.</p><p>Guanti vinti, obiettivi Gang e piani rispettati hanno uno spazio a parte, fino a <b>6 punti</b>: così quest e amici non si rubano posto. Per <b>S</b> serve anche una stella nel mese, da una sessione top.</p><p>Un guanto accettato e non chiuso toglie mezzo punto: se scendi sotto la soglia torni al rango prima. Si risale con le sessioni.</p>' +
-      '<div class="rtab">' + RANKS.slice(0, 5).map(function (r) { return '<span><b>' + r[0] + '</b>' + r[1] + ' Punti Rango' + (r[2] ? ' · ' + r[2] + (r[2] === 1 ? ' stella' : ' stelle') : '') + '</span>'; }).join('') + '</div><p class="hint">Dalla seconda settimana Stato ti dice dove chiudi il mese al tuo ritmo.</p></div>' +
+      '<div class="rtab">' + RANKS.slice(0, 5).map(function (r) { return '<span' + (r[2] ? ' style="grid-column:1/-1"' : '') + '><b>' + r[0] + '</b>' + r[1] + ' Punti Rango' + (r[2] ? ' · ' + r[2] + (r[2] === 1 ? ' stella' : ' stelle') : '') + '</span>'; }).join('') + '</div><p class="hint">Dalla seconda settimana Stato ti dice dove chiudi il mese al tuo ritmo.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Rango di ogni sport</span><p>Ogni sessione vale <b>2 Punti Rango</b> (fino a 6 al mese). Una quest media riuscita <b>+0,5</b>, una difficile <b>+1</b>. B a 10 Punti Rango, A a 14, S a 16.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Quest</span><p>Tocca oggi sul calendario e scegli lo sport. Se hai già finito, tocca <b>Fatto</b>: si segna subito, senza quest. Se stai per iniziare, Gesta propone tre sfide partendo dalla tua ultima volta. Quando hai finito ritocca oggi e rispondi <b>Superata</b> o <b>Non questa volta</b>: il giorno conta in tutti e due i casi. Se per quello sport hai un guanto, Gesta ti chiede anche com’è andata la sfida.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Pianificare</span><p>Tocca un giorno da domani a fine mese (o fino a domenica, se la settimana passa al mese dopo): scegli lo sport e, se vuoi, la quest. Il numero preciso lo fissa Gesta quella mattina, partendo dalla tua ultima volta. Quel giorno la trovi in alto e rispondi <b>Fatta?</b>.</p><p>Puoi toglierla o cambiarla quando vuoi: un piano saltato non costa niente, sparisce e basta. Se invece quel giorno fai sport (anche uno diverso), è una <b>parola mantenuta</b>: <b>+¼ di Punto Rango</b>, fino a 4 volte al mese.</p><p>Puoi pianificare anche uno sport che non è tra i tuoi (tocca <b>Altro</b>): vale come <b>jolly</b>, senza quest.</p><p>Se ti scordi di rispondere, nessun problema: il giorno dopo Gesta te lo chiede appena apri l’app, per guanti e quest.</p></div>' +
@@ -1256,7 +1257,7 @@ function viewOverlay() {
       (VAPID_PUB ? '<div class="fld"><span class="lbl" style="font-size:11px">Notifiche</span><p>Con Gesta aggiunta alla schermata Home possono arrivarti sul telefono guanti, sfide chiuse, richieste di amicizia, obiettivi della Gang e cinque. Scegli tu quali nelle impostazioni del Party. Una sola notifica per ogni cosa: pianificare non avvisa nessuno.</p></div>' : '') +
       '<div class="fld"><span class="lbl" style="font-size:11px">Foto</span><p>Una foto per sessione, se ti va: nei dettagli della sessione o toccando il giorno sul calendario, anche settimane dopo. Se la scatti da Gesta il giorno stesso è <b>verificata</b>; dalla galleria va benissimo lo stesso. È tua: la vedono gli amici solo se accendi l’interruttore, foto per foto. Quando vinci un guanto puoi aggiungere la prova per chi te l’ha lanciato.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Le tue Gesta</span><p>Ogni giorno con almeno uno sport è una <b>Gesta</b>. Le conti da quando hai iniziato e non si azzerano mai: le vedi in alto, accanto al nome dell’app. Le soglie tonde (10, 25, 50, 100, 200, 365, 500) sono una medaglia in Bacheca.</p></div>' +
-      '</div><div class="acts"><button class="btn" data-a="guideAgain">Rivedi la guida</button><button class="btn main" data-a="close">Ho capito</button></div></div>';
+      '</div><div class="acts"><button class="btn" data-a="guideAgain" style="font-size:12px;letter-spacing:1px">Rivedi la guida</button><button class="btn main" data-a="close">Ho capito</button></div></div>';
   } else if (o.t === 'when') {
     var gw0 = gloveFor(o.k, o.sport), fr0 = gw0 ? friend(gw0.from === 'me' ? gw0.to : gw0.from) : null;
     var wc = function (a, t1, t2) { return '<button class="card" data-a="' + a + '" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:14px 16px;text-align:left;color:var(--ink);width:100%"><span style="font:600 16px/21px var(--fd)">' + t1 + '</span><span class="hint">' + t2 + '</span></button>'; };
@@ -1298,9 +1299,10 @@ function viewOverlay() {
     ml.forEach(function (mk) {
       var y = +mk.slice(0, 4), m = +mk.slice(5) - 1, st = monthStats(y, m), tot = st.sessions || 1;
       var split = ORDER.filter(function (s) { return st.counts[s]; }).map(function (s) { return [s, Math.round(st.counts[s] / tot * 100)]; }).sort(function (a, b) { return b[1] - a[1]; });
-      h += '<button class="month" data-a="recap" data-v="' + mk + '" style="color:var(--ink);text-align:left;cursor:pointer"><div class="row" style="align-items:baseline;width:100%"><span style="font:600 14px/18px var(--fd);letter-spacing:2px;text-transform:uppercase">' + MONTHS[m] + ' ' + y + '</span><span style="flex:1 1 auto;text-align:right;font:600 13px/18px var(--fd);color:var(--rew);text-transform:uppercase">' + esc(st.title) + '</span><span style="font:700 22px/24px var(--fd);text-shadow:0 0 10px rgba(59,167,255,.8);min-width:18px;text-align:right">' + st.rank + '</span></div>' +
+      h += '<button class="month" data-a="recap" data-v="' + mk + '" style="color:var(--ink);text-align:left;cursor:pointer"><div class="row" style="align-items:baseline;width:100%"><span style="font:600 14px/18px var(--fd);letter-spacing:2px;text-transform:uppercase">' + MONTHS[m] + ' ' + y + '</span><span style="flex:1 1 auto"></span><span style="font:700 22px/24px var(--fd);text-shadow:0 0 10px rgba(59,167,255,.8);min-width:18px;text-align:right">' + st.rank + '</span></div>' +
+        '<span style="font:600 13px/18px var(--fd);letter-spacing:1px;color:var(--rew);text-transform:uppercase;margin-top:-6px">' + esc(st.title) + '</span>' +
         '<div class="split">' + split.map(function (p) { return '<i style="flex:' + p[1] + ' 1 0;background:' + SPORTS[p[0]].c + '"></i>'; }).join('') + '</div>' +
-        '<div class="row" style="font:500 12px/16px var(--fb);color:var(--soft)"><span>' + st.days + ' giorni</span><span>' + st.qd + '/' + st.qt + ' quest</span><span>' + split.slice(0, 2).map(function (p) { return SPORTS[p[0]].name + ' ' + p[1] + '%'; }).join(' · ') + '</span></div></button>';
+        '<div style="display:flex;flex-direction:column;gap:2px;font:500 12px/16px var(--fb);color:var(--soft)"><span>' + st.days + ' giorni · ' + st.qd + '/' + st.qt + ' quest</span><span style="color:var(--mut)">' + split.slice(0, 2).map(function (p) { return SPORTS[p[0]].name + ' ' + p[1] + '%'; }).join(' · ') + '</span></div></button>';
     });
     h += '</div></div>';
   } else if (o.t === 'sport') {
@@ -1321,7 +1323,7 @@ function viewOverlay() {
     var rankLine = o.sport === 'bon' ? '' : '<div class="fld" style="gap:8px"><div class="row"><span class="lbl" style="font-size:11px">Rango di ' + MONTHS[nn0.getMonth()].toLowerCase() + '</span><span style="font:700 22px/24px var(--fd);text-shadow:0 0 12px ' + sp.c + '">' + sr + '</span></div>' + rankBar(spp, SPORT_RANKS, sp.c) + '</div>';
     h = '<div class="' + cls + '">' + whead(sp.name, true) + '<div style="display:flex;align-items:center;gap:14px">' + sportIc(o.sport, 40, true) + '<div style="display:flex;flex-direction:column"><span style="font:700 32px/36px var(--fd)">' + last30.length + '</span><span class="hint">volte negli ultimi 30 giorni</span></div></div>' + rankLine +
       '<div class="fld"><span class="lbl" style="font-size:11px">Traguardo top</span><span style="font:600 15px/21px var(--fb)">' + esc(best) + '</span></div>' +
-      '<div class="g2"><div class="fld"><span class="lbl" style="font-size:11px">Quest riuscite</span><span style="font:700 22px/26px var(--fd)">' + qdone + '</span></div><div class="fld"><span class="lbl" style="font-size:11px">Stelle</span><span style="font:700 22px/26px var(--fd)">' + stars + '</span></div></div>' +
+      '<div class="g2"><div class="fld"><span class="lbl" style="font-size:11px;letter-spacing:1px;white-space:nowrap">Quest riuscite</span><span style="font:700 22px/26px var(--fd)">' + qdone + '</span></div><div class="fld"><span class="lbl" style="font-size:11px">Stelle</span><span style="font:700 22px/26px var(--fd)">' + stars + '</span></div></div>' +
       (notesH ? '<div class="wbody" data-keep style="gap:8px;max-height:260px">' + notesH + '</div>' : '') +
       '<p class="wtext" style="font-size:12px">Totale da sempre: ' + hh.length + (hh.length === 1 ? ' sessione.' : ' sessioni.') + '</p></div>';
   }
@@ -1350,16 +1352,16 @@ function exRow(sport, f, ex) {
     return h + '<input class="inp" maxlength="30" value="' + esc(f.editing.name) + '" data-f="exedit" autocomplete="off"><div class="acts" style="grid-template-columns:repeat(3,minmax(0,1fr))"><button class="btn sm danger" data-a="delEx">Elimina</button><button class="btn sm" data-a="editCancel">Annulla</button><button class="btn sm main" data-a="editOk">Salva</button></div></div>';
   }
   if (e.on) {
-    if (m.t === 't') h += '<div class="row"><span class="hint">Tenuta · 3 serie</span>' + stepper(esc(p) + '.sec', e.sec, m.inc, 5, function (v) { return '3×' + v + ' s'; }) + '</div>';
+    if (m.t === 't') h += '<div class="row"><span class="hint">Tenuta</span>' + stepper(esc(p) + '.sec', e.sec, m.inc, 5, function (v) { return '3×' + v + ' s'; }) + '</div>';
     else {
       if (m.t === 'w') h += '<div class="row"><span class="hint">Carico</span>' + stepper(esc(p) + '.w', e.w, m.inc, 0, function (v) { return v ? kg(v) : 'corpo'; }) + '</div>';
-      h += '<div class="row"><span class="hint">Ripetizioni · 3 serie</span>' + stepper(esc(p) + '.reps', e.reps, 1, 1, function (v) { return '3×' + v; }) + '</div>';
+      h += '<div class="row"><span class="hint">Ripetizioni</span>' + stepper(esc(p) + '.reps', e.reps, 1, 1, function (v) { return '3×' + v; }) + '</div>';
     }
   }
   return h + '</div>';
 }
 function viewDetails(o, cls) {
-  var f = o.form, s = o.sport, qt = qType(s), h = '<div class="' + cls + ' tall" style="gap:12px">' + whead(o.assess ? 'Punto di partenza' : 'Dettagli · ' + SPORTS[s].name, true);
+  var f = o.form, s = o.sport, qt = qType(s), h = '<div class="' + cls + ' tall" style="gap:12px">' + whead(o.assess ? 'Punto di partenza' : SPORTS[s].name, true);
   if (o.done) h += '<div style="display:flex;align-items:center;gap:10px;justify-content:center;margin-top:-4px"><span style="font:600 12px/16px var(--fd);letter-spacing:1.5px;text-transform:uppercase;color:#7EE0A4">' + (o.done.kind === 'ok' ? 'Quest riuscita' : 'Giorno segnato') + '</span><span style="font:600 12px/16px var(--fd);color:var(--glow)">' + (o.done.gn ? 'Gesta N° ' + o.done.gn : '') + (o.done.gain ? ' · <span style="color:var(--rew)">+' + num(o.done.gain) + ' Punti Rango</span>' : '') + '</span></div>';
   h += '<div class="wbody" data-keep>';
   if (qt === 'ex') {
@@ -1391,7 +1393,7 @@ function viewDetails(o, cls) {
     }
   } else if (qt === 'dist') {
     var cf = DIST[s], fmt = function (v) { return distFmt(s, v); }, pace = s === 'run' && f.min && f.v ? f.min / f.v : 0;
-    h += '<div class="fld"><div class="row"><span class="hint">Distanza</span>' + stepper('v', f.v, cf.step, cf.step, fmt) + '</div><div class="row"><span class="hint">Tempo (facoltativo)</span>' + stepper('min', f.min, 1, 0, function (v) { return v ? v + ' min' : '—'; }) + '</div>' + (pace ? '<span class="hint">Passo: ' + Math.floor(pace) + '’' + pad(Math.round((pace % 1) * 60)) + '” al km</span>' : '') + '</div>';
+    h += '<div class="fld"><div class="row"><span class="hint">Distanza</span>' + stepper('v', f.v, cf.step, cf.step, fmt) + '</div><div class="row"><span class="hint">Tempo</span>' + stepper('min', f.min, 1, 0, function (v) { return v ? v + ' min' : '—'; }) + '</div>' + (pace ? '<span class="hint">Passo: ' + Math.floor(pace) + '’' + pad(Math.round((pace % 1) * 60)) + '” al km</span>' : '') + '</div>';
   } else if (qt === 'sat') {
     h += '<p class="wtext" style="font-size:13px">Com’è andata la lezione?</p><div style="display:flex;flex-direction:column;gap:8px">' +
       SAT.map(function (x) { return '<button class="opt' + (f.sat === x[0] ? ' on' : '') + '" style="--diff:' + SPORTS[s].c + '" data-a="sat" data-v="' + x[0] + '"><span class="optg">' + x[1] + '</span><span class="marks">' + [1, 2, 3].map(function (i) { return '<i class="' + (i <= x[0] ? 'on' : '') + '"></i>'; }).join('') + '</span></button>'; }).join('') + '</div>';
@@ -3101,7 +3103,7 @@ function gloveProof(cid, cb) { if (!cauth || !cloudOn() || !/^[0-9a-f-]{36}$/.te
 function viewPhoto(o, cls) {
   var s = phSess(o.k, o.sid); if (!s || !s.ph) { ui.ov = o.back || null; return ''; }
   var canShare = !!(cauth && cloudOn());
-  return '<div class="' + cls + '" style="gap:12px">' + whead(DAYS_SHORT[parseKey(o.k).getDay()] + ' ' + niceDate(o.k) + ' · ' + SPORTS[s.sport].name, true) + phMine(o.k, s, true) +
+  return '<div class="' + cls + '" style="gap:12px">' + whead(niceDate(o.k) + ' · ' + SPORTS[s.sport].name, true) + phMine(o.k, s, true) +
     (canShare ? '<button class="toggle" data-a="phSh" data-v="' + o.k + '|' + o.sid + '" style="min-height:48px"><span style="display:flex;flex-direction:column;gap:2px;text-align:left"><span style="font:600 15px/20px var(--fb)">La vedono gli amici</span><span class="hint" style="font-size:11.5px">Dal tuo calendario, toccando questo giorno</span></span><span class="sw' + (s.ph.sh ? ' on' : '') + '"></span></button>' : '<p class="hint" style="margin:0">Per farla vedere agli amici collega la tua email.</p>') +
     (s.ph.g ? '<p class="hint" style="margin:-4px 0 0;color:var(--rew)">È la prova di un guanto: la vede anche chi te l’ha lanciato.</p>' : '') +
     '<div class="acts">' + (o.del ? '<button class="btn danger" data-a="phDelGo" data-v="' + o.k + '|' + o.sid + '">Tocca per togliere</button>' : '<button class="btn" data-a="phDelAsk">Togli</button>') + '<button class="btn main" data-a="phBack">Fatto</button></div></div>';
@@ -3678,7 +3680,7 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v4.1.0';
+var APP_V = 'gesta-v4.1.1';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
