@@ -396,6 +396,32 @@ textarea.inp{height:80px;padding:10px 14px;font-size:15px;resize:none}
 @keyframes fxtxt{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion: reduce){.fx.run *,.rkst *,.rk-tip,.fx-ha{animation-duration:.01s!important;animation-delay:0s!important;animation-iteration-count:1!important}}
 
+/* 4.2 · Gesta in numeri */
+.numw{display:flex;flex-direction:column;gap:12px;width:100%;max-width:1240px;margin:0 auto}
+.numseg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:4px;border-radius:12px;border:1px solid var(--line);background:var(--surface);max-width:420px;width:100%;align-self:center;box-sizing:border-box}
+.numseg button{height:36px;border-radius:9px;border:1px solid transparent;background:transparent;color:var(--mut);font:600 12px/16px var(--fd);letter-spacing:1px;cursor:pointer}
+.numseg button.on{border-color:var(--sys);background:#0E2140;color:var(--ink)}
+.numgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(max(330px,40%),1fr));gap:12px;align-items:start}
+.numc{padding:14px;display:flex;flex-direction:column;gap:12px;text-align:left}
+.numg3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.numg2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.numt{border-radius:10px;border:1px solid var(--line);background:#070C17;padding:10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.numt b{font:700 22px/26px var(--fd);font-variant-numeric:tabular-nums}
+.numt span{font:500 11px/14px var(--fb);color:var(--mut)}
+.numtip{margin:0;font:600 13px/18px var(--fb);color:var(--rew)}
+.numday{height:44px;display:flex;align-items:flex-end;gap:3px}
+.numday i{display:block;flex:1 1 0;border-radius:2px}
+.numsp{display:flex;height:26px;border-radius:7px;overflow:hidden;gap:2px}
+.numsp span{display:flex;align-items:center;justify-content:center;font:600 11px/14px var(--fd);min-width:30px}
+.numsl{display:flex;justify-content:space-between;font:500 11px/14px var(--fb);color:var(--mut)}
+.numr{display:grid;grid-template-columns:78px minmax(0,1fr) 64px;align-items:center;gap:8px}
+.numr>span:first-child{font:600 13px/16px var(--fb);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.numr>span:last-child{font:600 12px/16px var(--fd);color:var(--soft);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.numrk{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;align-items:end;height:120px}
+.numrk div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%}
+.numrk span{font:600 12px/14px var(--fd);color:var(--soft)}
+.numrk i{display:block;width:100%;border-radius:6px 6px 2px 2px}
+.numrk b{font:700 15px/18px var(--fd)}
 /* 4.0.0 · riepilogo a fine sessione */
 .rlist{display:flex;flex-direction:column;gap:6px;max-height:282px;overflow-y:auto;overscroll-behavior:contain;margin:-2px 0}
 .rrow{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--rc) 45%,transparent);background:color-mix(in srgb,var(--rc) 7%,transparent);flex-shrink:0;min-height:50px}
@@ -459,6 +485,6 @@ textarea.inp{height:80px;padding:10px 14px;font-size:15px;resize:none}
 })();
 </script>
 <div id="app"></div>
-<script src="app.js?v=4.1.2" defer></script>
+<script src="app.js?v=4.2.0" defer></script>
 </body>
 </html>

@@ -1096,7 +1096,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">Ranghi, Gesta e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 4.1.2</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 4.2.0</span>';
   return h;
 }
 
@@ -1977,7 +1977,7 @@ var PI = {
   edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
   medal: '<path d="M12 3.5l7 4v8l-7 4-7-4v-8z"/>'
 };
-var PSCR = ['party', 'friend', 'letters', 'psettings', 'gang', 'sfide', 'pfriends', 'pgangs'];
+var PSCR = ['party', 'friend', 'letters', 'psettings', 'gang', 'sfide', 'pfriends', 'pgangs', 'numeri'];
 var PGOLD = '#FFC94D', GXP = 15, GPTS = 0.5;
 var PRESETS = {
   gym: ['Panca 60 kg × 5', '3 serie di trazioni', 'Squat 80 kg × 5'], cal: ['10 trazioni di fila', '20 dip', 'Plank 2 minuti'], cfx: ['Un WOD sotto i 15 minuti', '50 burpees'],
@@ -2467,6 +2467,7 @@ function viewPSettings() {
   h += '<div class="card" style="padding:4px 12px">' + pSec('Sempre', '') + pToggle('', 'Rango, Gesta, titolo e tratto', '', true, true) + pToggle('', 'Bacheca e medaglie prese', '', true, true) + pToggle('', 'Giorni allenati, come puntini', 'Solo il colore dello sport', true, true) + '</div>';
   h += '<div class="card" style="padding:4px 12px">' + pSec('A scelta', '') + pToggle('q', 'Quest del giorno', 'E se l’hai completata', st.q) + pToggle('det', 'Dettagli delle sessioni', 'Pesi, km, tempi', st.det) + pToggle('rec', 'Card del recap', 'La condividi tu quando vuoi', st.rec) + '</div>';
   h += pushSection();
+  if (numAdmin()) h += '<button class="card" data-a="numOpen" style="padding:12px 14px;display:flex;align-items:center;gap:12px;text-align:left;color:var(--ink)"><span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px"><span class="lbl" style="font-size:10.5px;letter-spacing:2px;color:var(--sysl)">Solo per te</span><span style="font:600 15px/20px var(--fd)">Gesta in numeri</span><span class="hint">Come si usa Gesta, solo totali</span></span>' + svg(IC.right, 'var(--mut)', 18) + '</button>';
   if (DEMO_ON) h += '<div class="card" style="padding:4px 12px">' + pSec('Modalità prova', '') + pToggle('demo', 'Amici finti', 'Per provare il Party prima del cloud', p.demo) + '<button class="btn sm" data-a="pReset" style="width:100%;margin:6px 0 10px">Ricomincia la prova</button></div>';
   return h;
 }
@@ -2752,9 +2753,10 @@ var PA2 = {
 for (var pk2 in PA2) A[pk2] = PA2[pk2];
 /* gesti: tira via le schermate secondarie e le finestre, scorri le quest */
 var gs = null, gSwallow = false;
-var SECSCR = ['friend', 'letters', 'psettings', 'gang', 'sfide', 'settings', 'bacheca', 'pfriends', 'pgangs'];
+var SECSCR = ['friend', 'letters', 'psettings', 'gang', 'sfide', 'settings', 'bacheca', 'pfriends', 'pgangs', 'numeri'];
 function goBack() {
   if (ui.screen === 'settings' || ui.screen === 'bacheca') ui.screen = 'stato';
+  else if (ui.screen === 'numeri') ui.screen = 'psettings';
   else if (['friend', 'letters', 'psettings', 'gang', 'sfide', 'pfriends', 'pgangs'].indexOf(ui.screen) >= 0) ui.screen = 'party';
   ding('tap'); render();
 }
@@ -3340,10 +3342,54 @@ function seenPing() {
   if (last === t || !S || !cauth) return;
   try { localStorage.setItem('gesta.seen', t); } catch (e) {}
   sbFetch('/rest/v1/profiles?id=eq.' + cauth.uid, { method: 'PATCH', prefer: 'return=minimal', body: { summary: summaryOf(), updated_at: new Date().toISOString() } }).catch(function () { try { localStorage.removeItem('gesta.seen'); } catch (e) {} });
+  sbFetch('/rest/v1/app_days', { method: 'POST', prefer: 'resolution=ignore-duplicates,return=minimal', body: { day: t } }).catch(function () {});
 }
+/* 4.2: Gesta in numeri. I conti li fa Supabase e risponde solo all'account scritto in gesta_admins */
+var numAdm = null;
+function numAdmin() { if (numAdm === null) { try { numAdm = localStorage.getItem('gesta.adm') === '1'; } catch (e) { numAdm = false; } } return !!(numAdm && cauth); }
+function numCheck() { if (!cauth) return; rpc('is_gesta_admin').then(function (r) { var v = r === true || (r && r[0] === true); numAdm = v; try { localStorage.setItem('gesta.adm', v ? '1' : '0'); } catch (e) {} if (ui.screen === 'psettings') render(); }).catch(function () {}); }
+function numLoad(d) { ui.numErr = null; authFresh().then(function () { return rpc('gesta_numbers', { days: d }); }).then(function (r) { ui.num = ui.num || {}; ui.num[d] = r; render(); }).catch(function () { ui.numErr = 'Non riesco a leggere i numeri: controlla la connessione e riprova.'; render(); }); }
+function viewNumeri() {
+  var d = ui.numD || 30, n = ui.num && ui.num[d], h = '<div class="numw">' + pBack('Party · solo per te', 'Gesta in numeri', 'psettings');
+  h += '<div class="numseg">' + [[7, '7 giorni'], [30, '30 giorni'], [0, 'Da sempre']].map(function (x) { return '<button class="' + (x[0] === d ? 'on' : '') + '" data-a="numD" data-v="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>';
+  h += '<p class="hint" style="margin:0;text-align:center">Solo chi ha collegato l’email · totali, mai una persona sola</p>';
+  if (!n) return h + (ui.numErr ? '<p class="hint" style="text-align:center;color:#FF8A80">' + esc(ui.numErr) + '</p><button class="btn" data-a="numD" data-v="' + d + '">Riprova</button>' : '<p class="hint" style="text-align:center;padding:30px 0">Sto contando…</p>') + '</div>';
+  var pc = function (a, b) { return b ? Math.round(a / b * 100) : 0; }, nf = function (x) { return String(Math.round(x * 10) / 10).replace('.', ','); };
+  var tile = function (v, l) { return '<div class="numt"><b>' + v + '</b><span>' + l + '</span></div>'; };
+  var sec = function (t, body, tip) { return '<section class="card numc"><span class="lbl" style="font-size:11px;letter-spacing:2.5px;color:var(--sysl)">' + t + '</span>' + body + (tip ? '<p class="numtip">→ ' + tip + '</p>' : '') + '</section>'; };
+  var split = function (parts, labels) { var tot = parts.reduce(function (a, p) { return a + p[0]; }, 0); if (!tot) return '<span class="hint">Ancora niente da contare.</span>';
+    return '<div class="numsp">' + parts.filter(function (p) { return p[0]; }).map(function (p) { return '<span style="flex:' + p[0] + ' 1 0;background:' + p[1] + ';color:' + (p[2] || 'var(--ink)') + '">' + pc(p[0], tot) + '%</span>'; }).join('') + '</div><div class="numsl">' + labels.map(function (l, i) { return '<span style="text-align:' + (i === 0 ? 'left' : i === labels.length - 1 ? 'right' : 'center') + '">' + l + '</span>'; }).join('') + '</div>'; };
+  var row = function (name, col, w, val) { return '<div class="numr"><span style="color:' + (col || 'var(--ink)') + '">' + name + '</span><span class="track"><span class="fill" style="display:block;width:' + w + '%;background:' + (col || 'var(--sys)') + '"></span></span><span>' + val + '</span></div>'; };
+  var dl = n.daily || [], dmax = Math.max.apply(null, dl.concat([1]));
+  var who = sec('Chi la usa', '<div class="numg3">' + tile(n.users, 'utenti') + tile(n.today, 'attivi oggi') + tile(n.a7, 'in 7 giorni') + tile(n.a30, 'in 30 giorni') + tile(n.push, 'notifiche') + tile(n.friends, 'con amici') + '</div>' +
+    '<div style="display:flex;flex-direction:column;gap:6px"><span class="hint">Attivi ogni giorno, ultimi 30</span><div class="numday">' + dl.map(function (x, i) { return '<i style="height:' + Math.max(4, x / dmax * 100) + '%;background:' + (i === dl.length - 1 ? 'var(--sysl)' : '#2F5F94') + '"></i>'; }).join('') + '</div></div>',
+    n.users ? n.a7 + ' su ' + n.users + ' l’hanno aperta negli ultimi 7 giorni.' : '');
+  var sp = Object.keys(n.sports || {}).map(function (k) { return [k, n.sports[k]]; }).sort(function (a, b) { return b[1] - a[1]; }), stot = sp.reduce(function (a, x) { return a + x[1]; }, 0), top = sp.slice(0, 4), rest = sp.slice(4).reduce(function (a, x) { return a + x[1]; }, 0);
+  var hr = n.hours || {}, hb = [['la mattina', hr.m || 0], ['il pomeriggio', hr.p || 0], ['la sera', hr.s || 0]].sort(function (a, b) { return b[1] - a[1]; })[0];
+  var perw = n.people ? n.sdays / n.people / n.weeks : 0;
+  var how = sec('Come si allenano', '<div class="numg2">' + tile(n.sessions, 'sessioni') + tile(nf(perw), 'giorni a settimana') + '</div>' +
+    (top.length ? '<div style="display:flex;flex-direction:column;gap:8px"><span class="hint">Sport più fatti</span>' + top.map(function (x) { return row(SPORTS[x[0]] ? SPORTS[x[0]].name : x[0], SPORTS[x[0]] ? SPORTS[x[0]].c : null, pc(x[1], top[0][1]), pc(x[1], stot) + '%'); }).join('') + (rest ? row('Altri', '#5A6B88', pc(rest, top[0][1]), pc(rest, stot) + '%') : '') + '</div>' : '') +
+    '<div style="display:flex;flex-direction:column;gap:6px"><span class="hint">Quando si segna</span>' + split([[hr.m || 0, '#26496F'], [hr.p || 0, '#2F6AA6'], [hr.s || 0, '#3BA7FF', '#04070D']], ['Mattina', 'Pomeriggio', 'Sera']) + ((hr.same || hr.late) ? '<span class="hint" style="color:var(--soft)">' + pc(hr.same, hr.same + hr.late) + '% il giorno stesso · ' + pc(hr.late, hr.same + hr.late) + '% nei giorni dopo</span>' : '') + '</div>',
+    hb[1] ? 'Si segna soprattutto ' + hb[0] + (hb[0] === 'la sera' ? ': è il momento giusto per le notifiche.' : '.') : '');
+  var q = n.quests || {}, qh = q.hard || { n: 0, ok: 0 }, w = n.when || {}, ph = n.photos || {}, gl = n.gloves || {}, fc = n.faces || {};
+  var tipF = qh.n >= 3 && qh.ok / qh.n < 0.4 ? 'La difficile si supera ' + qh.ok + ' volte su ' + qh.n + ': forse il salto è troppo grande.' : (w.d || 0) > 2 * (w.s || 0) && w.d >= 4 ? 'Quasi sempre si segna a sessione finita: la quest prima conta poco.' : gl.acc >= 3 && gl.won / gl.acc >= 0.6 ? 'I guanti accettati si vincono quasi sempre: la sfida funziona.' : '';
+  var use = sec('Cosa si usa davvero', '<div style="display:flex;flex-direction:column;gap:6px"><span style="font:600 13px/18px var(--fb)">Hai già finito? <span class="hint">· ultime risposte</span></span>' + split([[w.d || 0, '#9BE15D', '#04070D'], [w.s || 0, '#2C3D5E']], ['Fatto', 'Sto per iniziare']) + '</div>' +
+    '<div style="display:flex;flex-direction:column;gap:8px"><span style="font:600 13px/18px var(--fb)">Quest superate</span>' + ['easy', 'med', 'hard'].map(function (k) { var x = q[k] || { n: 0, ok: 0 }; return row(PDIFF[k][0], PDIFF[k][1], pc(x.ok, x.n), x.ok + ' su ' + x.n); }).join('') + '</div>' +
+    '<div class="numg2">' + [['Guanti', gl.n || 0, (gl.won || 0) + ' vinti · ' + (gl.lost || 0) + ' persi'], ['Cinque', n.fives || 0, (n.fbat || 0) + ' battuti'], ['In programma', (n.plans || {}).n || 0, 'da ' + ((n.plans || {}).who || 0) + ' persone'], ['Gang', n.gangs || 0, (n.gpass || 0) + ' obiettivi superati'], ['Con foto', pc(ph.n || 0, n.sessions) + '%', pc(ph.v || 0, ph.n) + '% verificate'], ['Stelle', n.stars || 0, pc(n.stars || 0, n.sessions) + '% delle sessioni']].map(function (x) { return '<div class="numt"><span class="lbl" style="font-size:10px;letter-spacing:1.5px">' + x[0] + '</span><b style="font-size:18px;line-height:22px">' + x[1] + '</b><span>' + x[2] + '</span></div>'; }).join('') + '</div>' +
+    '<div style="display:flex;flex-direction:column;gap:6px"><span style="font:600 13px/18px var(--fb)">Com’è andata la giornata</span>' + split([[fc.r || 0, '#8A4A42'], [fc.y || 0, '#8C7A45'], [fc.g || 0, '#3E8A5E']], ['Storta', 'Liscia', 'Ispirata']) + '</div>', tipF);
+  var rk = n.ranks || {}, rl = ['E', 'D', 'C', 'B', 'A', 'S'], rmax = Math.max.apply(null, rl.map(function (r) { return rk[r] || 0; }).concat([1])), rtot = rl.reduce(function (a, r) { return a + (rk[r] || 0); }, 0);
+  var tipR = !rtot ? '' : (rk.S || 0) / rtot > 0.3 ? 'Tanti in S: forse la scala è troppo facile.' : (rk.E || 0) / rtot > 0.4 ? 'Tanti in E: forse la scala è troppo dura.' : !rk.S && !rk.E ? 'Nessuno in E e nessuno in S: la scala sembra tarata bene.' : '';
+  var rank = sec('Il rango di ' + MONTHS[new Date().getMonth()].toLowerCase(), '<div class="numrk">' + rl.map(function (r) { var c = rk[r] || 0; return '<div><span>' + c + '</span><i style="height:' + (c ? c / rmax * 80 : 3) + 'px;background:' + (c ? 'var(--sys)' : 'var(--line)') + '"></i><b>' + r + '</b></div>'; }).join('') + '</div>', tipR);
+  return h + '<div class="numgrid">' + who + how + use + rank + '</div></div>';
+}
+var PA42 = {
+  numOpen: function () { ui.screen = 'numeri'; ui.numD = ui.numD === undefined ? 30 : ui.numD; ding('open'); render(); if (!(ui.num && ui.num[ui.numD])) numLoad(ui.numD); },
+  numD: function (v) { var d = +v; ui.numD = d; ding('tap'); render(); if (!(ui.num && ui.num[d])) numLoad(d); }
+};
+for (var pk42 in PA42) A[pk42] = PA42[pk42];
 function cloudPull(quiet) {
   if (!cloudOn() || !cauth) return Promise.resolve(false);
-  return authFresh().then(function () { fetchCode(); inviteGo(); rfLoad(true); return sbFetch('/rest/v1/user_state?user_id=eq.' + cauth.uid + '&select=data,updated_at'); }).then(function (rows) {
+  return authFresh().then(function () { fetchCode(); inviteGo(); rfLoad(true); numCheck(); return sbFetch('/rest/v1/user_state?user_id=eq.' + cauth.uid + '&select=data,updated_at'); }).then(function (rows) {
     var r = rows && rows[0];
     if (!r || !r.data) { if (S) return cloudPush().then(function () { return false; }); return false; }
     var m = mergeState(S, r.data);
@@ -3520,6 +3566,7 @@ window.addEventListener('popstate', function () {
     ui.ov = null;
   } else if (ui.arrange) ui.arrange = false;
   else if (ui.screen === 'settings' || ui.screen === 'bacheca') ui.screen = 'stato';
+  else if (ui.screen === 'numeri') ui.screen = 'psettings';
   else if (['friend', 'letters', 'psettings', 'gang', 'sfide', 'pfriends', 'pgangs'].indexOf(ui.screen) >= 0) ui.screen = 'party';
   else if (ui.screen !== 'home') ui.screen = 'home';
   render();
@@ -3540,7 +3587,7 @@ function render() {
     if (!ui.ov && ui.rkq) { ui.ov = { t: 'rankup', r: ui.rkq.r, plus: ui.rkq.plus, from: ui.rkq.from === undefined ? -1 : ui.rkq.from, k: ui.rkq.r + ui.rkq.plus + Date.now() }; ui.rkq = null; ding('open'); buzz([15, 60, 15, 60, 15]); }
     if (!ui.ov && ui.mq && ui.mq.length) { if (!ui.mqTot || ui.mqN >= ui.mqTot) { ui.mqTot = ui.mq.length; ui.mqN = 0; } var q = ui.mq.shift(); ui.mqN++; ui.ov = { t: 'medal', id: q.id, tr: q.t, n: ui.mqN, tot: ui.mqTot }; if (!ui.mq.length) { ui.mqTot = 0; } medalSound(); }
     gloveQueue(); lateQueue(); pushAsk();
-    var body = ui.screen === 'party' ? viewParty() : ui.screen === 'friend' ? viewFriend() : ui.screen === 'letters' ? viewLetters() : ui.screen === 'pfriends' ? viewPList('f') : ui.screen === 'pgangs' ? viewPList('g') : ui.screen === 'psettings' ? viewPSettings() : ui.screen === 'gang' ? viewGang() : ui.screen === 'sfide' ? viewSfide() : ui.screen === 'stato' ? viewStato() : ui.screen === 'settings' ? viewSettings() : ui.screen === 'bacheca' ? viewBacheca() : viewHome();
+    var body = ui.screen === 'party' ? viewParty() : ui.screen === 'friend' ? viewFriend() : ui.screen === 'letters' ? viewLetters() : ui.screen === 'pfriends' ? viewPList('f') : ui.screen === 'pgangs' ? viewPList('g') : ui.screen === 'psettings' ? viewPSettings() : ui.screen === 'numeri' ? viewNumeri() : ui.screen === 'gang' ? viewGang() : ui.screen === 'sfide' ? viewSfide() : ui.screen === 'stato' ? viewStato() : ui.screen === 'settings' ? viewSettings() : ui.screen === 'bacheca' ? viewBacheca() : viewHome();
     if (!ui.ov) lastAnim.ov = null;
     if (ui.screen !== 'home') lastAnim.card = null;
     var ovKey = ui.ov ? [ui.ov.t, ui.ov.kind, ui.ov.k, ui.ov.id, ui.ov.sport, ui.ov.group].join('|') : null;
@@ -3680,7 +3727,7 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v4.1.2';
+var APP_V = 'gesta-v4.2.0';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
