@@ -407,7 +407,8 @@ function planAt(k) { var p = planOf(k); return p && !p.miss && !sessions(k).leng
 function planCol(p) { var k = p.jsp || p.sp; return SPORTS[k] ? SPORTS[k].c : '#7CC4FF'; }
 function planIc(p) { return SPORTS[p.jsp || p.sp].ic; }
 /* fin dove si pianifica: fine mese, o domenica se la settimana passa al mese dopo */
-function planEnd() { var t = todayKey(), d = parseKey(t), eom = keyOf(new Date(d.getFullYear(), d.getMonth() + 1, 0)), sun = addDays(mondayOf(t), 6); return sun > eom ? sun : eom; }
+/* 4.2.2: si pianifica fino alla fine della prima settimana piena del mese dopo (la domenica della settimana col 7) */
+function planEnd() { var d = parseKey(todayKey()), s7 = keyOf(new Date(d.getFullYear(), d.getMonth() + 1, 7)); return addDays(mondayOf(s7), 6); }
 function canPlan(k) { return k > todayKey() && k <= planEnd(); }
 /* fissato in anticipo: deciso prima di quel giorno. Da mezzogiorno di quel giorno non si toglie più */
 function planEarly(k, p) { return p.at < parseKey(k).getTime(); }
@@ -662,7 +663,7 @@ var A = {
   obSport: function (s) { var i = ui.ob.sports.indexOf(s); if (i >= 0) ui.ob.sports.splice(i, 1); else { if (ui.ob.sports.length >= MAX_SPORTS) return toast('Massimo 10 sport: togline uno prima.'); ui.ob.sports.push(s); if (ui.ob.sports.length === SOFT_SPORTS + 1) toast(MANY_HINT); } ding('tap'); render(); },
   /* navigazione */
   go: function (scr) { ui.arrange = false; ui.pq = ''; ui.screen = scr; ui.ov = null; ding('tap'); render(); },
-  month: function (dir) { var m = ui.vm.m + +dir, y = ui.vm.y; if (m < 0) { m = 11; y--; } if (m > 11) { m = 0; y++; } var n = new Date(); if (y > n.getFullYear() || (y === n.getFullYear() && m > n.getMonth())) return; ui.vm = { y: y, m: m }; ding('tap'); render(); },
+  month: function (dir) { var m = ui.vm.m + +dir, y = ui.vm.y; if (m < 0) { m = 11; y--; } if (m > 11) { m = 0; y++; } var pe = parseKey(planEnd()); if (y * 12 + m > pe.getFullYear() * 12 + pe.getMonth()) return; ui.vm = { y: y, m: m }; ding('tap'); render(); },
   sound: function () { S.settings.sound = !S.settings.sound; save(); render(); if (S.settings.sound) ding('tap'); },
   close: function () { if (ui.ov && ui.ov.back) { var b = ui.ov.back; ui.ov = b; lastAnim.ov = null; render(); return; } close(); },
   instOk: function () { S.seen = S.seen || {}; S.seen.inst = addDays(todayKey(), 3); save(); ui.ov = null; startupNotice(); render(); },
@@ -1024,7 +1025,8 @@ function viewHome() {
   var first = new Date(y, m, 1), lead = (first.getDay() + 6) % 7, nd = new Date(y, m + 1, 0).getDate(), n = new Date();
   var isCur = y === n.getFullYear() && m === n.getMonth();
   h += '<div class="card" style="padding:6px 12px 10px;display:flex;flex-direction:column;gap:6px">';
-  h += '<div class="cal-head"><button data-a="month" data-v="-1" aria-label="Mese precedente">' + svg(IC.left) + '</button><span class="lbl">' + MONTHS[m] + '</span><button data-a="month" data-v="1" aria-label="Mese successivo"' + (isCur ? ' disabled' : '') + '>' + svg(IC.right) + '</button></div>';
+  var pe = parseKey(planEnd()), canNext = y * 12 + m < pe.getFullYear() * 12 + pe.getMonth();
+  h += '<div class="cal-head"><button data-a="month" data-v="-1" aria-label="Mese precedente">' + svg(IC.left) + '</button><span class="lbl">' + MONTHS[m] + '</span><button data-a="month" data-v="1" aria-label="Mese successivo"' + (canNext ? '' : ' disabled') + '>' + svg(IC.right) + '</button></div>';
   h += '<div class="grid7">' + ['L', 'M', 'M', 'G', 'V', 'S', 'D'].map(function (x) { return '<span class="dow">' + x + '</span>'; }).join('') + '</div><div class="grid7">';
   for (var i = 0; i < lead; i++) h += '<span class="cell empty"></span>';
   for (var d = 1; d <= nd; d++) {
@@ -1037,12 +1039,13 @@ function viewHome() {
     else if (age < 0) cls += ' fut';
     if (!ss.length && k >= t) { var pl = planAt(k), gl = gloveOn(k); if (pl || gl.length) { var pcol = pl ? planCol(pl) : PGOLD; cls = cls.replace(' fut', '') + ' plan'; st = 'background:transparent;border:1.5px ' + (k === t ? 'solid' : 'dashed') + ' ' + pcol + ';color:' + pcol; pc = '<span class="pli">' + (pl ? '<svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="stroke:' + pcol + ';stroke-width:2.2">' + planIc(pl) + '</svg>' : svg(PI.glove, PGOLD)) + '</span>' + (pl && gl.length ? '<span class="pgl">' + svg(PI.glove, PGOLD) + '</span>' : ''); } }
     if (k === t) { cls += ' today'; if (!ss.length && !hasMark(k)) cls += ' wait'; }
-    if (tap) cls += ' tap';
+    if (tap) cls += ' tap'; else if (age < 0) cls += ' off';
     var star = ss.some(function (s) { return s.star; });
     h += '<button class="' + cls + '" style="' + st + '"' + (tap ? ' data-a="day" data-v="' + k + '"' : ' disabled') + ' aria-label="' + d + ' ' + MONTHS[m] + '">' + d + pc + (star ? STAR_MINI : '') + (ss.some(function (s) { return s.ph; }) ? '<i class="tri"></i>' : '') + (hasMark(k) ? '<svg class="i hwi" viewBox="0 0 24 24" aria-hidden="true">' + HW.ic + '</svg>' : '') + '</button>';
   }
-  if (isCur && planEnd() > keyOf(new Date(y, m + 1, 0))) {
-    for (var nk = keyOf(new Date(y, m + 1, 1)); nk <= planEnd(); nk = addDays(nk, 1)) {
+  var rowEnd = addDays(mondayOf(keyOf(new Date(y, m + 1, 0))), 6), tailEnd = planEnd() < rowEnd ? planEnd() : rowEnd;
+  if (isCur && tailEnd > keyOf(new Date(y, m + 1, 0))) {
+    for (var nk = keyOf(new Date(y, m + 1, 1)); nk <= tailEnd; nk = addDays(nk, 1)) {
       var npl = planAt(nk), ngl = gloveOn(nk), nst = '', nc = 'cell fut nxt', npc = '';
       if (npl || ngl.length) { var ncol = npl ? planCol(npl) : PGOLD; nc = 'cell plan nxt'; nst = 'background:transparent;border:1.5px dashed ' + ncol + ';color:' + ncol; npc = '<span class="pli">' + (npl ? '<svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="stroke:' + ncol + ';stroke-width:2.2">' + planIc(npl) + '</svg>' : svg(PI.glove, PGOLD)) + '</span>' + (npl && ngl.length ? '<span class="pgl">' + svg(PI.glove, PGOLD) + '</span>' : ''); }
       h += '<button class="' + nc + ' tap" style="' + nst + '" data-a="day" data-v="' + nk + '" aria-label="' + parseKey(nk).getDate() + ' ' + MONTHS[parseKey(nk).getMonth()] + '">' + parseKey(nk).getDate() + npc + '<span class="nxm">' + MSHORT[parseKey(nk).getMonth()] + '</span></button>';
@@ -1092,7 +1095,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">Ranghi, Gesta e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 4.2.1</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 4.2.2</span>';
   return h;
 }
 
@@ -1239,7 +1242,7 @@ function viewOverlay() {
       '<div class="rtab">' + RANKS.slice(0, 5).map(function (r) { return '<span' + (r[2] ? ' style="grid-column:1/-1"' : '') + '><b>' + r[0] + '</b>' + r[1] + ' Punti Rango' + (r[2] ? ' · ' + r[2] + (r[2] === 1 ? ' stella' : ' stelle') : '') + '</span>'; }).join('') + '</div><p class="hint">Dalla seconda settimana Stato ti dice dove chiudi il mese al tuo ritmo.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Rango di ogni sport</span><p>Ogni sessione vale <b>2 Punti Rango</b> (fino a 6 al mese). Una quest media riuscita <b>+0,5</b>, una difficile <b>+1</b>. B a 10 Punti Rango, A a 14, S a 16.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Quest</span><p>Tocca oggi sul calendario e scegli lo sport. Se hai già finito, tocca <b>Fatto</b>: si segna subito, senza quest. Se stai per iniziare, Gesta propone tre sfide partendo dalla tua ultima volta. Quando hai finito ritocca oggi e rispondi <b>Superata</b> o <b>Non questa volta</b>: il giorno conta in tutti e due i casi. Se per quello sport hai un guanto, Gesta ti chiede anche com’è andata la sfida.</p></div>' +
-      '<div class="fld"><span class="lbl" style="font-size:11px">Pianificare</span><p>Tocca un giorno da domani a fine mese (o fino a domenica, se la settimana passa al mese dopo): scegli lo sport e, se vuoi, la quest. Il numero preciso lo fissa Gesta quella mattina, partendo dalla tua ultima volta. Quel giorno la trovi in alto e rispondi <b>Fatta?</b>.</p><p>Puoi toglierla o cambiarla quando vuoi: un piano saltato non costa niente, sparisce e basta. Se invece quel giorno fai sport (anche uno diverso), è una <b>parola mantenuta</b>: <b>+¼ di Punto Rango</b>, fino a 4 volte al mese.</p><p>Puoi pianificare anche uno sport che non è tra i tuoi (tocca <b>Altro</b>): vale come <b>jolly</b>, senza quest.</p><p>Se ti scordi di rispondere, nessun problema: il giorno dopo Gesta te lo chiede appena apri l’app, per guanti e quest.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Pianificare</span><p>Tocca un giorno da domani fino alla prima settimana piena del mese dopo (col tasto › del calendario passi al mese successivo): scegli lo sport e, se vuoi, la quest. Il numero preciso lo fissa Gesta quella mattina, partendo dalla tua ultima volta. Quel giorno la trovi in alto e rispondi <b>Fatta?</b>.</p><p>Puoi toglierla o cambiarla quando vuoi: un piano saltato non costa niente, sparisce e basta. Se invece quel giorno fai sport (anche uno diverso), è una <b>parola mantenuta</b>: <b>+¼ di Punto Rango</b>, fino a 4 volte al mese.</p><p>Puoi pianificare anche uno sport che non è tra i tuoi (tocca <b>Altro</b>): vale come <b>jolly</b>, senza quest.</p><p>Se ti scordi di rispondere, nessun problema: il giorno dopo Gesta te lo chiede appena apri l’app, per guanti e quest.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Titolo del mese</span><p>Viene dallo sport che hai fatto di più. Diventa doppio se un secondo sport arriva al 70% del primo, oppure se lo fai almeno 3 volte nel mese.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Badge della settimana</span><p>Uno per ogni giorno di sport da lunedì a domenica. Le frasi cambiano ogni settimana. Oltre i 5 giorni Gesta ti consiglia di riposare.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Hard Study/Work</span><p>Un segno sul calendario per le giornate di testa: giornate giustificate, con la scusa migliore. Non è sport: non è una Gesta e non dà Punti Rango, ma ti toglie il senso di colpa.</p></div>' +
@@ -3722,7 +3725,7 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v4.2.1';
+var APP_V = 'gesta-v4.2.2';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
