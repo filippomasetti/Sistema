@@ -247,7 +247,7 @@ function dayPts(k) { var m = 0; sessions(k).forEach(function (s) { m = Math.max(
 function totalXp() { var x = 0; Object.keys(S.days).forEach(function (k) { S.days[k].forEach(function (s) { x += sessXp(s); }); }); return x + (S.party ? gloveXp() : 0); }
 function levelInfo(xp) { var lv = 1, need = 100; while (xp >= need) { xp -= need; lv++; need = 100 + 50 * (lv - 1); } return { lv: lv, inLv: xp, need: need }; }
 function levelOf(xp) { return levelInfo(xp).lv; }
-/* 3.9.7: le tue Gesta = i giorni di sport da quando hai iniziato. Prendono il posto di XP e livello */
+/* 4.0.0: le tue Gesta = i giorni di sport da quando hai iniziato. Prendono il posto di XP e livello */
 var GMS = [10, 25, 50, 100, 200, 365, 500, 1000];
 function gestaN() { return S ? allKeysSorted().length : 0; }
 function gestaSince(short) { var k = allKeysSorted()[0]; if (!k) return ''; var d = parseKey(k); return (short ? MSHORT[d.getMonth()] : MONTHS[d.getMonth()].toLowerCase()) + ' ' + d.getFullYear(); }
@@ -320,7 +320,7 @@ function stepRank(y, m, full) {
   L = Math.min(L, full);
   stepCache = { k: ck, v: L }; return L;
 }
-/* 3.9.7: i giorni pesano di più. Giorno 3 punti (fino a 16), quest fino a 8, social e piani a parte fino a 6 */
+/* 4.0.0: i giorni pesano di più. Giorno 3 punti (fino a 16), quest fino a 8, social e piani a parte fino a 6 */
 var DAY_PTS = 3, Q_CAP = 8, SOC_CAP = 6;
 function monthPts(days, qSum, soc) { return Math.min(days, DAY_CAP) * DAY_PTS + Math.min(qSum, Q_CAP) + Math.min(soc || 0, SOC_CAP); }
 /* gli sport senza quest: una sessione Top (o lunga un'ora, per le lezioni) vale come una quest media */
@@ -408,7 +408,7 @@ function planEnd() { var t = todayKey(), d = parseKey(t), eom = keyOf(new Date(d
 function canPlan(k) { return k > todayKey() && k <= planEnd(); }
 /* fissato in anticipo: deciso prima di quel giorno. Da mezzogiorno di quel giorno non si toglie più */
 function planEarly(k, p) { return p.at < parseKey(k).getTime(); }
-/* 3.9.7: i piani non si bloccano più e non costano niente */
+/* 4.0.0: i piani non si bloccano più e non costano niente */
 function planFixed(k, p) { return false; }
 function planMissed(k, p) { return !!p && planEarly(k, p) && !sessions(k).length && (k < addDays(todayKey(), -1) || !!p.miss); }
 /* piano rispettato: deciso prima e fatto quel giorno. +¼ di Punto Rango, al massimo 4 volte al mese */
@@ -665,7 +665,7 @@ var A = {
   day: function (k) {
     var t = todayKey();
     if (k > t) { if (!canPlan(k)) return; ding('open'); if (planAt(k) || gloveOn(k).length) open({ t: 'plan', k: k }); else openPlanner(k, null); return; }
-    if (!canEdit(k)) return;
+    if (!canEdit(k)) { if (sessions(k).length) { ding('open'); open({ t: 'day', k: k, ro: true }); } return; }
     ding('open');
     if (k === t) {
       var ao = activeOpen();
@@ -765,7 +765,7 @@ var A = {
   addOther: function () { var k = ui.ov.k; ding('open'); open({ t: k === todayKey() && !activeToday() ? 'pick' : 'past', k: k }); },
   edit: function (id) { ding('open'); openDetails(ui.ov.k, id, false); },
   askRemove: function (id) { ui.ov.confirm = id; render(); },
-  remove: function (id) { var k = ui.ov.k; S.del = S.del || {}; S.del[id] = Date.now(); S.days[k] = sessions(k).filter(function (s) { return s.id !== id; }); if (!S.days[k].length) delete S.days[k]; undoAfterRemove(k); save(); ui.ov.confirm = null; toast('Sessione rimossa, con tutto quello che aveva sbloccato.'); if (!sessions(k).length) close(); },
+  remove: function (id) { var k = ui.ov.k; var sx = findSession(k, id); if (sx && sx.ph) phRemove(k, id); S.del = S.del || {}; S.del[id] = Date.now(); S.days[k] = sessions(k).filter(function (s) { return s.id !== id; }); if (!S.days[k].length) delete S.days[k]; undoAfterRemove(k); save(); ui.ov.confirm = null; toast('Sessione rimossa, con tutto quello che aveva sbloccato.'); if (!sessions(k).length) close(); },
   /* 3.6: piani */
   planYes: function (k) {
     var p = planAt(k); if (!p) return; planQ(k, p);
@@ -1007,7 +1007,7 @@ function viewHome() {
   h += '<div class="grid7">' + ['L', 'M', 'M', 'G', 'V', 'S', 'D'].map(function (x) { return '<span class="dow">' + x + '</span>'; }).join('') + '</div><div class="grid7">';
   for (var i = 0; i < lead; i++) h += '<span class="cell empty"></span>';
   for (var d = 1; d <= nd; d++) {
-    var k = y + '-' + pad(m + 1) + '-' + pad(d), ss = sessions(k), age = diffDays(t, k), tap = canEdit(k) || canPlan(k), st = '', cls = 'cell', pc = '';
+    var k = y + '-' + pad(m + 1) + '-' + pad(d), ss = sessions(k), age = diffDays(t, k), tap = canEdit(k) || canPlan(k) || (k < t && ss.length > 0), st = '', cls = 'cell', pc = '';
     if (ss.length) {
       var sp = []; ss.forEach(function (s) { if (sp.indexOf(s.sport) < 0) sp.push(s.sport); });
       cls += ' sport';
@@ -1018,7 +1018,7 @@ function viewHome() {
     if (k === t) { cls += ' today'; if (!ss.length && !hasMark(k)) cls += ' wait'; }
     if (tap) cls += ' tap';
     var star = ss.some(function (s) { return s.star; });
-    h += '<button class="' + cls + '" style="' + st + '"' + (tap ? ' data-a="day" data-v="' + k + '"' : ' disabled') + ' aria-label="' + d + ' ' + MONTHS[m] + '">' + d + pc + (star ? STAR_MINI : '') + (hasMark(k) ? '<svg class="i hwi" viewBox="0 0 24 24" aria-hidden="true">' + HW.ic + '</svg>' : '') + '</button>';
+    h += '<button class="' + cls + '" style="' + st + '"' + (tap ? ' data-a="day" data-v="' + k + '"' : ' disabled') + ' aria-label="' + d + ' ' + MONTHS[m] + '">' + d + pc + (star ? STAR_MINI : '') + (ss.some(function (s) { return s.ph; }) ? '<i class="tri"></i>' : '') + (hasMark(k) ? '<svg class="i hwi" viewBox="0 0 24 24" aria-hidden="true">' + HW.ic + '</svg>' : '') + '</button>';
   }
   if (isCur && planEnd() > keyOf(new Date(y, m + 1, 0))) {
     for (var nk = keyOf(new Date(y, m + 1, 1)); nk <= planEnd(); nk = addDays(nk, 1)) {
@@ -1077,7 +1077,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">Ranghi, Gesta e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 3.9.7</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 4.0.0</span>';
   return h;
 }
 
@@ -1124,7 +1124,7 @@ function viewOverlay() {
     var s = findSession(o.k, o.id);
     h = '<div class="' + cls + '">' + whead('Verifica', true) + '<p class="wtitle">Obiettivo raggiunto?</p><p class="wtext">' + esc(s ? goalText(s) : '') + '</p><div class="acts"><button class="btn" data-a="verify" data-v="0">Non oggi</button><button class="btn main" data-a="verify" data-v="1">Sì</button></div></div>';
   } else if (o.t === 'reward') {
-    /* 3.9.7: un solo riepilogo a fine sessione. Le voci si accendono una dopo l'altra; oltre 5 si scorre */
+    /* 4.0.0: un solo riepilogo a fine sessione. Le voci si accendono una dopo l'altra; oltre 5 si scorre */
     var rows = [], rrow = function (ic, t, sub, col) { rows.push('<div class="rrow" style="--rc:' + col + ';--i:' + rows.length + '"><span class="rri">' + ic + '</span><span style="display:flex;flex-direction:column;min-width:0;text-align:left"><span style="font:700 14px/18px var(--fd);letter-spacing:.5px;color:var(--ink)">' + t + '</span><span class="hint" style="font-size:11.5px">' + sub + '</span></span></div>'); };
     if (o.pk) rrow(svg(IC.cal || PI.glove, '#7CC4FF', 20), 'Parola mantenuta', 'Era in programma: +¼ di Punto Rango', '#7CC4FF');
     if (o.gms) rrow('<b style="font:700 12px/1 var(--fd);color:#7CC4FF">N°</b>', o.gms + ' Gesta', o.gms === 365 ? 'Un anno di Gesta, tutto tuo' : 'Una Gesta tonda', '#3BA7FF');
@@ -1140,11 +1140,13 @@ function viewOverlay() {
     var list = sessions(o.k);
     h = '<div class="' + cls + '">' + whead(DAYS_SHORT[parseKey(o.k).getDay()] + ' ' + niceDate(o.k), true) + '<div class="wbody">';
     list.forEach(function (s) {
-      h += '<div class="sess">' + sportIc(s.sport, 26, true) + '<div class="meta"><b>' + SPORTS[s.sport].name + (s.star ? ' ★' : '') + '</b><span>' + esc(sessSummary(s)) + '</span></div>' +
+      var phx = s.ph ? '<button class="phthumb" data-a="phOpen" data-v="' + o.k + '|' + s.id + '" aria-label="Apri la foto"><img alt="" ' + (phURL[s.id] ? 'src="' + phURL[s.id] + '"' : 'data-phs="' + s.id + '"') + '></button>' : '<label class="phadd" aria-label="Aggiungi foto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7CC4FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><input type="file" accept="image/*"' + (o.k === todayKey() ? '' : '') + ' data-ph="1" data-k="' + o.k + '" data-sid="' + s.id + '" hidden></label>';
+      if (o.ro) { h += '<div class="sess">' + sportIc(s.sport, 26, true) + '<div class="meta"><b>' + SPORTS[s.sport].name + (s.star ? ' ★' : '') + '</b><span>' + esc(sessSummary(s)) + '</span></div>' + phx + '</div>'; return; }
+      h += '<div class="sess">' + sportIc(s.sport, 26, true) + '<div class="meta"><b>' + SPORTS[s.sport].name + (s.star ? ' ★' : '') + '</b><span>' + esc(sessSummary(s)) + '</span></div>' + phx +
         (o.confirm === s.id ? '<button class="btn sm danger" data-a="remove" data-v="' + s.id + '">Rimuovi</button>' : '<button class="btn sm" data-a="edit" data-v="' + s.id + '">Dettagli</button><button class="x" style="margin:0 -6px 0 0" data-a="askRemove" data-v="' + s.id + '" aria-label="Rimuovi sessione">' + svg(IC.close, '#8FA3C2', 18) + '</button>') + '</div>';
     });
     if (hasMark(o.k)) h += '<div class="sess" style="border-style:dashed">' + svg(HW.ic, '#AEBBD3', 26) + '<div class="meta"><b>Hard Study/Work</b><span>Giornata di testa, conta anche questa</span></div><button class="x" style="margin:0 -6px 0 0" data-a="hw" aria-label="Togli Hard Study/Work">' + svg(IC.close, '#8FA3C2', 18) + '</button></div>';
-    h += '</div><button class="btn" data-a="addOther">Aggiungi uno sport</button>' + '</div>';
+    h += '</div>' + (o.ro ? '<p class="hint" style="margin:0;text-align:center">Oltre i ' + editWindow() + ' giorni la sessione non si cambia più, ma la foto sì.</p><button class="btn" data-a="close">Chiudi</button>' : '<button class="btn" data-a="addOther">Aggiungi uno sport</button>') + '</div>';
   } else if (o.t === 'notice') {
     if (o.kind === 'intro') h = '<div class="' + cls + '">' + whead('Notifica', false) + '<p class="wtitle">Come funziona</p><div class="rules">' +
       '<p><b>Esserci conta più di tutto.</b> Ogni giorno in cui fai sport ti avvicina al rango del mese.</p>' +
@@ -1231,6 +1233,7 @@ function viewOverlay() {
       '<div class="fld"><span class="lbl" style="font-size:11px">Il + del rango</span><p>Ogni rango ha il suo +: C+, B+, fino a S+. Lo prendi vincendo una quest social quando sei già in quel rango: un guanto di un amico che hai completato, o un obiettivo Gang che hai completato tu e che almeno un altro membro ha accettato. Va per soglie: se da D+ sali in C sei C, e per il + ti serve una nuova quest social da C. Senza amici sali lo stesso, ma senza +.</p><p>Si sale di <b>un gradino al giorno</b> (un rango pieno o un +): se oggi sei già salito, il gradino dopo scatta domani alla prima sessione. Non vale l’ultimo giorno del mese, e A+, S e S+ scattano sempre.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Cinque</span><p>Un applauso a un amico, uno a settimana per amico: nel suo calendario tocchi un giorno di sport e glielo dai per quella sessione. Se lui lo ricambia entro 7 giorni (o tu ricambi il suo) è un <b>cinque battuto</b>, e in Bacheca c’è una medaglia apposta. Non dà Punti Rango: fa solo piacere.</p></div>' +
       (VAPID_PUB ? '<div class="fld"><span class="lbl" style="font-size:11px">Notifiche</span><p>Con Gesta aggiunta alla schermata Home possono arrivarti sul telefono guanti, sfide chiuse, richieste di amicizia, obiettivi della Gang e cinque. Scegli tu quali nelle impostazioni del Party. Una sola notifica per ogni cosa: pianificare non avvisa nessuno.</p></div>' : '') +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Foto</span><p>Una foto per sessione, se ti va: nei dettagli della sessione o toccando il giorno sul calendario, anche settimane dopo. Se la scatti da Gesta il giorno stesso è <b>verificata</b>; dalla galleria va benissimo lo stesso. È tua: la vedono gli amici solo se accendi l’interruttore, foto per foto. Quando vinci un guanto puoi aggiungere la prova per chi te l’ha lanciato.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Le tue Gesta</span><p>Ogni giorno con almeno uno sport è una <b>Gesta</b>. Le conti da quando hai iniziato e non si azzerano mai: le vedi in alto, accanto al nome dell’app. Le soglie tonde (10, 25, 50, 100, 200, 365, 500) sono una medaglia in Bacheca.</p></div>' +
       '</div><div class="acts"><button class="btn" data-a="guideAgain">Rivedi la guida</button><button class="btn main" data-a="close">Ho capito</button></div></div>';
   } else if (o.t === 'qask') {
@@ -1239,6 +1242,8 @@ function viewOverlay() {
     h = '<div class="' + cls + '">' + whead('Notifica', true) + '<p class="wtitle">Hai già una quest social</p><p class="wtext">Oggi hai attivo ' + who + ': <b style="color:var(--rew)">' + esc(chLabel(c0)) + '</b>' + (soc.length > 1 ? ' (e altre ' + (soc.length - 1) + ')' : '') + '. Vuoi aggiungerne anche una personale?</p><div class="acts"><button class="btn" data-a="qNo">No</button><button class="btn main" data-a="qYes">Sì</button></div></div>';
   } else if (o.t === 'fnote') { h = viewFNote(o, cls);
   } else if (o.t === 'fivefx') { h = viewFiveFx(o, cls);
+  } else if (o.t === 'photo') { h = viewPhoto(o, cls);
+  } else if (o.t === 'fphoto') { h = viewFPhoto(o, cls);
   } else if (o.t === 'addf') { h = viewAddF(o, cls);
   } else if (o.t === 'trait') { h = viewTrait(o, cls);
   } else if (o.t === 'gobj') { h = viewGObj(o, cls);
@@ -1365,6 +1370,7 @@ function viewDetails(o, cls) {
     h += '<div class="fld">' + (qt === 'bon' ? '<label class="hint" for="bname">Attività</label><input id="bname" class="inp" maxlength="40" placeholder="Squash, arrampicata in falesia, sup…" value="' + esc(f.name) + '" data-f="bname" autocomplete="off">' : '') + '<label class="hint" for="bnote">Nota' + (s === 'cfx' ? ' · il WOD di oggi' : '') + '</label><textarea id="bnote" class="inp" maxlength="280" data-f="bnote">' + esc(f.note) + '</textarea></div>';
   }
   h += '<div class="fld"><button class="toggle" style="min-height:40px;padding:0" data-a="star"><span style="display:flex;align-items:center;gap:10px;font:600 15px/20px var(--fd)">' + svg(IC.star, f.star ? '#FFC94D' : '#8FA3C2', 20) + (qt === 'focus' ? 'MVP' : 'Sessione top') + '</span><span class="sw' + (f.star ? ' on' : '') + '"></span></button><span class="hint">' + (qt === 'focus' ? 'Quando sei la stella della partita: una stella sul calendario. Per il rango S ne serve una al mese.' : 'Solo per le giornate davvero speciali: una stella sul calendario. Per il rango S ne serve una al mese.') + '</span></div>';
+  var sPh = findSession(o.k, o.id); if (sPh && !o.assess) h += sPh.ph ? '<button data-a="phOpen" data-v="' + o.k + '|' + o.id + '" class="phrow">' + '<span class="phthumb"><img alt="" ' + (phURL[o.id] ? 'src="' + phURL[o.id] + '"' : 'data-phs="' + o.id + '"') + '></span><span style="flex:1 1 auto;text-align:left;display:flex;flex-direction:column"><b style="font:600 14px/18px var(--fd)">Foto</b><span class="hint" style="font-size:11.5px">' + (sPh.ph.v ? '✓ Verificata' : 'Dalla galleria') + (sPh.ph.sh ? ' · la vedono gli amici' : ' · solo tu') + '</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>' : phPick(o.k, o.id);
   h += '</div>' + (o.done ? '<span class="hint" style="text-align:center;margin-top:-4px">Già segnato sul calendario. Se non vuoi aggiungere niente, chiudi pure.</span>' : '') + '<button class="btn main" data-a="saveDetails">' + (o.assess ? 'Salva il punto di partenza' : 'Salva') + '</button></div>';
   return h;
 }
@@ -2170,7 +2176,7 @@ var GUIDE = {
 };
 function guideSeen(scr) { var g = S.seen.guide; return !!(g && g.v === GUIDE_V && g[scr]); }
 function guideMark(scr) { if (!S.seen.guide || S.seen.guide.v !== GUIDE_V) S.seen.guide = { v: GUIDE_V }; S.seen.guide[scr] = 1; save(); }
-/* 3.9.7: spiegazioni al primo incontro. Un fumetto solo, la prima volta che la cosa compare sullo schermo */
+/* 4.0.0: spiegazioni al primo incontro. Un fumetto solo, la prima volta che la cosa compare sullo schermo */
 var TIPS = [
   ['plan', 'home', '.cell.plan:not(.today)', 'Parola mantenuta', 'Se quel giorno fai sport, +¼ di Punto Rango. Se salta, nessun problema: il piano sparisce e basta.'],
   ['plus', 'home', '.top button[data-v="stato"] .rplus, .top button[data-v="stato"]', 'Il + del rango', 'Hai vinto una quest social quando eri già in questo rango: il gradino in più è tuo per tutto il mese.', function () { var n = new Date(); return monthStats(n.getFullYear(), n.getMonth()).plus; }],
@@ -2538,6 +2544,12 @@ var PA = {
   },
   five: function (arg) { var a = String(arg).split('|'); fiveGive(a[0], a[1] || null); },
   fiveBack: function (lid) { var l = P().letters.filter(function (x) { return x.id === lid; })[0]; if (!l || !l.f) return; P().fiveIn = P().fiveIn || {}; P().fiveIn[l.f] = l.t || Date.now(); if (fiveGive(l.f, null, true) && ui.ov && ui.ov.t === 'fnote') { ui.ov.batl = lid; render(); } },
+  phOpen: function (arg) { var a = arg.split('|'), back = ui.ov && ui.ov.t !== 'photo' ? ui.ov : null; ui.ov = { t: 'photo', k: a[0], sid: a[1], back: back }; ding('open'); render(); },
+  phSh: function (arg) { var a = arg.split('|'), s = phSess(a[0], a[1]); if (!s || !s.ph) return; phShare(a[0], a[1], !s.ph.sh); ding('tap'); render(); },
+  phDelAsk: function () { ui.ov.del = 1; render(); },
+  phDelGo: function (arg) { var a = arg.split('|'); phRemove(a[0], a[1]); ding('tap'); toast('Foto tolta.'); A.phBack(); },
+  phBack: function () { var o = ui.ov; ui.ov = o && o.back ? o.back : null; if (ui.ov) delete ui.ov.del; render(); },
+  fPhotoOpen: function (arg) { var a = arg.split('|'), x = fph[a[0]] && fph[a[0]][a[1]]; if (!x) return; var back = ui.ov; ui.ov = { t: 'fphoto', fid: a[0], x: x, back: back, five: P().fives[a[0]] !== mondayOf(todayKey()) }; ding('open'); render(); },
   rkBreak: function () { var o = ui.ov; if (!o || o.t !== 'rankup' || o.br) return; o.br = 1; rankSound(); buzz([40, 50, 40, 50, 140]); render(); },
   fAdd: function () { if (!cauth) { A.cLogin(); return; } ui.ov = { t: 'addf', code: '' }; ui.focusNext = 'fcode'; ding('open'); render(); },
   fAddGo: function () {
@@ -2655,7 +2667,7 @@ function viewFCal(o, cls) {
   for (var i = 0; i < lead; i++) g += '<span></span>';
   var plans = days.filter(function (x) { return x.pl; });
   var five5 = P().fives[f.id] === mondayOf(todayKey()), canF = !five5 && !(f.gm && !isFriend(f.id));
-  days.forEach(function (x) { if (x.sp) used[x.sp] = 1; if (x.pl) used[x.pl] = 1; var fut = x.k > todayKey(), tap = canF && x.sp && !fut; g += (tap ? '<button data-a="five" data-v="' + f.id + '|' + x.k + '" aria-label="Cinque per ' + dayShort(x.k) + '" style="appearance:none;border:0;background:transparent;color:inherit;cursor:pointer;' : '<span style="') + 'display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 0"><span style="font:600 12px/14px var(--fd);color:' + (x.k === todayKey() ? 'var(--ink)' : fut ? '#3A4866' : 'var(--mut)') + '">' + x.d + '</span>' + (x.sp ? '<i style="display:block;width:14px;height:14px;border-radius:7px;background:' + SPORTS[x.sp].c + ';box-shadow:0 0 8px ' + SPORTS[x.sp].c + '"></i>' : x.hw ? '<i style="display:block;width:14px;height:14px;border-radius:7px;' + HW_DOT + '"></i>' : x.pl ? '<i style="display:block;box-sizing:border-box;width:14px;height:14px;border-radius:7px;border:1.5px dashed ' + (x.pg ? PGOLD : SPORTS[x.pl].c) + '"></i>' : '<i style="display:block;width:14px;height:14px;border-radius:7px;border:1px ' + (fut ? 'dashed #1E2A42' : 'solid #1E2A42') + '"></i>') + (tap ? '</button>' : '</span>'); });
+  days.forEach(function (x) { if (x.sp) used[x.sp] = 1; if (x.pl) used[x.pl] = 1; var fut = x.k > todayKey(), fpx = fph[f.id] && fph[f.id][x.k], tap = (canF && x.sp && !fut) || fpx; g += (tap ? '<button data-a="' + (fpx ? 'fPhotoOpen' : 'five') + '" data-v="' + f.id + '|' + x.k + '" aria-label="' + (fpx ? 'Foto del ' : 'Cinque per ') + dayShort(x.k) + '" style="appearance:none;border:0;background:transparent;color:inherit;cursor:pointer;position:relative;' : '<span style="position:relative;') + 'display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 0">' + (fpx ? '<i class="tri" style="top:2px;right:6px"></i>' : '') + '<span style="font:600 12px/14px var(--fd);color:' + (x.k === todayKey() ? 'var(--ink)' : fut ? '#3A4866' : 'var(--mut)') + '">' + x.d + '</span>' + (x.sp ? '<i style="display:block;width:14px;height:14px;border-radius:7px;background:' + SPORTS[x.sp].c + ';box-shadow:0 0 8px ' + SPORTS[x.sp].c + '"></i>' : x.hw ? '<i style="display:block;width:14px;height:14px;border-radius:7px;' + HW_DOT + '"></i>' : x.pl ? '<i style="display:block;box-sizing:border-box;width:14px;height:14px;border-radius:7px;border:1.5px dashed ' + (x.pg ? PGOLD : SPORTS[x.pl].c) + '"></i>' : '<i style="display:block;width:14px;height:14px;border-radius:7px;border:1px ' + (fut ? 'dashed #1E2A42' : 'solid #1E2A42') + '"></i>') + (tap ? '</button>' : '</span>'); });
   g += '</div>';
   var leg = '<div style="display:flex;flex-wrap:wrap;gap:8px 16px">' + Object.keys(used).map(function (s) { return '<span style="display:flex;align-items:center;gap:6px;font:500 13px/18px var(--fb);color:var(--soft)">' + sportIc(s, 16, true) + SPORTS[s].name + '</span>'; }).join('') + (days.some(function (x) { return x.hw; }) ? '<span style="display:flex;align-items:center;gap:6px;font:500 13px/18px var(--fb);color:var(--soft)"><i style="display:block;width:12px;height:12px;border-radius:6px;' + HW_DOT + '"></i>Hard Study/Work</span>' : '') + '</div>';
   return '<div class="' + cls + '">' + whead(f.n + ' · ' + MONTHS[m], true) + '<div class="card" style="padding:8px 10px">' + g + '</div>' + leg + (plans.length ? '<div class="card" style="padding:8px 12px;display:flex;flex-direction:column;gap:6px"><span class="lbl" style="font-size:10.5px">In programma</span>' + plans.map(function (x) { return '<span style="display:flex;align-items:center;gap:8px;font:600 13px/18px var(--fb)"><i style="display:block;box-sizing:border-box;width:12px;height:12px;border-radius:6px;border:1.5px dashed ' + (x.pg ? PGOLD : SPORTS[x.pl].c) + '"></i>' + dayShort(x.k).charAt(0).toUpperCase() + dayShort(x.k).slice(1) + ' · ' + SPORTS[x.pl].name + (x.pg ? '<span class="hint" style="font-size:11px">guanto</span>' : '') + '<button class="btn sm" data-a="launchOn" data-v="' + f.id + '|' + x.k + '|' + x.pl + '" style="margin-left:auto;height:30px;padding:0 10px;font-size:10.5px;display:flex;align-items:center;gap:5px;border-color:' + PGOLD + '8C;color:var(--rew)">' + svg(PI.glove, PGOLD, 14) + 'Sfida</button></span>'; }).join('') + '<span class="hint" style="font-size:11.5px">Tratteggiato: in programma. Buon momento per sfidarlo.</span></div>' : '') + '<p class="hint" style="margin:0;display:flex;align-items:center;gap:6px">' + svg(PI.five, '#7CC4FF', 14) + (five5 ? 'Il cinque di questa settimana l’hai già dato.' : canF ? 'Tocca un giorno di sport per dargli il cinque.' : '') + '</p></div>';
@@ -2699,7 +2711,7 @@ function vetrinaHTML(st) {
 }
 /* slot quest in home */
 var PA2 = {
-  fCal: function (id) { ui.ov = { t: 'fcal', fid: id }; ding('open'); render(); },
+  fCal: function (id) { ui.ov = { t: 'fcal', fid: id }; ding('open'); render(); fPhotosLoad(id); },
   fCh: function (id) { ui.ov = { t: 'fch', fid: id }; ding('open'); render(); },
   vetrina: function (id) { var l = showcase(), i = l.indexOf(id); if (i >= 0) { l.splice(i, 1); save(); ding('tap'); toast('Tolta dalla vetrina.'); return; } var st = medalState(); l = l.filter(function (x) { return st[x] && st[x].t >= 0; }); S.showcase = l; if (l.length >= 3) { toast('Vetrina piena: togline una prima.'); return; } l.push(id); save(); ding('ok'); toast('In vetrina: la vedono gli amici.'); },
   vetHint: function () { toast('Apri una medaglia che hai preso e tocca “Metti in vetrina”.'); },
@@ -2772,7 +2784,7 @@ document.addEventListener('pointerdown', function (e) { if (e.pointerType !== 'm
 document.addEventListener('pointermove', function (e) { if (e.pointerType !== 'mouse' || !gs) return; gMove(e.clientX, e.clientY, e); }, true);
 document.addEventListener('pointerup', function (e) { if (e.pointerType !== 'mouse') return; gEnd(); }, true);
 /* ---------- 2.3: obiettivo Gang, punti condivisi, storico, rango Gang ---------- */
-var GANG_RANKS = [['S', 8], ['A', 6], ['B', 4], ['C', 2], ['D', 1], ['E', 0]], GANG_CAP = 999; /* 3.9.7: niente tetto al mese */
+var GANG_RANKS = [['S', 8], ['A', 6], ['B', 4], ['C', 2], ['D', 1], ['E', 0]], GANG_CAP = 999; /* 4.0.0: niente tetto al mese */
 function gangById(id) { return P() ? P().gangs.filter(function (g) { return g.id === id; })[0] : null; }
 /* la barra dell'obiettivo: tanti esagoni quanti ne servono, accesi da chi l'ha fatto */
 function gangBar(c, g) {
@@ -2874,7 +2886,7 @@ function viewGWin(o, cls) {
     '<p class="wtext">' + esc(chLabel(c)) + '.</p>' +
     '<div style="display:grid;grid-template-columns:1fr"><div class="fld" style="align-items:center"><span style="font:700 17px/22px var(--fd);color:var(--rew)">' + pts + '</span><span class="hint">Punto Rango</span></div></div>' +
     '<div class="row" style="padding:0 2px"><span class="hint">' + note + '</span>' + (!g && c.to === 'me' ? rkHex('S', 30, true) : '') + '</div>' +
-    '<div class="acts one"><button class="btn main" data-a="close">Continua</button></div></div>';
+    '<div class="acts one"><button class="btn main" data-a="close">Continua</button></div>' + (function () { if (g) return ''; var tk = todayKey(), ls = sessions(tk)[sessions(tk).length - 1]; if (!ls) return ''; if (ls.ph && ls.ph.g === c.id) return '<span class="hint" style="text-align:center;color:var(--rew)">Prova aggiunta: ' + esc(f.n) + ' la vede sotto il sigillo.</span>'; return '<label class="mlink" style="align-self:center;display:flex;align-items:center;gap:6px;color:var(--sysl);cursor:pointer">+ Aggiungi la prova per ' + esc(f.n) + '<input type="file" accept="image/*" capture="environment" data-ph="1" data-ver="1" data-k="' + tk + '" data-sid="' + ls.id + '" data-g="' + c.id + '" hidden></label>'; })() + '</div>';
 }
 function viewGang() {
   var g = gangById(ui.gid); if (!g) { ui.screen = 'party'; return viewParty(); }
@@ -2974,6 +2986,101 @@ function viewRankUp(o, cls) {
     '<span class="hint" style="font-size:11px;text-align:center">' + pfmt(ms.pts) + ' questo mese</span>' +
     '<div class="acts" style="grid-template-columns:1fr;width:100%"><button class="btn main" data-a="close">Continua</button></div></div></div>';
 }
+
+/* ---------- 4.0: foto delle sessioni ----------
+   Una foto per sessione. Scattata da Gesta il giorno stesso = verificata, dalla galleria no.
+   Il file sta sul telefono (IndexedDB) e nel cloud (spazio "foto" di Supabase); nello stato restano solo i dati della foto.
+   Privata di partenza: la vedono gli amici solo se accendi l'interruttore. Look: smorzata, angoli di sistema, "Gesta N° X". */
+var phURL = {}, phDB = null, fph = {};
+function phOpenDB() { if (phDB) return phDB; phDB = new Promise(function (ok, ko) { try { var r = indexedDB.open('gesta-foto', 1); r.onupgradeneeded = function () { r.result.createObjectStore('ph'); }; r.onsuccess = function () { ok(r.result); }; r.onerror = function () { ko(r.error); }; } catch (e) { ko(e); } }); return phDB; }
+function phIdb(mode, fn) { return phOpenDB().then(function (db) { return new Promise(function (ok, ko) { var tx = db.transaction('ph', mode), st = tx.objectStore('ph'), rq = fn(st); tx.oncomplete = function () { ok(rq && rq.result); }; tx.onerror = function () { ko(tx.error); }; }); }); }
+function phPut(id, blob) { return phIdb('readwrite', function (st) { return st.put(blob, id); }).catch(function () {}); }
+function phGet(id) { return phIdb('readonly', function (st) { return st.get(id); }).catch(function () { return null; }); }
+function phDel(id) { return phIdb('readwrite', function (st) { return st.delete(id); }).catch(function () {}); }
+function phN(k) { return allKeysSorted().indexOf(k) + 1; }
+function phPath(sid) { return cauth ? cauth.uid + '/' + sid + '.jpg' : ''; }
+function stFetch(path, opt) { opt = opt || {}; var h = { apikey: CLOUD.key, Authorization: 'Bearer ' + (cauth && cauth.at) }; if (opt.type) h['Content-Type'] = opt.type; if (opt.upsert) h['x-upsert'] = 'true'; return fetch(CLOUD.url.replace(/\/$/, '') + '/storage/v1/' + path, { method: opt.method || 'GET', headers: h, body: opt.body }).then(function (r) { if (!r.ok) { var e = new Error('HTTP ' + r.status); e.status = r.status; throw e; } return opt.blob ? r.blob() : r.text(); }); }
+/* ridimensiona (lato lungo 1440) e ripulisce: niente posizione GPS né altri dati nascosti */
+function phShrink(file) { return new Promise(function (ok, ko) { var u = URL.createObjectURL(file), im = new Image(); im.onload = function () { var W = im.naturalWidth, H = im.naturalHeight, sc = Math.min(1, 1440 / Math.max(W, H)), c = document.createElement('canvas'); c.width = Math.round(W * sc); c.height = Math.round(H * sc); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(u); c.toBlob(function (b) { b ? ok(b) : ko(new Error('foto')); }, 'image/jpeg', 0.82); }; im.onerror = function () { URL.revokeObjectURL(u); ko(new Error('foto')); }; im.src = u; }); }
+function phSess(k, sid) { return findSession(k, sid); }
+function phSave(k, sid, file, ver, glove) {
+  var s = phSess(k, sid); if (!s) return Promise.resolve();
+  toast('Salvo la foto…');
+  return phShrink(file).then(function (b) {
+    var old = s.ph; s.ph = { v: !!ver && k === todayKey(), sh: old ? !!old.sh : false, n: phN(k), t: Date.now(), g: glove || (old && old.g) || null, up: 0 };
+    if (phURL[sid]) URL.revokeObjectURL(phURL[sid]); phURL[sid] = URL.createObjectURL(b);
+    save(); render(); toast(glove ? 'Prova aggiunta.' : 'Foto salvata.');
+    return phPut(sid, b).then(function () { return phUp(k, sid); });
+  }).catch(function () { toast('Non riesco a leggere questa foto. Provane un’altra.'); });
+}
+function phUp(k, sid) {
+  var s = phSess(k, sid); if (!s || !s.ph || !cauth || !cloudOn()) return Promise.resolve();
+  return phGet(sid).then(function (b) {
+    if (!b) return;
+    return authFresh().then(function () { return stFetch('object/foto/' + phPath(sid), { method: 'POST', type: 'image/jpeg', upsert: true, body: b }); })
+      .then(function () { return sbFetch('/rest/v1/photos?on_conflict=user_id,sess', { method: 'POST', prefer: 'resolution=merge-duplicates,return=minimal', body: { user_id: cauth.uid, sess: sid, day: k, sport: s.sport, n: s.ph.n, verified: !!s.ph.v, shared: !!s.ph.sh, glove: s.ph.g && /^[0-9a-f-]{36}$/.test(s.ph.g) ? s.ph.g : null, path: phPath(sid) } }); })
+      .then(function () { s.ph.up = 1; save(); });
+  }).catch(function () {});
+}
+/* le foto rimaste sul telefono senza rete partono appena si può */
+function phRetry() { if (!S || !cauth || !cloudOn()) return; Object.keys(S.days).forEach(function (k) { (S.days[k] || []).forEach(function (s) { if (s.ph && !s.ph.up) phUp(k, s.id); }); }); }
+function phSrc(sid) {
+  if (phURL[sid]) return Promise.resolve(phURL[sid]);
+  return phGet(sid).then(function (b) {
+    if (b) return (phURL[sid] = URL.createObjectURL(b));
+    if (!cauth || !cloudOn()) return null;
+    return authFresh().then(function () { return stFetch('object/authenticated/foto/' + phPath(sid), { blob: true }); }).then(function (b2) { phPut(sid, b2); return (phURL[sid] = URL.createObjectURL(b2)); });
+  }).catch(function () { return null; });
+}
+function phSrcPath(path) {
+  if (phURL[path]) return Promise.resolve(phURL[path]);
+  return authFresh().then(function () { return stFetch('object/authenticated/foto/' + path, { blob: true }); }).then(function (b) { return (phURL[path] = URL.createObjectURL(b)); }).catch(function () { return null; });
+}
+function phRemove(k, sid, keepSess) {
+  var s = phSess(k, sid); if (s && s.ph) { delete s.ph; save(); }
+  if (phURL[sid]) { URL.revokeObjectURL(phURL[sid]); delete phURL[sid]; }
+  phDel(sid);
+  if (cauth && cloudOn()) authFresh().then(function () { return Promise.all([stFetch('object/foto/' + phPath(sid), { method: 'DELETE' }).catch(function () {}), sbFetch('/rest/v1/photos?user_id=eq.' + cauth.uid + '&sess=eq.' + encodeURIComponent(sid), { method: 'DELETE', prefer: 'return=minimal' }).catch(function () {})]); }).catch(function () {});
+}
+function phShare(k, sid, on) { var s = phSess(k, sid); if (!s || !s.ph) return; s.ph.sh = !!on; save(); if (cauth && cloudOn() && s.ph.up) authFresh().then(function () { return sbFetch('/rest/v1/photos?user_id=eq.' + cauth.uid + '&sess=eq.' + encodeURIComponent(sid), { method: 'PATCH', prefer: 'return=minimal', body: { shared: !!on } }); }).catch(function () {}); }
+/* la foto disegnata: smorzata, angoli di sistema, numero della Gesta, segno verificata */
+function phView(src, n, ver, big) {
+  var m = /data-ph[sp]="([^"]+)"/.exec(src), u = m && phURL[m[1].replace(/&amp;/g, '&')];
+  return '<div class="phv' + (big ? ' big' : '') + (u ? ' on' : '') + '"><img alt="Foto della sessione" ' + (u ? 'src="' + u + '"' : src) + '><i class="phc a"></i><i class="phc b"></i><i class="phc c"></i><i class="phc d"></i><span class="phl">[ Gesta · N° ' + n + ' ]</span>' + (ver === null ? '' : '<span class="phb' + (ver ? ' ok' : '') + '">' + (ver ? '✓ Verificata' : 'Dalla galleria') + '</span>') + '</div>';
+}
+function phMine(k, s, big) { return phView('data-phs="' + s.id + '"', s.ph.n || phN(k), !!s.ph.v, big); }
+/* i due tasti per aggiungere: Scatta (solo il giorno stesso, verificata) e Galleria */
+function phPick(k, sid, extra, glove) {
+  var t = k === todayKey(), d = ' data-k="' + k + '" data-sid="' + sid + '"' + (glove ? ' data-g="' + glove + '"' : '');
+  var cam = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>', gal = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 16l5-5 4 4 3-3 4 4"/></svg>';
+  return '<div class="phpick' + (extra || '') + '">' + (t ? '<label class="phbtn">' + cam + 'Scatta<input type="file" accept="image/*" capture="environment" data-ph="1" data-ver="1"' + d + ' hidden></label>' : '') + '<label class="phbtn">' + gal + (t ? 'Galleria' : 'Aggiungi foto') + '<input type="file" accept="image/*" data-ph="1"' + d + ' hidden></label></div>';
+}
+/* dopo ogni disegno: carica le immagini nei segnaposto */
+function phHydrate() {
+  root.querySelectorAll('img[data-phs]').forEach(function (im) { var sid = im.getAttribute('data-phs'); phSrc(sid).then(function (u) { if (u && im.isConnected) { im.src = u; im.parentNode.classList.add('on'); } }); });
+  root.querySelectorAll('img[data-php]').forEach(function (im) { var pa = im.getAttribute('data-php'); phSrcPath(pa).then(function (u) { if (u && im.isConnected) { im.src = u; im.parentNode.classList.add('on'); } }); });
+}
+/* le foto condivise da un amico, per il suo calendario */
+function fPhotosLoad(fid) {
+  var f = friend(fid); if (!f || !f.real || !cauth || !cloudOn()) return;
+  var n = new Date(), from = ymKey(n.getFullYear(), n.getMonth()) + '-01';
+  authFresh().then(function () { return sbFetch('/rest/v1/photos?select=sess,day,sport,n,verified,path&user_id=eq.' + fid + '&shared=eq.true&day=gte.' + from); }).then(function (r) { fph[fid] = {}; (r || []).forEach(function (x) { fph[fid][x.day] = x; }); render(); }).catch(function () {});
+}
+function gloveProof(cid, cb) { if (!cauth || !cloudOn() || !/^[0-9a-f-]{36}$/.test(cid || '')) return; authFresh().then(function () { return sbFetch('/rest/v1/photos?select=path,n,verified,user_id&glove=eq.' + cid + '&user_id=neq.' + cauth.uid); }).then(function (r) { cb(r && r[0]); }).catch(function () {}); }
+function viewPhoto(o, cls) {
+  var s = phSess(o.k, o.sid); if (!s || !s.ph) { ui.ov = o.back || null; return ''; }
+  var canShare = !!(cauth && cloudOn());
+  return '<div class="' + cls + '" style="gap:12px">' + whead(DAYS_SHORT[parseKey(o.k).getDay()] + ' ' + niceDate(o.k) + ' · ' + SPORTS[s.sport].name, true) + phMine(o.k, s, true) +
+    (canShare ? '<button class="toggle" data-a="phSh" data-v="' + o.k + '|' + o.sid + '" style="min-height:48px"><span style="display:flex;flex-direction:column;gap:2px;text-align:left"><span style="font:600 15px/20px var(--fb)">La vedono gli amici</span><span class="hint" style="font-size:11.5px">Dal tuo calendario, toccando questo giorno</span></span><span class="sw' + (s.ph.sh ? ' on' : '') + '"></span></button>' : '<p class="hint" style="margin:0">Per farla vedere agli amici collega la tua email.</p>') +
+    (s.ph.g ? '<p class="hint" style="margin:-4px 0 0;color:var(--rew)">È la prova di un guanto: la vede anche chi te l’ha lanciato.</p>' : '') +
+    '<div class="acts">' + (o.del ? '<button class="btn danger" data-a="phDelGo" data-v="' + o.k + '|' + o.sid + '">Tocca per togliere</button>' : '<button class="btn" data-a="phDelAsk">Togli</button>') + '<button class="btn main" data-a="phBack">Fatto</button></div></div>';
+}
+function viewFPhoto(o, cls) {
+  var f = friend(o.fid) || { n: 'Amico' }, x = o.x;
+  return '<div class="' + cls + '" style="gap:12px">' + whead(f.n + ' · ' + niceDate(x.day), true) + phView('data-php="' + esc(x.path) + '"', x.n || '', !!x.verified, true) +
+    '<span class="hint" style="margin-top:-4px">' + (SPORTS[x.sport] ? SPORTS[x.sport].name : '') + '</span>' +
+    '<div class="acts">' + (o.five ? '<button class="btn" data-a="five" data-v="' + o.fid + '|' + x.day + '" style="display:flex;align-items:center;justify-content:center;gap:8px">' + svg(PI.five, null, 18) + 'Cinque</button>' : '<span></span>') + '<button class="btn main" data-a="phBack">Ok</button></div></div>';
+}
 function viewFNote(o, cls) {
   var l = P().letters.filter(function (x) { return x.id === o.list[o.i]; })[0]; if (!l) { return ''; }
   var f = o.fid ? friend(o.fid) : null, cq = l.cid ? chById(l.cid) : null, gq = cq && cq.gang ? gangById(cq.gang) : null;
@@ -2989,10 +3096,11 @@ function viewFNote(o, cls) {
   var col = gold ? PGOLD : '#7CC4FF', wk = mondayOf(todayKey());
   var bat = l.k === 'bat' || o.batl === l.id, canBat = l.k === 'five' && !bat && f.id && l.wk && Date.now() - l.t < 7 * 864e5 && P().fives[f.id] !== wk;
   if (bat) { gold = true; col = PGOLD; title = 'Cinque battuto'; body = 'Tu e ' + f.n + ', questa settimana.'; }
+  if (l.k === 'won' && cq && o.proof === undefined) { o.proof = null; gloveProof(cq.id, function (x) { if (ui.ov === o) { o.proof = x || false; render(); } }); }
   var fx = bat ? fxFiveBat('lb' + l.id) : l.k === 'five' ? fxFiveUp('lf' + l.id) : l.k === 'won' ? fxSeal(!!(cq && cq.shared && cq.me && cq.done), 'lw' + l.id) : l.k === 'flost' ? fxDust('ld' + l.id) : (l.k === 'gang' && cq && cq.st === 'passed') ? fxGang(cq, 'lg' + l.id) : '';
   var rv = l.k === 'flost' && cq && f.id && !cq.gang ? '<button class="mlink" data-a="launchOn" data-v="' + f.id + '|' + addDays(todayKey(), 1) + '|' + cq.sp + '|' + encodeURIComponent(cq.q || '') + '" style="display:flex;align-items:center;justify-content:center;gap:6px;color:var(--rew)">' + svg(PI.glove, PGOLD, 14) + 'Rivincita ›</button>' : '';
   return '<div class="' + cls + (gold ? ' gold' : '') + '">' + '<div class="whead"><span class="mark"' + (gold ? ' style="border-color:' + PGOLD + ';color:' + PGOLD + '"' : '') + '>!</span><span class="wlabel"' + (gold ? ' style="color:' + PGOLD + '"' : '') + '>' + f.n + (n > 1 ? ' · ' + (o.i + 1) + ' di ' + n : '') + '</span><span class="rule"></span><button class="x" data-a="close" aria-label="Chiudi">' + svg(IC.close, null, 20) + '</button></div>' +
-    (fx || '<div style="display:flex;justify-content:center">' + svg(icon, col, 44) + '</div>') + '<p class="wtitle">' + esc(title) + '</p>' + (body ? '<p class="wtext">' + esc(body) + '</p>' : '') + rv +
+    (fx || '<div style="display:flex;justify-content:center">' + svg(icon, col, 44) + '</div>') + (o.proof ? '<span class="lbl" style="font-size:10.5px;color:var(--rew);text-align:center">La prova</span>' + phView('data-php="' + esc(o.proof.path) + '"', o.proof.n || '', !!o.proof.verified) : '') + '<p class="wtitle">' + esc(title) + '</p>' + (body ? '<p class="wtext">' + esc(body) + '</p>' : '') + rv +
     (score ? '<div style="display:flex;align-items:baseline;justify-content:center;gap:12px;font:700 34px/1 var(--fd)"><span style="font:600 11px/14px var(--fd);letter-spacing:1px;color:var(--mut)">TU</span><span>' + sc[0] + '</span><span style="color:var(--mut)">–</span><span>' + sc[1] + '</span><span style="font:600 11px/14px var(--fd);letter-spacing:1px;color:var(--mut)">' + f.n.toUpperCase() + '</span></div>' : '') +
     (cq ? '<button class="mlink" data-a="gView" data-v="' + cq.id + '" style="display:flex;align-items:center;justify-content:center;gap:6px">' + svg(cq.gang ? PI.party : PI.glove, col, 14) + 'Vedi la quest ›</button>' : '') +
     (canBat ? '<div class="acts"><button class="btn" data-a="fnNext">' + (n > 1 && o.i + 1 < n ? 'Avanti' : 'Dopo') + '</button><button class="btn main" data-a="fiveBack" data-v="' + l.id + '" style="display:flex;align-items:center;justify-content:center;gap:8px">' + svg(PI.five, null, 18) + 'Batti</button></div></div>' : '<div class="acts' + (n > 1 && o.i + 1 < n ? '' : ' one') + '">' + (n > 1 && o.i + 1 < n ? '<button class="btn" data-a="close">Salta</button><button class="btn main" data-a="fnNext">Avanti</button>' : '<button class="btn main" data-a="fnNext">Ok</button>') + '</div></div>');
@@ -3193,7 +3301,7 @@ function fetchCode() {
   if (!cauth || (cmeta.code && cmeta.inv && cmeta.codeUid === cauth.uid)) return;
   sbFetch('/rest/v1/profiles?id=eq.' + cauth.uid + '&select=friend_code,invite_token').then(function (pr) { if (pr && pr[0] && pr[0].friend_code) { cloudMeta({ code: pr[0].friend_code, inv: pr[0].invite_token || null, codeUid: cauth.uid }); render(); } }).catch(function () {});
 }
-/* 3.9.7: gli amici vedono che oggi hai aperto Gesta. Una volta al giorno si aggiorna solo il profilo */
+/* 4.0.0: gli amici vedono che oggi hai aperto Gesta. Una volta al giorno si aggiorna solo il profilo */
 function seenPing() {
   var t = todayKey(), last = ''; try { last = localStorage.getItem('gesta.seen') || ''; } catch (e) {}
   if (last === t || !S || !cauth) return;
@@ -3214,7 +3322,7 @@ function cloudPull(quiet) {
     }
     if (JSON.stringify(S) !== JSON.stringify(r.data)) cloudDirty();
     cloudMeta({ ok: Date.now(), err: null });
-    seenPing();
+    seenPing(); phRetry();
     return m.changed;
   }).catch(function (e) { cloudMeta({ err: e.message || String(e) }); return false; });
 }
@@ -3414,6 +3522,7 @@ function render() {
   if (toastMsg && toastShown !== toastMsg) { toastShown = toastMsg; toastAt = Date.now(); }
   fitLegend(); fitCalendar(); fitTitles(); fitStato(); fitParty(); syncNav();
   var gcN = root.querySelector('.win.anim .gcount'); if (gcN && +gcN.getAttribute('data-from') < +gcN.getAttribute('data-to')) setTimeout(function () { gcN.textContent = gcN.getAttribute('data-to'); gcN.classList.add('gbump'); }, 950);
+  if (S) phHydrate();
   if (S) { guideStart(); if (!ui.coach && (!GUIDE[ui.screen] || guideSeen(ui.screen))) tipStart(); guideDraw(); }
   var k2 = root.querySelector('[data-keep]'); if (k2 && keep) k2.scrollTop = keepTop;
   var m2 = root.querySelector('.scroller'); if (m2 && main) m2.scrollTop = mainTop;
@@ -3463,6 +3572,12 @@ root.addEventListener('click', function (e) {
   var b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
   if (ui.arrange && b.getAttribute('data-a') === 'sport') return;
   var fn = A[b.getAttribute('data-a')]; if (fn) fn(b.getAttribute('data-v'));
+});
+root.addEventListener('change', function (e) {
+  var t = e.target; if (!t || !t.getAttribute || !t.getAttribute('data-ph')) return;
+  var file = t.files && t.files[0]; if (!file) return;
+  var k = t.getAttribute('data-k'), sid = t.getAttribute('data-sid'), g = t.getAttribute('data-g') || null;
+  phSave(k, sid, file, t.getAttribute('data-ver') === '1', g); t.value = '';
 });
 root.addEventListener('input', function (e) {
   var f = e.target.getAttribute('data-f'); if (!f) return;
@@ -3532,18 +3647,18 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v3.9.7';
+var APP_V = 'gesta-v4.0.0';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
   var swPending = false;
-  /* 3.9.7: niente ricariche automatiche, neanche in sottofondo: la versione nuova si apre la volta dopo */
+  /* 4.0.0: niente ricariche automatiche, neanche in sottofondo: la versione nuova si apre la volta dopo */
   window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function (r) { swReg = r; }).catch(function () {}); });
   document.addEventListener('visibilitychange', function () { if (!document.hidden && swReg) { try { swReg.update(); } catch (e) {} } });
   /* il service worker nuovo dice la sua versione: se è diversa da questa pagina, ricarica (mai mentre scrivi o hai una finestra aperta) */
   navigator.serviceWorker.addEventListener('message', function (e) {
     if (!e.data || !e.data.v || e.data.v === APP_V) return;
-    /* 3.9.7: mai ricaricare sotto gli occhi (era la splash che ripartiva e cambiava frase). La versione nuova si applica quando l'app va in sottofondo, e al rientro niente splash */
+    /* 4.0.0: mai ricaricare sotto gli occhi (era la splash che ripartiva e cambiava frase). La versione nuova si applica quando l'app va in sottofondo, e al rientro niente splash */
     swPending = true;
   });
 }

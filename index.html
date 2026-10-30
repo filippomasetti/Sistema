@@ -393,7 +393,7 @@ textarea.inp{height:80px;padding:10px 14px;font-size:15px;resize:none}
 @keyframes fxtxt{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion: reduce){.fx.run *,.rkst *,.rk-tip,.fx-ha{animation-duration:.01s!important;animation-delay:0s!important;animation-iteration-count:1!important}}
 
-/* 3.9.7 · riepilogo a fine sessione */
+/* 4.0.0 · riepilogo a fine sessione */
 .rlist{display:flex;flex-direction:column;gap:6px;max-height:282px;overflow-y:auto;overscroll-behavior:contain;margin:-2px 0}
 .rrow{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--rc) 45%,transparent);background:color-mix(in srgb,var(--rc) 7%,transparent);flex-shrink:0;min-height:50px}
 .rri{width:32px;height:32px;flex:0 0 auto;display:flex;align-items:center;justify-content:center}
@@ -405,6 +405,29 @@ textarea.inp{height:80px;padding:10px 14px;font-size:15px;resize:none}
 .pgl{position:absolute;top:2px;left:2px;display:flex}
 .pgl svg{width:11px;height:11px}
 .prow2 .lt{display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:rgba(124,196,255,.14);border:1px solid rgba(124,196,255,.5)}
+
+/* 4.0 · foto: smorzata, angoli di sistema, numero della Gesta */
+.tri{position:absolute;top:0;left:0;width:0;height:0;border-style:solid;border-width:9px 9px 0 0;border-color:#EAF3FF transparent transparent transparent;border-top-left-radius:5px;filter:drop-shadow(0 0 1.5px rgba(0,0,0,.6));pointer-events:none}
+.phv{position:relative;width:100%;aspect-ratio:4/5;border-radius:12px;overflow:hidden;background:#0E1A30;flex-shrink:0}
+.phv.big{max-height:min(58vh,440px);aspect-ratio:auto;height:min(58vh,440px)}
+.phv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.55) contrast(.95) brightness(.95);opacity:0;transition:opacity .25s ease}
+.phv.on img{opacity:1}
+.phv::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(26,45,87,.12),rgba(10,18,34,.22));pointer-events:none}
+.phc{position:absolute;width:12%;aspect-ratio:1;border:0 solid var(--rew);z-index:1;pointer-events:none}
+.phc.a{top:6%;left:6%;border-top-width:2px;border-left-width:2px}
+.phc.b{top:6%;right:6%;border-top-width:2px;border-right-width:2px}
+.phc.c{bottom:6%;left:6%;border-bottom-width:2px;border-left-width:2px}
+.phc.d{bottom:6%;right:6%;border-bottom-width:2px;border-right-width:2px}
+.phl{position:absolute;left:9%;bottom:9%;z-index:1;font:600 11px/14px var(--fd);letter-spacing:2px;text-transform:uppercase;color:#EAF3FF;text-shadow:0 1px 4px rgba(0,0,0,.8)}
+.phb{position:absolute;top:9%;right:9%;z-index:1;font:600 9.5px/12px var(--fd);letter-spacing:1.1px;text-transform:uppercase;color:var(--mut);background:rgba(4,7,13,.72);border:1px solid var(--line2);border-radius:7px;padding:3px 6px}
+.phb.ok{color:#7EE0A4;border-color:rgba(126,224,164,.5)}
+.phpick{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:8px}
+.phbtn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border-radius:10px;border:1px dashed var(--line2);color:var(--soft);font:600 12px/1 var(--fd);letter-spacing:1.5px;text-transform:uppercase;cursor:pointer}
+.phbtn:active{border-color:var(--sysl);color:var(--sysl)}
+.phrow{appearance:none;display:flex;align-items:center;gap:12px;width:100%;border-radius:12px;border:1px solid var(--line);background:var(--raised);padding:8px 10px;color:var(--ink);cursor:pointer}
+.phthumb{appearance:none;border:0;padding:0;width:40px;height:40px;border-radius:9px;overflow:hidden;flex:0 0 auto;background:#0E1A30;position:relative;cursor:pointer}
+.phthumb img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.55) brightness(.95)}
+.phadd{width:40px;height:40px;border-radius:9px;border:1px dashed rgba(124,196,255,.55);display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer}
 </style>
 </head>
 <body>
@@ -433,6 +456,6 @@ textarea.inp{height:80px;padding:10px 14px;font-size:15px;resize:none}
 })();
 </script>
 <div id="app"></div>
-<script src="app.js?v=3.9.7" defer></script>
+<script src="app.js?v=4.0.0" defer></script>
 </body>
 </html>
