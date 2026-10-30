@@ -437,6 +437,13 @@ function afterDone(k, before, s, kind) {
   if (badge) ui.wpop = { name: badge, n: wk, next: wk < 7 ? badgeOf(wk + 1, k) : '', at: Date.now() };
   openDetails(k, s.id, false); if (ui.ov) { ui.ov.done = { gain: gain, kind: kind, gn: gn }; render(); }
 }
+/* 4.1: guanto dello stesso sport oggi, ancora da chiudere */
+function gloveFor(k, sp) { if (k !== todayKey()) return null; return activeGloves().filter(function (c) { return !c.gang && (c.sp === sp || (sp === 'bon' && S.profile.sports.indexOf(c.sp) < 0)); })[0] || null; }
+/* dopo aver segnato: se c'è un guanto per quello sport chiede com'è andata, poi il solito seguito */
+function postLog(k, b, s, kind) { var c = gloveFor(k, s.sport); if (c) { ui.ov = { t: 'gask', id: c.id, k: k, sid: s.id, b: b, kind: kind }; ding('open'); render(); return; } afterDone(k, b, s, kind); }
+function whenFirst() { var l = S.wl || []; return l.length >= 4 && l.filter(function (x) { return x === 's'; }).length > l.length / 2 ? 's' : 'd'; }
+function whenLog(x) { S.wl = (S.wl || []).concat(x).slice(-6); }
+function logDone(k, sp, g) { var b = addSession(k, { sport: sp, group: g || null, d: null, star: false }); postLog(k, b, lastSess(k), 'solo'); }
 function planCard(k, p, yest) {
   var dd = PDIFF[p.diff] || PDIFF.solo, C = planCol(p);
   return '<div class="win' + animCls('plan-' + k + p.sp, 'card') + '" style="flex-direction:row;align-items:center;gap:12px;padding:8px 12px 8px 14px">' +
@@ -679,13 +686,15 @@ var A = {
   pick: function (s) {
     var k = ui.ov.k, t = todayKey(), qt = qType(s);
     if (k !== t || ui.ov.mark) { // giorno passato, o un altro sport al posto di quello in programma: solo segno
-      if (S.plan && S.plan[k]) delete S.plan[k];
+      if (S.plan && S.plan[k] && k !== t) delete S.plan[k];
       var b = addSession(k, { sport: s, d: null, star: false });
+      if (k === t && gloveFor(k, s)) { postLog(k, b, lastSess(k), 'solo'); return; }
       ding('tap'); ui.ov = null;
       var badge = (weekCount(k) > b.beforeWeek && k >= mondayOf(t)) ? ' · ' + badgeOf(weekCount(k), k) : '';
       toast(SPORTS[s].name + (k === t ? ' segnato oggi' : ' segnato il ' + niceDate(k)) + '. Gesta N° ' + gestaN() + badge); return;
     }
     var qt0 = qType(s);
+    if (!ui.ov.skipAsk && !ui.ov.when && qt0 !== 'bon' && qt0 !== 'none' && qt0 !== 'sat') { ding('open'); open({ t: 'when', k: k, sport: s }); return; }
     if (!ui.ov.skipAsk && partyLive() && qt0 !== 'bon' && qt0 !== 'none' && qt0 !== 'sat' && (activeGloves().length || gangActive().filter(function (c) { return c.from === 'me' || c.myAcc; }).length)) { ding('open'); open({ t: 'qask', k: k, sport: s }); return; }
     if (s === 'gym') { ding('open'); open({ t: 'group', k: k }); return; }
     if (qt === 'ex') { ding('open'); open({ t: 'quest', k: k, sport: s, group: defGroup(s), diff: null }); return; }
@@ -696,7 +705,15 @@ var A = {
     }
     ding('open'); open({ t: 'quest', k: k, sport: s, diff: null });
   },
-  group: function (g) { ding('open'); open({ t: 'quest', k: ui.ov.k, sport: 'gym', group: g, diff: null }); },
+  group: function (g) { if (ui.ov.done) { logDone(ui.ov.k, 'gym', g); return; } ding('open'); open({ t: 'quest', k: ui.ov.k, sport: 'gym', group: g, diff: null }); },
+  whenDone: function () { var o = ui.ov, s = o.sport; whenLog('d'); save(); if (s === 'gym') { ding('open'); open({ t: 'group', k: o.k, done: 1 }); return; } logDone(o.k, s, qType(s) === 'ex' ? defGroup(s) : null); },
+  whenStart: function () { var o = ui.ov; whenLog('s'); save(); ui.ov = { t: 'pick', k: o.k, when: 1 }; A.pick(o.sport); },
+  gaskWin: function () { var o = ui.ov, t = { k: o.k, sid: o.sid, b: o.b, kind: o.kind }; A.gWin(o.id); if (ui.ov && ui.ov.t === 'gwin') ui.ov.then = t; },
+  gaskLose: function () { var o = ui.ov, c = chById(o.id); if (c) { c.myNo = true; if (c.to === 'me') { c.st = 'over'; if (c.real) chAct(chPatch(c.id, { status: 'over' })); } save(); } var s = findSession(o.k, o.sid); if (s) afterDone(o.k, o.b, s, o.kind); else close(); },
+  gwNext: function () { var t = ui.ov && ui.ov.then; if (!t) { close(); return; } var s = findSession(t.k, t.sid); if (s) afterDone(t.k, t.b, s, t.kind); else close(); },
+  gWinLog: function (id) { var c = chById(id); if (!c) return; var extra = S.profile.sports.indexOf(c.sp) < 0;
+    if (!sessions(c.day).some(function (s) { return s.sport === c.sp || (extra && s.sport === 'bon'); })) { var b = addSession(c.day, { sport: extra ? 'bon' : c.sp, group: qType(c.sp) === 'ex' ? defGroup(c.sp) : null, d: extra ? { name: SPORTS[c.sp].name, note: '' } : null, star: false }), t = { k: c.day, sid: lastSess(c.day).id, b: b, kind: 'solo' }; A.gWin(id); if (ui.ov && ui.ov.t === 'gwin') ui.ov.then = t; return; }
+    A.gWin(id); },
   focus: function (f) { ding('open'); open({ t: 'quest', k: ui.ov.k, sport: ui.ov.sport, group: f, diff: null }); },
   hw: function () {
     var k = ui.ov.k; S.marks = S.marks || {};
@@ -740,7 +757,7 @@ var A = {
   accept: function () {
     var o = ui.ov, q = questsFor(o.sport, o.group), pick = q[o.diff];
     plans()[o.k] = { sp: o.sport, g: o.group || null, diff: o.diff, at: Date.now(), q: { t: pick.t, label: pick.label } }; save();
-    ding('open'); ui.ov = null; toast('Quest accettata. Quando hai finito, rispondi Sì.');
+    ding('open'); ui.ov = null; toast('Quest accettata. Quando hai finito, ritocca oggi sul calendario.');
   },
   decline: function () {
     var o = ui.ov, b = addSession(o.k, { sport: o.sport, group: o.group || null, d: null, star: false });
@@ -772,7 +789,7 @@ var A = {
     var q = p.diff !== 'solo' && p.q, g = p.g || (qType(p.sp) === 'ex' ? defGroup(p.sp) : null), ses = { sport: p.sp, group: g, d: p.jsp ? { name: SPORTS[p.jsp].name, note: '' } : null, star: false };
     if (q) ses.quest = { diff: p.diff, t: p.q.t, label: p.q.label, done: true };
     delete S.plan[k];
-    var b = addSession(k, ses); afterDone(k, b, lastSess(k), q ? 'ok' : 'solo');
+    var b = addSession(k, ses); postLog(k, b, lastSess(k), q ? 'ok' : 'solo');
   },
   planNo: function (k) { if (!planAt(k)) return; ding('open'); open({ t: 'planno', k: k }); },
   planNoQ: function (k) {
@@ -780,8 +797,9 @@ var A = {
     var g = p.g || (qType(p.sp) === 'ex' ? defGroup(p.sp) : null), ses = { sport: p.sp, group: g, d: null, star: false };
     if (p.diff !== 'solo' && p.q) ses.quest = { diff: p.diff, t: p.q.t, label: p.q.label, done: false };
     delete S.plan[k];
-    var b = addSession(k, ses); afterDone(k, b, lastSess(k), 'no');
+    var b = addSession(k, ses); postLog(k, b, lastSess(k), 'no');
   },
+  planDay: function (k) { ding('open'); open({ t: 'day', k: k }); },
   planOther: function (k) { ding('open'); open({ t: 'past', k: k, mark: 1 }); },
   planSkip: function (k) {
     var p = planOf(k); if (!p) return close();
@@ -1077,7 +1095,7 @@ function viewSettings() {
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">Ranghi, Gesta e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 4.0.0</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 4.1.0</span>';
   return h;
 }
 
@@ -1104,7 +1122,7 @@ function viewOverlay() {
       (hasMark(o.k) || o.mark ? '' : '<button class="hwbtn" data-a="hw">' + svg(HW.ic, '#AEBBD3', 20) + (past ? 'Giornata di Hard Study/Work' : 'Oggi Hard Study/Work') + '</button>') + '</div>';
   } else if (o.t === 'group') {
     h = '<div class="' + cls + '">' + whead('Palestra', true) + '<p class="wtitle">Cosa alleni?</p><div class="wbody" data-keep style="gap:8px">' +
-      GROUP_ORDER.map(function (g) { var kx = groupKey(g); return '<button class="opt" style="min-height:48px" data-a="group" data-v="' + g + '"><span style="font:600 16px/22px var(--fd);letter-spacing:1px">' + GROUPS[g].name + '</span><span class="hint">' + (kx ? 'quest: ' + esc(kx) : 'esercizi tuoi') + '</span></button>'; }).join('') + '</div></div>';
+      GROUP_ORDER.map(function (g) { var kx = groupKey(g); return '<button class="opt" style="min-height:48px" data-a="group" data-v="' + g + '"><span style="font:600 16px/22px var(--fd);letter-spacing:1px">' + GROUPS[g].name + '</span>' + (o.done ? '' : '<span class="hint">' + (kx ? 'quest: ' + esc(kx) : 'esercizi tuoi') + '</span>') + '</button>'; }).join('') + '</div></div>';
   } else if (o.t === 'focus') {
     h = '<div class="' + cls + '">' + whead(SPORTS[o.sport].name, true) + '<div style="display:flex;flex-direction:column;gap:4px"><p class="wtitle">Su cosa lavori oggi?</p><p class="wtext" style="font-size:13px">Scegli il fondamentale: la quest è chiuderlo con una bella giornata.</p></div><div style="display:flex;flex-direction:column;gap:8px">' +
       funds(o.sport).map(function (x) { var lf = lastFund(o.sport, x[0]), fc = lf.face ? FACES.filter(function (q) { return q[0] === lf.face; })[0][1] : null; return '<button class="opt" data-a="focus" data-v="' + x[0] + '"><span style="font:600 16px/22px var(--fd);letter-spacing:1px">' + x[1] + '</span><span class="hint" style="display:flex;align-items:center;gap:6px">' + (fc ? 'ultima volta <i style="display:block;width:10px;height:10px;border-radius:5px;background:' + fc + '"></i>' : 'ancora nessun voto') + '</span></button>'; }).join('') + '</div></div>';
@@ -1178,7 +1196,10 @@ function viewOverlay() {
       var pdd = PDIFF[pp.diff] || PDIFF.solo, pcc = planCol(pp);
       h += '<div style="display:flex;align-items:center;gap:12px;justify-content:center"><span style="width:46px;height:46px;border-radius:12px;border:1.5px dashed ' + pcc + ';display:flex;align-items:center;justify-content:center">' + sportIc(pp.jsp || pp.sp, 26) + '</span><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font:700 20px/24px var(--fd)">' + esc(pp.jsp ? planLabel(pp) : isT && pp.q && pp.diff !== 'solo' ? planLabel(pp) : SPORTS[pp.sp].name + (pp.g ? ' · ' + GROUPS[pp.g].name : '')) + '</span><span style="font:600 12px/16px var(--fd);letter-spacing:1.5px;text-transform:uppercase;color:' + pdd[1] + '">' + pdd[0] + '</span></span></div>';
       if (fx) h += '<p class="wtext">Da mezzogiorno è fissata e non si toglie più. Fai sport e chiudila quando hai finito.</p><p class="hint" style="margin:-8px 0 0;text-align:center">Se oggi non fai sport: −0,5 Punti Rango.</p>' + (isT ? '<button class="mlink" data-a="planOther" data-v="' + o.k + '">Ho fatto un altro sport</button>' : '') + '<div class="acts one"><button class="btn main" data-a="close">Ok</button></div>';
-      else h += '<p class="wtext">' + (isT && !planEarly(o.k, pp) ? 'In programma per oggi. Puoi toglierla quando vuoi.' : 'In programma. Puoi toglierla o cambiarla quando vuoi: se la fai, +¼ di Punto Rango.') + '</p>' + (isT ? '<button class="mlink" data-a="planOther" data-v="' + o.k + '">Ho fatto un altro sport</button>' : '') + '<div class="acts"><button class="btn" data-a="plDel" data-v="' + o.k + '">Togli</button><button class="btn main" data-a="plEdit" data-v="' + o.k + '">Cambia</button></div>';
+      else if (isT) { var hq2 = pp.diff !== 'solo' && pp.q, sl = 'style="color:var(--mut);font-weight:600"';
+        h += '<p class="wtitle" style="margin-top:-4px">' + (hq2 ? 'Com’è andata?' : 'Fatto?') + '</p><button class="btn main" data-a="planYes" data-v="' + o.k + '">' + (hq2 ? 'Superata' : 'Fatto') + '</button>' + (hq2 ? '<button class="btn sm" data-a="planNoQ" data-v="' + o.k + '" style="margin-top:-8px">Non questa volta</button>' : '') +
+          '<div style="display:flex;justify-content:center;flex-wrap:wrap;column-gap:20px;row-gap:6px;margin-top:-2px"><button class="mlink" ' + sl + ' data-a="planOther" data-v="' + o.k + '">Altro sport</button><button class="mlink" ' + sl + ' data-a="plEdit" data-v="' + o.k + '">Cambia</button><button class="mlink" ' + sl + ' data-a="plDel" data-v="' + o.k + '">Togli</button>' + (sessions(o.k).length || hasMark(o.k) ? '<button class="mlink" ' + sl + ' data-a="planDay" data-v="' + o.k + '">La giornata</button>' : '') + '</div>'; }
+      else h += '<p class="wtext">' + (!planEarly(o.k, pp) ? 'In programma per oggi. Puoi toglierla quando vuoi.' : 'In programma. Puoi toglierla o cambiarla quando vuoi: se la fai, +¼ di Punto Rango.') + '</p><div class="acts"><button class="btn" data-a="plDel" data-v="' + o.k + '">Togli</button><button class="btn main" data-a="plEdit" data-v="' + o.k + '">Cambia</button></div>';
     }
     gls.forEach(function (c) {
       var fr = friend(c.from === 'me' ? c.to : c.from), lock = c.day === todayKey() && new Date().getHours() >= 12;
@@ -1220,7 +1241,7 @@ function viewOverlay() {
       '<div class="fld"><span class="lbl" style="font-size:11px">Rango del mese</span><p>Contano soprattutto i giorni: ogni giorno con almeno uno sport vale <b>3 Punti Rango</b>, fino a 16 giorni. Se quel giorno completi una quest media vale <b>+0,5</b>, una difficile <b>+1</b>, fino a <b>8 punti</b> al mese. La facile serve a prendere il ritmo e non dà Punti Rango. Per gli sport senza quest (yoga, pilates, danza, boxe, crossfit, sci, golf, jolly…) una sessione <b>Top</b> vale come una quest media: per le lezioni il voto Top o almeno un’ora, per gli altri la stella.</p><p>Guanti vinti, obiettivi Gang e piani rispettati hanno uno spazio a parte, fino a <b>6 punti</b>: così quest e amici non si rubano posto. Per <b>S</b> serve anche una stella nel mese, da una sessione top.</p><p>Un guanto accettato e non chiuso toglie mezzo punto: se scendi sotto la soglia torni al rango prima. Si risale con le sessioni.</p>' +
       '<div class="rtab">' + RANKS.slice(0, 5).map(function (r) { return '<span><b>' + r[0] + '</b>' + r[1] + ' Punti Rango' + (r[2] ? ' · ' + r[2] + (r[2] === 1 ? ' stella' : ' stelle') : '') + '</span>'; }).join('') + '</div><p class="hint">Dalla seconda settimana Stato ti dice dove chiudi il mese al tuo ritmo.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Rango di ogni sport</span><p>Ogni sessione vale <b>2 Punti Rango</b> (fino a 6 al mese). Una quest media riuscita <b>+0,5</b>, una difficile <b>+1</b>. B a 10 Punti Rango, A a 14, S a 16.</p></div>' +
-      '<div class="fld"><span class="lbl" style="font-size:11px">Quest</span><p>Tocca oggi sul calendario: Gesta propone tre sfide partendo dalla tua ultima volta. A fine sessione rispondi <b>Fatta?</b> sulla card in alto: col Sì lo sport si segna sul calendario e si aprono i dettagli.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Quest</span><p>Tocca oggi sul calendario e scegli lo sport. Se hai già finito, tocca <b>Fatto</b>: si segna subito, senza quest. Se stai per iniziare, Gesta propone tre sfide partendo dalla tua ultima volta. Quando hai finito ritocca oggi e rispondi <b>Superata</b> o <b>Non questa volta</b>: il giorno conta in tutti e due i casi. Se per quello sport hai un guanto, Gesta ti chiede anche com’è andata la sfida.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Pianificare</span><p>Tocca un giorno da domani a fine mese (o fino a domenica, se la settimana passa al mese dopo): scegli lo sport e, se vuoi, la quest. Il numero preciso lo fissa Gesta quella mattina, partendo dalla tua ultima volta. Quel giorno la trovi in alto e rispondi <b>Fatta?</b>.</p><p>Puoi toglierla o cambiarla quando vuoi: un piano saltato non costa niente, sparisce e basta. Se invece quel giorno fai sport (anche uno diverso), è una <b>parola mantenuta</b>: <b>+¼ di Punto Rango</b>, fino a 4 volte al mese.</p><p>Puoi pianificare anche uno sport che non è tra i tuoi (tocca <b>Altro</b>): vale come <b>jolly</b>, senza quest.</p><p>Se ti scordi di rispondere, nessun problema: il giorno dopo Gesta te lo chiede appena apri l’app, per guanti e quest.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Titolo del mese</span><p>Viene dallo sport che hai fatto di più. Diventa doppio se un secondo sport arriva al 70% del primo, oppure se lo fai almeno 3 volte nel mese.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Badge della settimana</span><p>Uno per ogni giorno di sport da lunedì a domenica. Le frasi cambiano ogni settimana. Oltre i 5 giorni Gesta ti consiglia di riposare.</p></div>' +
@@ -1236,6 +1257,15 @@ function viewOverlay() {
       '<div class="fld"><span class="lbl" style="font-size:11px">Foto</span><p>Una foto per sessione, se ti va: nei dettagli della sessione o toccando il giorno sul calendario, anche settimane dopo. Se la scatti da Gesta il giorno stesso è <b>verificata</b>; dalla galleria va benissimo lo stesso. È tua: la vedono gli amici solo se accendi l’interruttore, foto per foto. Quando vinci un guanto puoi aggiungere la prova per chi te l’ha lanciato.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Le tue Gesta</span><p>Ogni giorno con almeno uno sport è una <b>Gesta</b>. Le conti da quando hai iniziato e non si azzerano mai: le vedi in alto, accanto al nome dell’app. Le soglie tonde (10, 25, 50, 100, 200, 365, 500) sono una medaglia in Bacheca.</p></div>' +
       '</div><div class="acts"><button class="btn" data-a="guideAgain">Rivedi la guida</button><button class="btn main" data-a="close">Ho capito</button></div></div>';
+  } else if (o.t === 'when') {
+    var gw0 = gloveFor(o.k, o.sport), fr0 = gw0 ? friend(gw0.from === 'me' ? gw0.to : gw0.from) : null;
+    var wc = function (a, t1, t2) { return '<button class="card" data-a="' + a + '" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:14px 16px;text-align:left;color:var(--ink);width:100%"><span style="font:600 16px/21px var(--fd)">' + t1 + '</span><span class="hint">' + t2 + '</span></button>'; };
+    var wd = wc('whenDone', 'Fatto, l’ho appena finito', gw0 ? 'Si segna subito, poi ti chiedo del guanto di ' + esc(fr0.n) + '.' : 'Si segna subito, senza quest.'), ws = wc('whenStart', 'Sto per iniziare', 'Gesta ti propone la quest.');
+    h = '<div class="' + cls + '" style="gap:12px">' + whead(SPORTS[o.sport].name, true) + '<p class="wtitle" style="margin-top:-4px">Hai già finito?</p>' + (whenFirst() === 's' ? ws + wd : wd + ws) + '</div>';
+  } else if (o.t === 'gask') {
+    var gc = chById(o.id); if (!gc) { ui.ov = null; return ''; } var gf = friend(gc.from === 'me' ? gc.to : gc.from);
+    h = '<div class="' + cls + ' gold" style="border-color:' + PGOLD + '"><div class="whead"><span class="mark" style="border-color:' + PGOLD + ';color:' + PGOLD + '">!</span><span class="wlabel" style="color:' + PGOLD + '">' + (gc.from === 'me' ? 'Condivisa con ' : 'Guanto di ') + esc(gf.n) + '</span><span class="rule"></span></div>' +
+      '<p class="wtitle">' + esc(chLabel(gc)) + '</p><p class="wtext" style="color:var(--ink)">Com’è andata la sfida?</p><div class="acts"><button class="btn" data-a="gaskLose">Persa</button><button class="btn main" data-a="gaskWin" style="background:' + PGOLD + ';border-color:' + PGOLD + '">Superata</button></div>' + (gc.to === 'me' ? '<p class="hint" style="margin:0;text-align:center">Persa: −0,5 Punti Rango, ci si rifà.</p>' : '') + '</div>';
   } else if (o.t === 'qask') {
     var soc = activeGloves().concat(gangActive().filter(function (c) { return c.from === 'me' || c.myAcc; })), c0 = soc[0];
     var who = c0.gang ? 'l’obiettivo della Gang ' + gangById(c0.gang).name : c0.from === 'me' ? 'la quest condivisa con ' + friend(c0.to).n : 'il guanto di ' + friend(c0.from).n;
@@ -2150,12 +2180,12 @@ function partyTick() {
 }
 /* ---------- guida per chi arriva: una volta per schermata, fumetti tratteggiati dall'alto in basso.
    ATTENZIONE: quando aggiungi o cambi una funzione importante, aggiorna anche questi passaggi (e GUIDE_V per farla rivedere a tutti). ---------- */
-var GUIDE_V = 3;
+var GUIDE_V = 4;
 var GUIDE = {
   home: [
     ['.top .kick', 'Le tue Gesta', 'Ogni giorno di sport è una Gesta. Le conti qui, da quando hai iniziato, e non si azzerano mai.'],
     ['.top button[data-v="stato"]', 'Il tuo rango del mese', 'Sale con i giorni di sport e con le quest, e riparte ogni mese. La barra accanto dice quanto manca al prossimo.'],
-    ['.cell.today', 'Oggi', 'Tocca oggi per scegliere sport e quest. Quando hai finito rispondi <b>Fatta?</b> sulla card in alto: col Sì si segna sul calendario.'],
+    ['.cell.today', 'Oggi', 'Tocca oggi e scegli lo sport. Già finito? Tocca <b>Fatto</b> e si segna subito. Stai per iniziare? Gesta ti propone la quest, e a fine sessione ritocchi oggi per dire com’è andata.'],
     ['.cell.tap.fut, .cell.plan:not(.today)', 'I giorni dopo', 'Tocca un giorno della settimana o del mese per pianificarlo. Il bordo tratteggiato vuol dire in programma.'],
     ['.weekc', 'La settimana', 'Ogni giorno di sport accende una lettera e fa salire il badge. Due giorni bastano per una buona settimana.']
   ],
@@ -2571,7 +2601,7 @@ var PA = {
   traitOpen: function () { ui.ov = { t: 'trait' }; ding('open'); render(); },
   gangNoFr: function () { toast('Aggiungi prima un amico: poi crei la Gang con lui.'); },
   pInvite: function () {
-    var code = P().demo ? P().code : cmeta.code, url = 'https://filippomasetti.github.io/gesta/' + (cmeta.inv && !P().demo ? '?invito=' + cmeta.inv : ''), txt = '🎮 Sfidiamoci su Gesta!\nApri il link ed entra con la tua email: diventiamo amici in automatico.\n👉 ' + url + '\n\n⚠️ Per averla come app sul telefono:\n• iPhone: apri il link in Safari, tocca Condividi (il quadrato con la freccia ⬆️) e poi «Aggiungi alla schermata Home»\n• Android: apri il link in Chrome, tocca i tre puntini ⋮ e poi «Aggiungi a schermata Home» o «Installa app»\nPoi aprila dall’icona ed entra con la stessa email: ritrovi tutto.\n\nHai già Gesta? Aggiungimi col codice ' + code;
+    var code = P().demo ? P().code : cmeta.code, url = 'https://getgesta.app/' + (cmeta.inv && !P().demo ? '?invito=' + cmeta.inv : ''), txt = '🎮 Sfidiamoci su Gesta!\nApri il link ed entra con la tua email: diventiamo amici in automatico.\n👉 ' + url + ' 👈\n\n⚠️ Per averla come app sul telefono:\n• iPhone: apri il link in Safari, tocca Condividi (il quadrato con la freccia ⬆️) e poi «Aggiungi alla schermata Home»\n• Android: apri il link in Chrome, tocca i tre puntini ⋮ e poi «Aggiungi a schermata Home» o «Installa app»\nPoi aprila dall’icona ed entra con la stessa email: ritrovi tutto.\n\nHai già Gesta? Aggiungimi col codice ' + code;
     if (navigator.share) { navigator.share({ title: 'Gesta', text: txt }).catch(function () {}); return; }
     try { navigator.clipboard.writeText(txt).then(function () { toast('Invito copiato: incollalo dove vuoi.'); }, function () { toast(txt); }); } catch (e) { toast(txt); }
   },
@@ -2873,7 +2903,8 @@ function viewGDone(o, cls) {
   return '<div class="' + cls + ' gold" style="border-color:' + col + '">' + '<div class="whead"><span class="mark" style="border-color:' + col + ';color:' + col + '">!</span><span class="wlabel" style="color:' + col + '">' + (g ? 'Obiettivo Gang' : 'Quest bonus') + '</span><span class="rule"></span><button class="x" data-a="close" aria-label="Chiudi">' + svg(IC.close, null, 20) + '</button></div>' +
     '<p class="wtitle">' + esc(chLabel(c)) + '</p><p class="wtext">' + ctx + '</p>' +
     (has ? '<p class="wtext" style="color:var(--ink)">Ce l’hai fatta?</p><div class="acts"><button class="btn" data-a="gLose" data-v="' + c.id + '">Non oggi</button><button class="btn main" data-a="gWin" data-v="' + c.id + '" style="background:' + col + ';border-color:' + col + '">Certo</button></div><p class="hint" style="margin:0;text-align:center">Non hai ancora finito? Chiudi con la X.</p>' :
-      '<p class="wtext">Prima segna la sessione di oggi dal calendario' + (extra ? ': ' + SPORTS[c.sp].name.toLowerCase() + ' non è tra i tuoi sport, segnala come Jolly' : ' (' + SPORTS[c.sp].name.toLowerCase() + ')') + ', poi torna qui.</p><div class="acts"><button class="btn" data-a="gLose" data-v="' + c.id + '">Non oggi</button><button class="btn main" data-a="close">Ok</button></div>') + '</div>';
+      (g ? '<p class="wtext">Prima segna la sessione di oggi dal calendario (' + SPORTS[c.sp].name.toLowerCase() + '), poi torna qui.</p><div class="acts"><button class="btn" data-a="gLose" data-v="' + c.id + '">Non oggi</button><button class="btn main" data-a="close">Ok</button></div>' :
+      '<p class="wtext" style="color:var(--ink)">Ce l’hai fatta?</p><div class="acts"><button class="btn" data-a="gLose" data-v="' + c.id + '">Non oggi</button><button class="btn main" data-a="gWinLog" data-v="' + c.id + '" style="background:' + col + ';border-color:' + col + '">Superata</button></div><p class="hint" style="margin:0;text-align:center">Superata segna anche ' + (extra ? 'un jolly' : SPORTS[c.sp].name.toLowerCase()) + ' sul calendario di oggi.</p>')) + '</div>';
 }
 function viewGWin(o, cls) {
   var c = chById(o.id), g = c.gang ? gangById(c.gang) : null, f = g ? null : friend(c.from === 'me' ? c.to : c.from), n = new Date(), ms = monthStats(n.getFullYear(), n.getMonth());
@@ -2886,7 +2917,7 @@ function viewGWin(o, cls) {
     '<p class="wtext">' + esc(chLabel(c)) + '.</p>' +
     '<div style="display:grid;grid-template-columns:1fr"><div class="fld" style="align-items:center"><span style="font:700 17px/22px var(--fd);color:var(--rew)">' + pts + '</span><span class="hint">Punto Rango</span></div></div>' +
     '<div class="row" style="padding:0 2px"><span class="hint">' + note + '</span>' + (!g && c.to === 'me' ? rkHex('S', 30, true) : '') + '</div>' +
-    '<div class="acts one"><button class="btn main" data-a="close">Continua</button></div>' + (function () { if (g) return ''; var tk = todayKey(), ls = sessions(tk)[sessions(tk).length - 1]; if (!ls) return ''; if (ls.ph && ls.ph.g === c.id) return '<span class="hint" style="text-align:center;color:var(--rew)">Prova aggiunta: ' + esc(f.n) + ' la vede sotto il sigillo.</span>'; return '<label class="mlink" style="align-self:center;display:flex;align-items:center;gap:6px;color:var(--sysl);cursor:pointer">+ Aggiungi la prova per ' + esc(f.n) + '<input type="file" accept="image/*" capture="environment" data-ph="1" data-ver="1" data-k="' + tk + '" data-sid="' + ls.id + '" data-g="' + c.id + '" hidden></label>'; })() + '</div>';
+    '<div class="acts one"><button class="btn main" data-a="' + (o.then ? 'gwNext' : 'close') + '">Continua</button></div>' + (function () { if (g) return ''; var tk = todayKey(), ls = sessions(tk)[sessions(tk).length - 1]; if (!ls) return ''; if (ls.ph && ls.ph.g === c.id) return '<span class="hint" style="text-align:center;color:var(--rew)">Prova aggiunta: ' + esc(f.n) + ' la vede sotto il sigillo.</span>'; return '<label class="mlink" style="align-self:center;display:flex;align-items:center;gap:6px;color:var(--sysl);cursor:pointer">+ Aggiungi la prova per ' + esc(f.n) + '<input type="file" accept="image/*" capture="environment" data-ph="1" data-ver="1" data-k="' + tk + '" data-sid="' + ls.id + '" data-g="' + c.id + '" hidden></label>'; })() + '</div>';
 }
 function viewGang() {
   var g = gangById(ui.gid); if (!g) { ui.screen = 'party'; return viewParty(); }
@@ -3647,7 +3678,7 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v4.0.0';
+var APP_V = 'gesta-v4.1.0';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
