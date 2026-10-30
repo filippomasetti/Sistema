@@ -1093,9 +1093,11 @@ function viewSettings() {
   h += cloudCard();
   var lb = S.lastBackup, age = lb ? diffDays(todayKey(), lb) : null;
   h += '<button class="card" data-a="rules" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;color:var(--ink);cursor:pointer;text-align:left">' + svg(IC.quest, '#BDEBFF', 20) + '<span style="flex:1 1 auto;display:flex;flex-direction:column"><span class="lbl" style="color:var(--ink)">Regole del gioco</span><span class="hint">Ranghi, Gesta e titoli in breve</span></span>' + svg(IC.right, '#8FA3C2', 18) + '</button>';
+  h += '<div class="g2" style="gap:10px"><button class="card" data-a="privOpen" style="display:flex;align-items:center;gap:10px;min-height:52px;padding:0 12px 0 14px;color:var(--ink);text-align:left">' + svg('<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>', '#BDEBFF', 20) + '<span class="lbl" style="color:var(--ink);flex:1 1 auto">Privacy</span></button><button class="card" data-a="fbOpen" style="display:flex;align-items:center;gap:10px;min-height:52px;padding:0 12px 0 14px;color:var(--ink);text-align:left">' + svg(PI.letter, '#BDEBFF', 20) + '<span class="lbl" style="color:var(--ink);flex:1 1 auto;white-space:nowrap">Segnala</span></button></div>';
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 4.2.2</span>';
+  if (cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Il tuo account</span><span class="hint">Cancella l’account e tutto quello che c’è nel cloud: sessioni, foto, amicizie, guanti. Anche da questo telefono.</span><button class="btn sm danger" data-a="delAsk">Cancella il mio account</button></div>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 4.3.0</span>';
   return h;
 }
 
@@ -1236,6 +1238,9 @@ function viewOverlay() {
       '<button class="btn main" data-a="hwOk" style="background:var(--rew);border-color:var(--rew);box-shadow:0 0 14px rgba(255,201,77,.35)">Grande</button></div>';
   } else if (o.t === 'rank') {
     h = viewRankSheet(cls);
+  } else if (o.t === 'privacy') { h = viewPrivacy(o, cls);
+  } else if (o.t === 'fb') { h = viewFb(o, cls);
+  } else if (o.t === 'delacc') { h = viewDelAcc(o, cls);
   } else if (o.t === 'rules') {
     h = '<div class="' + cls + ' tall" style="gap:12px">' + whead('Regole del gioco', true) + '<div class="wbody rules" data-keep>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Rango del mese</span><p>Contano soprattutto i giorni: ogni giorno con almeno uno sport vale <b>3 Punti Rango</b>, fino a 16 giorni. Se quel giorno completi una quest media vale <b>+0,5</b>, una difficile <b>+1</b>, fino a <b>8 punti</b> al mese. La facile serve a prendere il ritmo e non dà Punti Rango. Per gli sport senza quest (yoga, pilates, danza, boxe, crossfit, sci, golf, jolly…) una sessione <b>Top</b> vale come una quest media: per le lezioni il voto Top o almeno un’ora, per gli altri la stella.</p><p>Guanti vinti, obiettivi Gang e piani rispettati hanno uno spazio a parte, fino a <b>6 punti</b>: così quest e amici non si rubano posto. Per <b>S</b> serve anche una stella nel mese, da una sessione top.</p><p>Un guanto accettato e non chiuso toglie mezzo punto: se scendi sotto la soglia torni al rango prima. Si risale con le sessioni.</p>' +
@@ -3342,6 +3347,59 @@ function seenPing() {
   sbFetch('/rest/v1/profiles?id=eq.' + cauth.uid, { method: 'PATCH', prefer: 'return=minimal', body: { summary: summaryOf(), updated_at: new Date().toISOString() } }).catch(function () { try { localStorage.removeItem('gesta.seen'); } catch (e) {} });
   sbFetch('/rest/v1/app_days', { method: 'POST', prefer: 'resolution=ignore-duplicates,return=minimal', body: { day: t } }).catch(function () {});
 }
+/* 4.3: privacy, segnalazioni, cancellare l'account */
+function devLabel() { var ua = navigator.userAgent || '', sa = window.navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches); return (/iPhone|iPad/.test(ua) ? 'iPhone' : /Android/.test(ua) ? 'Android' : 'Computer') + (sa ? ' · app' : ' · browser') + ' · ' + innerWidth + '×' + innerHeight; }
+function viewPrivacy(o, cls) {
+  var it = function (t, b) { return '<div class="fld"><span class="lbl" style="font-size:11px">' + t + '</span><p>' + b + '</p></div>'; };
+  return '<div class="' + cls + ' tall" style="gap:12px">' + whead('Privacy', true) + '<div class="wbody" data-keep>' +
+    it('Cosa salva Gesta', 'Il nome che scegli, i tuoi sport, le sessioni con i dettagli che aggiungi e le foto che carichi. Senza email resta tutto solo su questo telefono.') +
+    it('Con l’email', 'Una copia va nel cloud di Gesta (su Supabase), così la ritrovi su un altro telefono. L’email serve solo per entrare: ti arriva un codice, niente password e niente newsletter.') +
+    it('Chi vede cosa', 'Gli amici vedono rango, Gesta, titolo, la bacheca e i giorni allenati come puntini colorati. Quest e dettagli delle sessioni solo se li accendi nelle impostazioni del Party. Le foto sono private: le condividi tu, una per una. I giorni senza sport non li vede nessuno.') +
+    it('Foto', 'Prima di caricarle Gesta le rimpicciolisce e toglie la posizione GPS e gli altri dati nascosti nel file.') +
+    it('Chi fa Gesta', 'Guarda solo i totali, per capire cosa migliorare: quante sessioni, quali sport, quante quest riuscite. Non legge il diario di nessuno e non dà i tuoi dati a nessuno. Niente pubblicità, niente tracciamento di altre aziende.') +
+    it('Notifiche', 'Solo quelle che scegli tu, e le spegni quando vuoi nelle impostazioni del Party.') +
+    it('Andartene', 'In Stato, ingranaggio in alto, «Cancella il mio account»: sparisce tutto dal cloud e da questo telefono.') +
+    it('Domande', 'Scrivi da «Segnala», sempre in Stato, ingranaggio: il messaggio arriva a chi fa Gesta.') +
+    '</div><div class="acts one"><button class="btn main" data-a="close">Ho capito</button></div></div>';
+}
+function viewFb(o, cls) {
+  if (o.sent) return '<div class="' + cls + '">' + whead('Segnala', true) + '<p class="wtitle">Grazie!</p><p class="wtext">Il messaggio è arrivato a chi fa Gesta.</p><div class="acts one"><button class="btn main" data-a="close">Chiudi</button></div></div>';
+  return '<div class="' + cls + '" style="gap:12px">' + whead('Segnala', true) + '<p class="wtext" style="text-align:left">Un problema, una cosa che non torna, un’idea: scrivila qui. Arriva a chi fa Gesta' + (cauth ? ', con il tuo nome' : '') + ', insieme alla versione dell’app e al tipo di telefono.</p>' +
+    '<textarea class="inp" data-f="fbmsg" maxlength="1500" style="height:120px;resize:none" placeholder="Cosa è successo?">' + esc(o.msg || '') + '</textarea>' +
+    (o.err ? '<span class="hint" style="color:#FF8A80;text-align:center">' + esc(o.err) + '</span>' : '') +
+    '<div class="acts"><button class="btn" data-a="close">Annulla</button><button class="btn main" data-a="fbSend"' + (o.busy ? ' disabled' : '') + '>' + (o.busy ? 'Invio…' : 'Manda') + '</button></div></div>';
+}
+function viewDelAcc(o, cls) {
+  return '<div class="' + cls + '" style="gap:12px;border-color:#FF8A80">' + whead('Cancella l’account', true) +
+    '<p class="wtext" style="text-align:left">Spariscono per sempre, dal cloud e da questo telefono: sessioni, foto, Gesta, medaglie, amicizie, guanti, cinque e le Gang che hai creato. Gli amici non ti vedranno più.</p><p class="wtext" style="text-align:left;color:var(--ink)">Non si può annullare.</p>' +
+    (o.err ? '<span class="hint" style="color:#FF8A80;text-align:center">' + esc(o.err) + '</span>' : '') +
+    '<div class="acts"><button class="btn" data-a="close">Annulla</button><button class="btn danger" data-a="delGo"' + (o.busy ? ' disabled' : '') + '>' + (o.busy ? 'Cancello…' : o.sure ? 'Conferma' : 'Cancella tutto') + '</button></div>' +
+    (o.sure && !o.busy ? '<span class="hint" style="text-align:center">Tocca ancora per confermare.</span>' : '') + '</div>';
+}
+function wipeLocal() {
+  try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf('sistema.') === 0 || k.indexOf('gesta.') === 0) localStorage.removeItem(k); }); } catch (e) {}
+  try { indexedDB.deleteDatabase('gesta-foto'); } catch (e) {}
+}
+var PA43 = {
+  privOpen: function () { var back = ui.ov && ui.ov.t === 'login' ? ui.ov : null; ui.ov = { t: 'privacy', back: back }; ding('open'); render(); },
+  fbOpen: function () { ui.ov = { t: 'fb', msg: '' }; ui.focusNext = 'fbmsg'; ding('open'); render(); },
+  fbSend: function () { var o = ui.ov, m = (o.msg || '').trim(); if (!m) { o.err = 'Scrivi qualcosa prima di mandare.'; render(); return; } o.busy = true; render();
+    var body = { msg: m.slice(0, 1500), ver: APP_V.replace('gesta-v', ''), device: devLabel() };
+    (cauth ? authFresh().then(function () { return sbFetch('/rest/v1/feedback', { method: 'POST', prefer: 'return=minimal', body: body }); }) : sbFetch('/rest/v1/feedback', { method: 'POST', anon: true, prefer: 'return=minimal', body: body }))
+      .then(function () { o.busy = false; o.sent = true; ding('ok'); render(); }, function () { o.busy = false; o.err = 'Non riesco a mandarlo: controlla la connessione e riprova.'; render(); }); },
+  delAsk: function () { ui.ov = { t: 'delacc' }; ding('open'); render(); },
+  delGo: function () { var o = ui.ov; if (!o.sure) { o.sure = true; ding('tap'); render(); return; } if (!cauth) return; o.busy = true; o.err = null; render(); var me = cauth.uid;
+    authFresh().then(function () { return stFetch('object/list/foto', { method: 'POST', type: 'application/json', body: JSON.stringify({ prefix: me + '/', limit: 1000 }) }); })
+      .then(function (t) { var l = []; try { l = JSON.parse(t || '[]'); } catch (e) {} var names = l.filter(function (x) { return x && x.name; }).map(function (x) { return me + '/' + x.name; }); if (!names.length) return; return stFetch('object/foto', { method: 'DELETE', type: 'application/json', body: JSON.stringify({ prefixes: names }) }); })
+      .catch(function () {})
+      .then(function () { return rpc('delete_my_account'); })
+      .then(function () {
+        try { navigator.serviceWorker && navigator.serviceWorker.ready.then(function (r) { return r.pushManager && r.pushManager.getSubscription(); }).then(function (sb) { if (sb) sb.unsubscribe(); }).catch(function () {}); } catch (e) {}
+        wipeLocal(); cauth = null; S = null; ui.ov = null; toast('Account cancellato. Grazie per le tue Gesta.');
+        setTimeout(function () { location.href = './'; }, 1600);
+      }, function () { o.busy = false; o.sure = false; o.err = 'Non riesco a cancellare adesso: controlla la connessione e riprova.'; render(); }); }
+};
+for (var pk43 in PA43) A[pk43] = PA43[pk43];
 /* 4.2: Gesta in numeri. I conti li fa Supabase e risponde solo all'account scritto in gesta_admins */
 var numAdm = null;
 function numAdmin() { if (numAdm === null) { try { numAdm = localStorage.getItem('gesta.adm') === '1'; } catch (e) { numAdm = false; } } return !!(numAdm && cauth); }
@@ -3353,7 +3411,7 @@ function viewNumeri() {
   h += '<p class="hint" style="margin:0;text-align:center">Solo chi ha collegato l’email · totali, mai una persona sola</p>';
   if (!n) return h + (ui.numErr ? '<p class="hint" style="text-align:center;color:#FF8A80">' + esc(ui.numErr) + '</p><button class="btn" data-a="numD" data-v="' + d + '">Riprova</button>' : '<p class="hint" style="text-align:center;padding:30px 0">Sto contando…</p>') + '</div>';
   var pc = function (a, b) { return b ? Math.round(a / b * 100) : 0; }, nf = function (x) { return String(Math.round(x * 10) / 10).replace('.', ','); };
-  var tile = function (v, l) { return '<div class="numt"><b>' + v + '</b><span>' + l + '</span></div>'; };
+  var tile = function (v, l) { return '<div class="numt"><b>' + (v == null ? 0 : v) + '</b><span>' + l + '</span></div>'; };
   var sec = function (t, body, tip) { return '<section class="card numc"><span class="lbl" style="font-size:11px;letter-spacing:2.5px;color:var(--sysl)">' + t + '</span>' + body + (tip ? '<p class="numtip">→ ' + tip + '</p>' : '') + '</section>'; };
   var split = function (parts, labels) { var tot = parts.reduce(function (a, p) { return a + p[0]; }, 0); if (!tot) return '<span class="hint">Ancora niente da contare.</span>';
     return '<div class="numsp">' + parts.filter(function (p) { return p[0]; }).map(function (p) { return '<span style="flex:' + p[0] + ' 1 0;background:' + p[1] + ';color:' + (p[2] || 'var(--ink)') + '">' + pc(p[0], tot) + '%</span>'; }).join('') + '</div><div class="numsl">' + labels.map(function (l, i) { return '<span style="text-align:' + (i === 0 ? 'left' : i === labels.length - 1 ? 'right' : 'center') + '">' + l + '</span>'; }).join('') + '</div>'; };
@@ -3378,10 +3436,12 @@ function viewNumeri() {
   var rk = n.ranks || {}, rl = ['E', 'D', 'C', 'B', 'A', 'S'], rmax = Math.max.apply(null, rl.map(function (r) { return rk[r] || 0; }).concat([1])), rtot = rl.reduce(function (a, r) { return a + (rk[r] || 0); }, 0);
   var tipR = !rtot ? '' : (rk.S || 0) / rtot > 0.3 ? 'Tanti in S: forse la scala è troppo facile.' : (rk.E || 0) / rtot > 0.4 ? 'Tanti in E: forse la scala è troppo dura.' : !rk.S && !rk.E ? 'Nessuno in E e nessuno in S: la scala sembra tarata bene.' : '';
   var rank = sec('Il rango di ' + MONTHS[new Date().getMonth()].toLowerCase(), '<div class="numrk">' + rl.map(function (r) { var c = rk[r] || 0; return '<div><span>' + c + '</span><i style="height:' + (c ? c / rmax * 80 : 3) + 'px;background:' + (c ? 'var(--sys)' : 'var(--line)') + '"></i><b>' + r + '</b></div>'; }).join('') + '</div>', tipR);
-  return h + '<div class="numgrid">' + who + how + use + rank + '</div></div>';
+  var fbl = ui.numFb || [], fbs = fbl.length ? sec('Segnalazioni · ' + fbl.length, '<div style="display:flex;flex-direction:column;gap:8px">' + fbl.slice(0, ui.numFbAll ? 50 : 3).map(function (f) { var dt = new Date(f.at); return '<div class="numt" style="gap:4px"><span style="font:500 14px/20px var(--fb);color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere">' + esc(f.msg) + '</span><span>' + esc(f.name) + ' · ' + dt.getDate() + ' ' + MSHORT[dt.getMonth()] + ' · v' + esc(f.ver || '') + ' · ' + esc(f.device || '') + '</span></div>'; }).join('') + (fbl.length > 3 && !ui.numFbAll ? '<button class="mlink" data-a="numFbAll" style="color:var(--sysl)">Vedi tutte</button>' : '') + '</div>', '') : '';
+  return h + '<div class="numgrid">' + fbs + who + how + use + rank + '</div></div>';
 }
 var PA42 = {
-  numOpen: function () { ui.screen = 'numeri'; ui.numD = ui.numD === undefined ? 30 : ui.numD; ding('open'); render(); if (!(ui.num && ui.num[ui.numD])) numLoad(ui.numD); },
+  numOpen: function () { ui.screen = 'numeri'; ui.numD = ui.numD === undefined ? 30 : ui.numD; ding('open'); render(); if (!(ui.num && ui.num[ui.numD])) numLoad(ui.numD); authFresh().then(function () { return rpc('gesta_feedback'); }).then(function (r) { ui.numFb = Array.isArray(r) ? r : []; render(); }).catch(function () {}); },
+  numFbAll: function () { ui.numFbAll = true; ding('tap'); render(); },
   numD: function (v) { var d = +v; ui.numD = d; ding('tap'); render(); if (!(ui.num && ui.num[d])) numLoad(d); }
 };
 for (var pk42 in PA42) A[pk42] = PA42[pk42];
@@ -3415,7 +3475,7 @@ function viewLogin(o, cls) {
     h += '<p class="wtext" style="text-align:left">Con un account i tuoi dati si salvano da soli nel cloud e li ritrovi su un telefono nuovo. Il tuo storico resta tutto.</p>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Email</span><input class="inp" data-f="cemail" type="email" inputmode="email" autocomplete="email" value="' + esc(o.email || '') + '" placeholder="nome@esempio.it"></div>' +
       (o.err ? '<p class="wtext" style="color:#FF8A80">' + esc(o.err) + '</p>' : '') +
-      '<div class="acts one"><button class="btn main" data-a="cSend"' + (o.busy ? ' disabled' : '') + '>' + (o.busy ? 'Invio…' : 'Mandami il codice') + '</button></div><span class="hint" style="text-align:center">Niente password: ti arriva un codice via email.</span>';
+      '<div class="acts one"><button class="btn main" data-a="cSend"' + (o.busy ? ' disabled' : '') + '>' + (o.busy ? 'Invio…' : 'Mandami il codice') + '</button></div><span class="hint" style="text-align:center">Niente password: ti arriva un codice via email.</span><button class="mlink" data-a="privOpen" style="color:var(--sysl)">Come uso i tuoi dati</button>';
   }
   return h + '</div>';
 }
@@ -3671,6 +3731,7 @@ root.addEventListener('input', function (e) {
   else if (f === 'cemail') ui.ov.email = e.target.value;
   else if (f === 'ccode') ui.ov.code = e.target.value;
   else if (f === 'fcode') { ui.ov.code = e.target.value; ui.ov.err = null; }
+  else if (f === 'fbmsg') { ui.ov.msg = e.target.value; ui.ov.err = null; }
   else if (f === 'lq' || f === 'cq') { ui.ov.q = e.target.value; var gb = root.querySelector('[data-a="' + (f === 'lq' ? 'lGo' : 'cGo') + '"]'); if (gb) gb.disabled = !ui.ov.q.trim(); }
   else if (f === 'lmsg' || f === 'cmsg') ui.ov.msg = e.target.value;
   else if (f === 'gname') { ui.ov.name = e.target.value; var cb = root.querySelector('[data-a="gangCreate"]'); if (cb) cb.disabled = !(ui.ov.name.trim() && Object.keys(ui.ov.mem).filter(function (k) { return ui.ov.mem[k]; }).length >= 2); }
@@ -3725,7 +3786,7 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v4.2.2';
+var APP_V = 'gesta-v4.3.0';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
