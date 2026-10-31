@@ -682,6 +682,7 @@ var A = {
       var ao = activeOpen();
       if (ao) { if (ao.s.assess) openDetails(ao.k, ao.s.id, true); else open({ t: 'verify', k: ao.k, id: ao.s.id }); return; }
       if (planAt(k)) { open({ t: 'plan', k: k }); return; }
+      var gO = gloveOpenToday(); if (gO) { open({ t: 'gout', id: gO.id, k: k }); return; }
       if (sessions(k).length || hasMark(k)) { open({ t: 'day', k: k }); return; }
       open({ t: 'pick', k: k }); return;
     }
@@ -1097,7 +1098,7 @@ function viewSettings() {
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
   if (cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Il tuo account</span><span class="hint">Cancella l’account e tutto quello che c’è nel cloud: sessioni, foto, amicizie, guanti. Anche da questo telefono.</span><button class="btn sm danger" data-a="delAsk">Cancella il mio account</button></div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 4.3.0</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 4.4.0</span>';
   return h;
 }
 
@@ -1238,6 +1239,8 @@ function viewOverlay() {
       '<button class="btn main" data-a="hwOk" style="background:var(--rew);border-color:var(--rew);box-shadow:0 0 14px rgba(255,201,77,.35)">Grande</button></div>';
   } else if (o.t === 'rank') {
     h = viewRankSheet(cls);
+  } else if (o.t === 'gout') { h = viewGOut(o, cls);
+  } else if (o.t === 'gno') { h = viewGNo(o, cls);
   } else if (o.t === 'privacy') { h = viewPrivacy(o, cls);
   } else if (o.t === 'fb') { h = viewFb(o, cls);
   } else if (o.t === 'delacc') { h = viewDelAcc(o, cls);
@@ -1254,7 +1257,7 @@ function viewOverlay() {
       '<div class="fld"><span class="lbl" style="font-size:11px">Tratto del mese</span><p>Lo scopri a fine mese, nel recap. Ogni sport allena uno o più tratti: <b>Forza</b>, <b>Agilità</b>, <b>Resistenza</b>, <b>Equilibrio</b>. Il tratto del mese è quello che hai allenato di più; il rombo ne mostra la forma, e la sua grandezza segue il rango. Il secondo tratto compare se arriva almeno a metà del primo: <b>non male anche</b> dal 50%, <b>notevole anche</b> dal 75%, <b>spalla a spalla</b> dall’80%.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Bacheca</span><p>Medaglie che non si azzerano mai e salgono di lega: Legno, Bronzo, Argento, Oro, Platino, Diamante, Challenger. Molte sono <b>segrete</b>: le scopri facendo. Se togli una sessione segnata per errore, sparisce anche tutto quello che aveva sbloccato: medaglie, Gesta, quest e tratto.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Amici</span><p>Nel Party trovi il tuo <b>codice amico</b>. Con <b>Aggiungi</b> scrivi il codice di un amico: gli arriva il tuo invito nelle letterine e, quando accetta, siete amici. Con <b>Invita</b> mandi il link a chi non ha ancora Gesta: entrando da quel link diventate amici subito.</p><p>Nel calendario di un amico vedi anche cosa ha in programma, tratteggiato: le quest pianificate e i guanti accettati. Da lì puoi sfidarlo proprio per quel giorno.</p></div>' +
-      '<div class="fld"><span class="lbl" style="font-size:11px">Party e guanto di sfida</span><p>Un amico ti lancia il <b>guanto</b>: uno sport e una quest precisa. Puoi accettare, dire non oggi o modificarla e rimandarla. Si accetta entro mezzanotte. Se lo completi vale <b>mezzo Punto Rango</b> per il rango del mese. Se chi lancia sceglie “lo devo fare anch’io”, diventa una <b>quest condivisa</b>: <b>mezzo Punto Rango a testa</b> a chi la completa, anche a chi l’ha lanciata. Se accetti un guanto e non lo chiudi entro mezzanotte, <b>−0,5 Punti Rango</b> (solo per i guanti, non per gli obiettivi Gang); nel punteggio tra amici nessuna penalità.</p><p>Ognuno può lanciare all’altro un guanto al giorno: se tu l’hai mandato a un amico, lui può mandarne uno a te. La quest condivisa vale già per tutti e due. Al massimo <b>3 guanti a settimana</b> per ogni amico.</p><p>Con <b>Per un altro giorno</b> scegli una data: per l’amico diventa la quest di quel giorno e scade a mezzanotte. Un guanto accettato si toglie senza costi <b>fino alle 12</b> di quel giorno.</p></div>' +
+      '<div class="fld"><span class="lbl" style="font-size:11px">Party e guanto di sfida</span><p>Un amico ti lancia il <b>guanto</b>: uno sport e una quest precisa. Puoi accettare, dire non oggi o modificarla e rimandarla. Si accetta entro mezzanotte. A fine sessione lo chiudi con <b>Fatta?</b> sulla card in alto, oppure toccando oggi sul calendario: la prima cosa che vedi è com’è andata. Se lo completi vale <b>mezzo Punto Rango</b> per il rango del mese. Se chi lancia sceglie “lo devo fare anch’io”, diventa una <b>quest condivisa</b>: <b>mezzo Punto Rango a testa</b> a chi la completa, anche a chi l’ha lanciata. Se accetti un guanto e non lo chiudi entro mezzanotte, <b>−0,5 Punti Rango</b> (solo per i guanti, non per gli obiettivi Gang); nel punteggio tra amici nessuna penalità.</p><p>Ognuno può lanciare all’altro un guanto al giorno: se tu l’hai mandato a un amico, lui può mandarne uno a te. La quest condivisa vale già per tutti e due. Al massimo <b>3 guanti a settimana</b> per ogni amico.</p><p>Con <b>Per un altro giorno</b> scegli una data: per l’amico diventa la quest di quel giorno e scade a mezzanotte. Un guanto accettato si toglie senza costi <b>fino alle 12</b> di quel giorno.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Gang</span><p>Un membro <b>fissa l’obiettivo</b> della Gang, uno al giorno, uguale per tutti. Vale se almeno un altro membro accetta, ed è superato se lo completano almeno 2 membri su 3: mezzo Punto Rango a tutti, ogni volta. Se lo completi anche tu, conta per il + del rango. Il <b>rango della Gang</b> sale solo con gli obiettivi superati: D a 1, C a 2, B a 4, A a 6, S a 8.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Il + del rango</span><p>Ogni rango ha il suo +: C+, B+, fino a S+. Lo prendi vincendo una quest social quando sei già in quel rango: un guanto di un amico che hai completato, o un obiettivo Gang che hai completato tu e che almeno un altro membro ha accettato. Va per soglie: se da D+ sali in C sei C, e per il + ti serve una nuova quest social da C. Senza amici sali lo stesso, ma senza +.</p><p>Si sale di <b>un gradino al giorno</b> (un rango pieno o un +): se oggi sei già salito, il gradino dopo scatta domani alla prima sessione. Non vale l’ultimo giorno del mese, e A+, S e S+ scattano sempre.</p></div>' +
       '<div class="fld"><span class="lbl" style="font-size:11px">Cinque</span><p>Un applauso a un amico, uno a settimana per amico: nel suo calendario tocchi un giorno di sport e glielo dai per quella sessione. Se lui lo ricambia entro 7 giorni (o tu ricambi il suo) è un <b>cinque battuto</b>, e in Bacheca c’è una medaglia apposta. Non dà Punti Rango: fa solo piacere.</p></div>' +
@@ -2881,7 +2884,7 @@ function homeGloveItems() {
   var t = todayKey();
   var items = activeGloves().map(function (c) {
     var f = friend(c.from === 'me' ? c.to : c.from);
-    return gCardHome(c, (c.from === 'me' ? 'Condivisa con ' : 'Guanto di ') + f.n, c.shared ? 'Quest condivisa' : '', PGOLD);
+    return gCardLive(c, (c.from === 'me' ? 'Condivisa con ' : 'Guanto di ') + f.n);
   });
   gangActive().forEach(function (c) { var g = gangById(c.gang), ask = c.from !== 'me' && !c.myAcc; items.push(gCardHome(c, 'Obiettivo Gang · ' + g.name, ask ? 'Fissato da ' + friend(c.from).n + ' · tocca per rispondere' : gangDone(c) + ' su ' + (g.mem.length + 1) + ' fatto', g.col, ask ? 'goOpen' : 'gView')); });
   myCh().filter(function (c) { return c.day === t && (c.me || c.myNo) && (c.gang ? gangById(c.gang) : friend(c.from === 'me' ? c.to : c.from)); }).forEach(function (c) {
@@ -2890,6 +2893,44 @@ function homeGloveItems() {
   });
   return items;
 }
+/* 4.4: il guanto di oggi si chiude dall'alto come il piano: Fatta? No / Sì */
+function gCardLive(c, kick) {
+  return '<div class="card" style="border-color:' + PGOLD + '8C;background:#14120A;box-shadow:0 0 14px ' + PGOLD + '24;padding:8px 12px 8px 14px;display:flex;flex-direction:row;align-items:center;gap:12px;width:100%">' +
+    '<button data-a="gView" data-v="' + c.id + '" aria-label="Dettaglio del guanto" style="all:unset;cursor:pointer;flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:12px">' + svg(PI.glove, PGOLD, 24) +
+    '<span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:1px"><span class="lbl" style="color:' + PGOLD + ';font-size:10.5px;letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(kick) + '</span><span style="font:700 15px/19px var(--fd);letter-spacing:1px;text-transform:uppercase;color:var(--rew);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(chLabel(c)) + '</span></span></button>' +
+    '<span style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:0 0 auto"><span class="lbl" style="font-size:10px;letter-spacing:2px;color:#D9B04A">Fatta?</span><span style="display:flex;gap:6px"><button class="btn sm" data-a="gNoAsk" data-v="' + c.id + '" style="height:36px;padding:0 11px">No</button><button class="btn sm main" data-a="gWinLog" data-v="' + c.id + '" style="height:36px;padding:0 13px;background:' + PGOLD + ';border-color:' + PGOLD + '">Sì</button></span></span></div>';
+}
+function gloveOpenToday() { return activeGloves().filter(function (c) { return !c.gang; })[0] || null; }
+function gEarly(c) { return c.to === 'me' && c.day === todayKey() && new Date().getHours() < 12; }
+function viewGOut(o, cls) {
+  var c = chById(o.id); if (!c) { ui.ov = null; return ''; }
+  var f = friend(c.from === 'me' ? c.to : c.from), sl = 'style="color:var(--mut);font-weight:600"';
+  return '<div class="' + cls + ' gold" style="border-color:' + PGOLD + ';gap:16px"><div class="whead"><span class="mark" style="border-color:' + PGOLD + ';color:' + PGOLD + '">!</span><span class="wlabel" style="color:' + PGOLD + '">' + (c.from === 'me' ? 'Condivisa con ' : 'Guanto di ') + esc(f.n) + '</span><span class="rule"></span><button class="x" data-a="close" aria-label="Chiudi">' + svg(IC.close, null, 20) + '</button></div>' +
+    '<div style="display:flex;align-items:center;gap:12px;justify-content:center"><span style="width:46px;height:46px;border-radius:12px;border:1.5px dashed ' + PGOLD + ';display:flex;align-items:center;justify-content:center">' + sportIc(c.sp, 26) + '</span><span style="font:700 20px/24px var(--fd);min-width:0;color:var(--rew)">' + esc(chLabel(c)) + '</span></div>' +
+    '<p class="wtitle" style="margin-top:-4px">Com’è andata?</p><button class="btn main" data-a="gWinLog" data-v="' + c.id + '" style="background:' + PGOLD + ';border-color:' + PGOLD + '">Superata</button><button class="btn sm" data-a="gNoQ" data-v="' + c.id + '" style="margin-top:-8px">Persa</button>' +
+    '<div style="display:flex;justify-content:center;flex-wrap:wrap;column-gap:20px;row-gap:6px;margin-top:-2px"><button class="mlink" ' + sl + ' data-a="gOther" data-v="' + c.id + '">Altro sport</button>' + (gEarly(c) ? '<button class="mlink" ' + sl + ' data-a="gDrop" data-v="' + c.id + '">Togli</button>' : '') + (sessions(o.k).length || hasMark(o.k) ? '<button class="mlink" ' + sl + ' data-a="planDay" data-v="' + o.k + '">La giornata</button>' : '') + '</div>' +
+    (c.to === 'me' ? '<p class="hint" style="margin:-8px 0 0;text-align:center">' + (gEarly(c) ? 'Prima delle 12 lo togli gratis.' : 'Persa: −0,5 Punti Rango.')+'</p>' : '') + '</div>';
+}
+function viewGNo(o, cls) {
+  var c = chById(o.id); if (!c) { ui.ov = null; return ''; }
+  var op = function (a, t1, t2) { return '<button class="card" data-a="' + a + '" data-v="' + c.id + '" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:12px 14px;text-align:left;color:var(--ink);width:100%"><span style="font:600 15px/20px var(--fd)">' + t1 + '</span><span class="hint">' + t2 + '</span></button>'; };
+  var pen = c.to === 'me' ? '−0,5 Punti Rango, ci si rifà.' : 'Nessuna penalità.';
+  return '<div class="' + cls + ' gold" style="gap:12px;border-color:' + PGOLD + '"><div class="whead"><span class="mark" style="border-color:' + PGOLD + ';color:' + PGOLD + '">!</span><span class="wlabel" style="color:' + PGOLD + '">' + esc(chLabel(c)) + '</span><span class="rule"></span><button class="x" data-a="close" aria-label="Chiudi">' + svg(IC.close, null, 20) + '</button></div>' + '<p class="wtitle" style="margin-top:-4px">Com’è andata?</p>' +
+    op('gNoQ', 'Ho fatto ' + SPORTS[c.sp].name.toLowerCase() + ', la sfida no', 'Il giorno conta lo stesso. ' + pen) +
+    op('gOther', 'Ho fatto un altro sport', 'Lo segni; il guanto resta aperto fino a stasera.') +
+    op('gLose', 'Oggi niente sport', gEarly(c) ? 'Fino alle 12 lo togli senza costi.' : pen) +
+    '<button class="btn" data-a="close">Annulla</button></div>';
+}
+var PA44 = {
+  gNoAsk: function (id) { ui.ov = { t: 'gno', id: id }; ding('open'); render(); },
+  gOther: function () { var k = todayKey(); ui.ov = { t: 'past', k: k, mark: 1 }; ding('open'); render(); },
+  gNoQ: function (id) { var c = chById(id); if (!c) return close(); var k = c.day, extra = S.profile.sports.indexOf(c.sp) < 0, b, s;
+    s = sessions(k).filter(function (x) { return x.sport === c.sp || (extra && x.sport === 'bon'); })[0];
+    if (!s) { b = addSession(k, { sport: extra ? 'bon' : c.sp, group: qType(c.sp) === 'ex' ? defGroup(c.sp) : null, d: extra ? { name: SPORTS[c.sp].name, note: '' } : null, star: false }); s = lastSess(k); } else b = beforeOf(k, s.id);
+    c.myNo = true; if (c.to === 'me') { c.st = 'over'; if (c.real) chAct(chPatch(c.id, { status: 'over' })); } save();
+    afterDone(k, b, s, 'no'); }
+};
+for (var pk44 in PA44) A[pk44] = PA44[pk44];
 function gCardHome(c, kick, sub, col, act, done) {
   var dc = done === 'lost' ? '#FF6B6B' : '#9BE15D', bc = done ? dc + '59' : col + '8C';
   return '<button class="card" data-a="' + (done ? 'gView' : act || 'gView') + '" data-v="' + c.id + '" style="border-color:' + bc + ';background:' + (done ? 'var(--surface)' : '#14120A') + ';' + (done ? '' : 'box-shadow:0 0 14px ' + col + '24;') + 'padding:8px 14px;display:flex;flex-direction:row;align-items:center;gap:12px;text-align:left;color:var(--ink);width:100%">' +
@@ -3786,7 +3827,7 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v4.3.0';
+var APP_V = 'gesta-v4.4.0';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
