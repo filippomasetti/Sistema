@@ -699,8 +699,8 @@ var A = {
       toast(SPORTS[s].name + (k === t ? ' segnato oggi' : ' segnato il ' + niceDate(k)) + '. Gesta N° ' + gestaN() + badge); return;
     }
     var qt0 = qType(s);
-    if (!ui.ov.skipAsk && !ui.ov.when && qt0 !== 'bon' && qt0 !== 'none' && qt0 !== 'sat') { ding('open'); open({ t: 'when', k: k, sport: s }); return; }
-    if (!ui.ov.skipAsk && partyLive() && qt0 !== 'bon' && qt0 !== 'none' && qt0 !== 'sat' && (activeGloves().length || gangActive().filter(function (c) { return c.from === 'me' || c.myAcc; }).length)) { ding('open'); open({ t: 'qask', k: k, sport: s }); return; }
+    if (!ui.ov.skipAsk && !ui.ov.when && qt0 !== 'bon' && qt0 !== 'none' && qt0 !== 'sat') { ding('open'); open({ t: 'when', k: k, sport: s, noSoc: ui.ov.noSoc }); return; }
+    if (!ui.ov.skipAsk && !ui.ov.noSoc && partyLive() && qt0 !== 'bon' && qt0 !== 'none' && qt0 !== 'sat' && (activeGloves().length || gangActive().filter(function (c) { return c.from === 'me' || c.myAcc; }).length)) { ding('open'); open({ t: 'qask', k: k, sport: s }); return; }
     if (s === 'gym') { ding('open'); open({ t: 'group', k: k }); return; }
     if (qt === 'ex') { ding('open'); open({ t: 'quest', k: k, sport: s, group: defGroup(s), diff: null }); return; }
     if (qt === 'bon' || qt === 'none' || qt === 'sat') {
@@ -712,7 +712,7 @@ var A = {
   },
   group: function (g) { if (ui.ov.done) { logDone(ui.ov.k, 'gym', g); return; } ding('open'); open({ t: 'quest', k: ui.ov.k, sport: 'gym', group: g, diff: null }); },
   whenDone: function () { var o = ui.ov, s = o.sport; whenLog('d'); save(); if (s === 'gym') { ding('open'); open({ t: 'group', k: o.k, done: 1 }); return; } logDone(o.k, s, qType(s) === 'ex' ? defGroup(s) : null); },
-  whenStart: function () { var o = ui.ov; whenLog('s'); save(); ui.ov = { t: 'pick', k: o.k, when: 1 }; A.pick(o.sport); },
+  whenStart: function () { var o = ui.ov; whenLog('s'); save(); ui.ov = { t: 'pick', k: o.k, when: 1, noSoc: o.noSoc }; A.pick(o.sport); },
   gaskWin: function () { var o = ui.ov, t = { k: o.k, sid: o.sid, b: o.b, kind: o.kind }; A.gWin(o.id); if (ui.ov && ui.ov.t === 'gwin') ui.ov.then = t; },
   gaskLose: function () { var o = ui.ov, c = chById(o.id); if (c) { c.myNo = true; if (c.to === 'me') { c.st = 'over'; if (c.real) chAct(chPatch(c.id, { status: 'over' })); } save(); } var s = findSession(o.k, o.sid); if (s) afterDone(o.k, o.b, s, o.kind); else close(); },
   gwNext: function () { var t = ui.ov && ui.ov.then; if (!t) { close(); return; } var s = findSession(t.k, t.sid); if (s) afterDone(t.k, t.b, s, t.kind); else close(); },
@@ -1098,7 +1098,7 @@ function viewSettings() {
   if (!cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Backup</span><span class="hint">I tuoi dati vivono solo su questo telefono. Fai un backup ogni tanto e salvalo su ' + BKCLOUD + ': se cambi telefono, lo ripristini qui.</span><span style="font:600 13px/18px var(--fb);color:' + (age === null || age > 14 ? '#FFC94D' : 'var(--soft)') + '">' + (lb ? 'Ultimo backup: ' + niceDate(lb) + (age > 14 ? ' · è ora di farne uno nuovo' : '') : 'Nessun backup ancora') + '</span><div class="acts"><button class="btn sm" data-a="importData">Ripristina</button><button class="btn sm main" data-a="exportData">Fai backup</button></div><input id="imp" type="file" accept="application/json,.json" hidden></div>';
   h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Ricomincia da zero</span>' + (ui.resetAsk ? '<span class="hint">Cancella profilo e tutti gli allenamenti da questo telefono. Non si può annullare: fai prima un backup se vuoi tenerli.</span><div class="acts"><button class="btn sm" data-a="askReset">Annulla</button><button class="btn sm danger" data-a="reset">Cancella tutto</button></div>' : '<button class="btn sm danger" data-a="askReset">Cancella i dati</button>') + '</div>';
   if (cauth) h += '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px"><span class="lbl">Il tuo account</span><span class="hint">Cancella l’account e tutto quello che c’è nel cloud: sessioni, foto, amicizie, guanti. Anche da questo telefono.</span><button class="btn sm danger" data-a="delAsk">Cancella il mio account</button></div>';
-  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 4.4.0</span>';
+  h += '<span class="hint" style="text-align:center;padding-bottom:8px">Gesta · versione 4.4.1</span>';
   return h;
 }
 
@@ -1201,7 +1201,7 @@ function viewOverlay() {
       if (fx) h += '<p class="wtext">Da mezzogiorno è fissata e non si toglie più. Fai sport e chiudila quando hai finito.</p><p class="hint" style="margin:-8px 0 0;text-align:center">Se oggi non fai sport: −0,5 Punti Rango.</p>' + (isT ? '<button class="mlink" data-a="planOther" data-v="' + o.k + '">Ho fatto un altro sport</button>' : '') + '<div class="acts one"><button class="btn main" data-a="close">Ok</button></div>';
       else if (isT) { var hq2 = pp.diff !== 'solo' && pp.q, sl = 'style="color:var(--mut);font-weight:600"';
         h += '<p class="wtitle" style="margin-top:-4px">' + (hq2 ? 'Com’è andata?' : 'Fatto?') + '</p><button class="btn main" data-a="planYes" data-v="' + o.k + '">' + (hq2 ? 'Superata' : 'Fatto') + '</button>' + (hq2 ? '<button class="btn sm" data-a="planNoQ" data-v="' + o.k + '" style="margin-top:-8px">Non questa volta</button>' : '') +
-          '<div style="display:flex;justify-content:center;flex-wrap:wrap;column-gap:20px;row-gap:6px;margin-top:-2px"><button class="mlink" ' + sl + ' data-a="planOther" data-v="' + o.k + '">Altro sport</button><button class="mlink" ' + sl + ' data-a="plEdit" data-v="' + o.k + '">Cambia</button><button class="mlink" ' + sl + ' data-a="plDel" data-v="' + o.k + '">Togli</button>' + (sessions(o.k).length || hasMark(o.k) ? '<button class="mlink" ' + sl + ' data-a="planDay" data-v="' + o.k + '">La giornata</button>' : '') + '</div>'; }
+          '<div style="display:flex;justify-content:center;align-items:center;flex-wrap:wrap;column-gap:18px;row-gap:8px;margin-top:-2px">' + '<button class="mlink" data-a="addSport" style="display:flex;align-items:center;gap:5px;border:1px solid var(--line2);border-radius:999px;padding:5px 12px;color:var(--soft);font-weight:600">' + svg(PI.plus, 'var(--soft)', 13) + 'Un altro sport</button>' + '<button class="mlink" ' + sl + ' data-a="plEdit" data-v="' + o.k + '">Cambia</button><button class="mlink" ' + sl + ' data-a="plDel" data-v="' + o.k + '">Togli</button>' + (sessions(o.k).length || hasMark(o.k) ? '<button class="mlink" ' + sl + ' data-a="planDay" data-v="' + o.k + '">La giornata</button>' : '') + '</div>'; }
       else h += '<p class="wtext">' + (!planEarly(o.k, pp) ? 'In programma per oggi. Puoi toglierla quando vuoi.' : 'In programma. Puoi toglierla o cambiarla quando vuoi: se la fai, +¼ di Punto Rango.') + '</p><div class="acts"><button class="btn" data-a="plDel" data-v="' + o.k + '">Togli</button><button class="btn main" data-a="plEdit" data-v="' + o.k + '">Cambia</button></div>';
     }
     gls.forEach(function (c) {
@@ -2908,7 +2908,7 @@ function viewGOut(o, cls) {
   return '<div class="' + cls + ' gold" style="border-color:' + PGOLD + ';gap:16px"><div class="whead"><span class="mark" style="border-color:' + PGOLD + ';color:' + PGOLD + '">!</span><span class="wlabel" style="color:' + PGOLD + '">' + (c.from === 'me' ? 'Condivisa con ' : 'Guanto di ') + esc(f.n) + '</span><span class="rule"></span><button class="x" data-a="close" aria-label="Chiudi">' + svg(IC.close, null, 20) + '</button></div>' +
     '<div style="display:flex;align-items:center;gap:12px;justify-content:center"><span style="width:46px;height:46px;border-radius:12px;border:1.5px dashed ' + PGOLD + ';display:flex;align-items:center;justify-content:center">' + sportIc(c.sp, 26) + '</span><span style="font:700 20px/24px var(--fd);min-width:0;color:var(--rew)">' + esc(chLabel(c)) + '</span></div>' +
     '<p class="wtitle" style="margin-top:-4px">Com’è andata?</p><button class="btn main" data-a="gWinLog" data-v="' + c.id + '" style="background:' + PGOLD + ';border-color:' + PGOLD + '">Superata</button><button class="btn sm" data-a="gNoQ" data-v="' + c.id + '" style="margin-top:-8px">Persa</button>' +
-    '<div style="display:flex;justify-content:center;flex-wrap:wrap;column-gap:20px;row-gap:6px;margin-top:-2px"><button class="mlink" ' + sl + ' data-a="gOther" data-v="' + c.id + '">Altro sport</button>' + (gEarly(c) ? '<button class="mlink" ' + sl + ' data-a="gDrop" data-v="' + c.id + '">Togli</button>' : '') + (sessions(o.k).length || hasMark(o.k) ? '<button class="mlink" ' + sl + ' data-a="planDay" data-v="' + o.k + '">La giornata</button>' : '') + '</div>' +
+    '<div style="display:flex;justify-content:center;align-items:center;flex-wrap:wrap;column-gap:18px;row-gap:8px;margin-top:-2px">' + '<button class="mlink" data-a="addSport" style="display:flex;align-items:center;gap:5px;border:1px solid var(--line2);border-radius:999px;padding:5px 12px;color:var(--soft);font-weight:600">' + svg(PI.plus, 'var(--soft)', 13) + 'Un altro sport</button>' + (gEarly(c) ? '<button class="mlink" ' + sl + ' data-a="gDrop" data-v="' + c.id + '">Togli</button>' : '') + (sessions(o.k).length || hasMark(o.k) ? '<button class="mlink" ' + sl + ' data-a="planDay" data-v="' + o.k + '">La giornata</button>' : '') + '</div>' +
     (c.to === 'me' ? '<p class="hint" style="margin:-8px 0 0;text-align:center">' + (gEarly(c) ? 'Prima delle 12 lo togli gratis.' : 'Persa: −0,5 Punti Rango.')+'</p>' : '') + '</div>';
 }
 function viewGNo(o, cls) {
@@ -2922,6 +2922,7 @@ function viewGNo(o, cls) {
     '<button class="btn" data-a="close">Annulla</button></div>';
 }
 var PA44 = {
+  addSport: function () { ui.ov = { t: 'pick', k: todayKey(), noSoc: 1 }; ding('open'); render(); },
   gNoAsk: function (id) { ui.ov = { t: 'gno', id: id }; ding('open'); render(); },
   gOther: function () { var k = todayKey(); ui.ov = { t: 'past', k: k, mark: 1 }; ding('open'); render(); },
   gNoQ: function (id) { var c = chById(id); if (!c) return close(); var k = c.day, extra = S.profile.sports.indexOf(c.sp) < 0, b, s;
@@ -3827,7 +3828,7 @@ render();
 if (cauth && cloudOn()) cloudPull(true);
 try { document.fonts.ready.then(function () { fitTitles(); }); } catch (e) {}
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-var APP_V = 'gesta-v4.4.0';
+var APP_V = 'gesta-v4.4.1';
 /* aggiornamenti: controlla a ogni riapertura; quando arriva la versione nuova ricarica da sola, ma mai mentre stai scrivendo o hai una finestra aperta */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swReg = null, swReload = false, hadCtl = !!navigator.serviceWorker.controller;
